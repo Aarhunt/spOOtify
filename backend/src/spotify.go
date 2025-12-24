@@ -7,7 +7,6 @@ import (
 	"os"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"github.com/zmb3/spotify/v2"
-	"net/http"
 	"log"
 )
 
