@@ -9,10 +9,10 @@ import (
 
 type Playlist struct {
 	gorm.Model
-	SpotifyID         spotify.ID `json:"spotid"`
-	Inclusions        []IdItem   `json:"inclusions"`
+	SpotifyID         spotify.ID 
+	Inclusions        []IdItem  
 	IncludedPlaylists []Playlist `gorm:"many2many:playlist_playlists;"`
-	Exclusions        []IdItem   `json:"exclusions"`
+	Exclusions        []IdItem 
 }
 
 func getPlaylist(id spotify.ID) {

@@ -23,7 +23,7 @@ var itemType = map[ItemType]string{
 
 type IdItem struct {
 	gorm.Model
-	SpotifyID	spotify.ID	`json:"spotid"`
-	ItemType 	ItemType	`json:"ItemType"`
+	SpotifyID	spotify.ID	
+	ItemType 	ItemType
 	PlaylistID 	uint
 }
