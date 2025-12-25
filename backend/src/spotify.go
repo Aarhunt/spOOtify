@@ -26,10 +26,12 @@ var spotifyConnInstance *spotifyConn
 
 var (
 	redirectURI = "https://localhost:3000/callback"
-	auth  = spotifyauth.New(spotifyauth.WithRedirectURL(redirectURI), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate))
+	// auth  = spotifyauth.New(spotifyauth.WithRedirectURL(redirectURI), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate))
 	ch    = make(chan *spotify.Client)
 	state = "abc123"
 )
+
+var auth *spotifyauth.Authenticator
 
 func authspotify() *spotify.Client{
 	// first start an HTTP server
