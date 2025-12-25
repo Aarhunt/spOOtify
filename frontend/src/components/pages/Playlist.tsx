@@ -50,38 +50,56 @@ export default function Playlist() {
 
 export function DialogCloseButton() {
     const createPlaylist = usePlaylistStore((state) => state.createPlaylist);
-    const name = React.useId()
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="green">Create</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create Playlist</DialogTitle>
-          <DialogDescription>
-            Fill in the name of the playlist here.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex items-center gap-2">
-          <div className="grid flex-1 gap-2">
-            <Label htmlFor="link" className="sr-only">
-              Name
-            </Label>
-            <Input
-              id={name}
-              defaultValue="My Playlist"
-            />
-          </div>
-        </div>
-        <DialogFooter className="sm:justify-start">
-          <DialogClose asChild>
-            <Button variant="outline" onClick={() => createPlaylist(name)}>Create</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
+    
+    const [playlistName, setPlaylistName] = React.useState("My Playlist");
+    const inputId = React.useId(); 
+
+    const handleCreate = async () => {
+        if (!playlistName.trim()) return;
+        await createPlaylist(playlistName);
+        // Optional: Reset field after creation
+        setPlaylistName("My Playlist");
+    };
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="green">Create</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Create Playlist</DialogTitle>
+                    <DialogDescription>
+                        Fill in the name of the playlist here.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center gap-2">
+                    <div className="grid flex-1 gap-2">
+                        <Label htmlFor={inputId} className="sr-only">
+                            Name
+                        </Label>
+                        <Input
+                            id={inputId}
+                            value={playlistName}
+                            onChange={(e) => setPlaylistName(e.target.value)}
+                            placeholder="My Playlist"
+                        />
+                    </div>
+                </div>
+                <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                        <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={handleCreate}
+                        >
+                            Create
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
 }
 
 function PlaylistSearch() {

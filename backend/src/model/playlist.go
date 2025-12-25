@@ -12,9 +12,9 @@ type Playlist struct {
 	gorm.Model
 	Name              string `json:"name"`
 	SpotifyID         spotify.ID
-	Inclusions        []IdItem   `gorm:"many2many:playlist_playlists;"`
-	IncludedPlaylists []Playlist `gorm:"many2many:playlist_playlists;"`
-	Exclusions        []IdItem   `gorm:"many2many:playlist_playlists;"`
+	Inclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	IncludedPlaylists []Playlist `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Exclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 // PlaylistCreateRequest represents the payload to create a playlist

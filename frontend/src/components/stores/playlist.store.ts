@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getPlaylist, postPlaylistCreate } from '@/client';
+import { getPlaylist, postPlaylist } from '@/client';
 import type { ModelPlaylist } from "@/client/types.gen"
 
 
@@ -29,7 +29,7 @@ export const usePlaylistStore = create<PlaylistState>((set) => ({
     createPlaylist: async (name: string) => {
         set({ loading: true });
         try {
-            const response = await postPlaylistCreate({
+            const response = await postPlaylist({
                 body: { name } // Hey API structure
             });
 

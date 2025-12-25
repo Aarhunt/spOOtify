@@ -54,9 +54,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/playlist/create": {
+            },
             "post": {
                 "description": "Create a new playlist locally and on Spotify",
                 "consumes": [
@@ -91,6 +89,63 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes every playlist record in the database",
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Clear all playlists",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/playlist/{id}": {
+            "delete": {
+                "description": "Delete a specific playlist by its ID",
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Delete a playlist",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Playlist ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }

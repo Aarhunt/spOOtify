@@ -36,7 +36,7 @@ func GetPlaylists(c *gin.Context) {
 // @Param        playlist body model.PlaylistCreateRequest true "Playlist name"
 // @Success      201 {object} model.Playlist
 // @Failure      400 {object} gin.H
-// @Router       /playlist/create [post]
+// @Router       /playlist [post]
 func PostPlaylist(c *gin.Context) {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client, user := spotiConn.Ctx, spotiConn.Client, spotiConn.UserID
@@ -69,4 +69,31 @@ func PostPlaylist(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusCreated, localPlaylist)
+}
+
+func DeletePlaylist(id uint) *gorm.DB {
+    db := src.GetDbConn().Db
+
+    return db.Delete(&model.Playlist{}, id)
+}
+
+// ClearPlaylists godoc
+// @Summary      Clear all playlists
+// @Description  Deletes every playlist record in the database
+// @Tags         playlists
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Router       /playlist [delete]
+func ClearPlaylists(c *gin.Context) {
+    dbConn := src.GetDbConn()
+    ctx, db := dbConn.Ctx, dbConn.Db
+
+    result, err := gorm.G[model.Playlist](db).Where("true").Delete(ctx)
+
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.IndentedJSON(http.StatusOK, result)
 }

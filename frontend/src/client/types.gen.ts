@@ -44,6 +44,35 @@ export type ModelPlaylistCreateRequest = {
     name: string;
 };
 
+export type DeletePlaylistData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/playlist';
+};
+
+export type DeletePlaylistErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type DeletePlaylistError = DeletePlaylistErrors[keyof DeletePlaylistErrors];
+
+export type DeletePlaylistResponses = {
+    /**
+     * OK
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type DeletePlaylistResponse = DeletePlaylistResponses[keyof DeletePlaylistResponses];
+
 export type GetPlaylistData = {
     body?: never;
     path?: never;
@@ -71,30 +100,60 @@ export type GetPlaylistResponses = {
 
 export type GetPlaylistResponse = GetPlaylistResponses[keyof GetPlaylistResponses];
 
-export type PostPlaylistCreateData = {
+export type PostPlaylistData = {
     /**
      * Playlist name
      */
     body: ModelPlaylistCreateRequest;
     path?: never;
     query?: never;
-    url: '/playlist/create';
+    url: '/playlist';
 };
 
-export type PostPlaylistCreateErrors = {
+export type PostPlaylistErrors = {
     /**
      * Bad Request
      */
     400: GinH;
 };
 
-export type PostPlaylistCreateError = PostPlaylistCreateErrors[keyof PostPlaylistCreateErrors];
+export type PostPlaylistError = PostPlaylistErrors[keyof PostPlaylistErrors];
 
-export type PostPlaylistCreateResponses = {
+export type PostPlaylistResponses = {
     /**
      * Created
      */
     201: ModelPlaylist;
 };
 
-export type PostPlaylistCreateResponse = PostPlaylistCreateResponses[keyof PostPlaylistCreateResponses];
+export type PostPlaylistResponse = PostPlaylistResponses[keyof PostPlaylistResponses];
+
+export type DeletePlaylistByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Playlist ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/playlist/{id}';
+};
+
+export type DeletePlaylistByIdErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type DeletePlaylistByIdError = DeletePlaylistByIdErrors[keyof DeletePlaylistByIdErrors];
+
+export type DeletePlaylistByIdResponses = {
+    /**
+     * No Content
+     */
+    204: unknown;
+};

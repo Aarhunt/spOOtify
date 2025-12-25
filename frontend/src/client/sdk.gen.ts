@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistCreateData, PostPlaylistCreateErrors, PostPlaylistCreateResponses } from './types.gen';
+import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -19,6 +19,13 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
+ * Clear all playlists
+ *
+ * Deletes every playlist record in the database
+ */
+export const deletePlaylist = <ThrowOnError extends boolean = false>(options?: Options<DeletePlaylistData, ThrowOnError>) => (options?.client ?? client).delete<DeletePlaylistResponses, DeletePlaylistErrors, ThrowOnError>({ url: '/playlist', ...options });
+
+/**
  * Get all playlists
  *
  * Responds with the list of all playlists as JSON.
@@ -30,11 +37,18 @@ export const getPlaylist = <ThrowOnError extends boolean = false>(options?: Opti
  *
  * Create a new playlist locally and on Spotify
  */
-export const postPlaylistCreate = <ThrowOnError extends boolean = false>(options: Options<PostPlaylistCreateData, ThrowOnError>) => (options.client ?? client).post<PostPlaylistCreateResponses, PostPlaylistCreateErrors, ThrowOnError>({
-    url: '/playlist/create',
+export const postPlaylist = <ThrowOnError extends boolean = false>(options: Options<PostPlaylistData, ThrowOnError>) => (options.client ?? client).post<PostPlaylistResponses, PostPlaylistErrors, ThrowOnError>({
+    url: '/playlist',
     ...options,
     headers: {
         'Content-Type': 'application/json',
         ...options.headers
     }
 });
+
+/**
+ * Delete a playlist
+ *
+ * Delete a specific playlist by its ID
+ */
+export const deletePlaylistById = <ThrowOnError extends boolean = false>(options: Options<DeletePlaylistByIdData, ThrowOnError>) => (options.client ?? client).delete<DeletePlaylistByIdResponses, DeletePlaylistByIdErrors, ThrowOnError>({ url: '/playlist/{id}', ...options });

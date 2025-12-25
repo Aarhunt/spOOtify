@@ -93,6 +93,23 @@ info:
   version: "1.0"
 paths:
   /playlist:
+    delete:
+      description: Deletes every playlist record in the database
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Clear all playlists
+      tags:
+      - playlists
     get:
       description: Responds with the list of all playlists as JSON.
       produces:
@@ -113,7 +130,6 @@ paths:
       summary: Get all playlists
       tags:
       - playlists
-  /playlist/create:
     post:
       consumes:
       - application/json
@@ -137,6 +153,27 @@ paths:
           schema:
             $ref: '#/definitions/gin.H'
       summary: Create new playlist
+      tags:
+      - playlists
+  /playlist/{id}:
+    delete:
+      description: Delete a specific playlist by its ID
+      parameters:
+      - description: Playlist ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a playlist
       tags:
       - playlists
 securityDefinitions:

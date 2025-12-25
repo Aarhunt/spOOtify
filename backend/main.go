@@ -7,9 +7,10 @@ import (
 
 	"github.com/aarhunt/autistify/docs"
 	"github.com/aarhunt/autistify/src/services"
+	"github.com/aarhunt/autistify/src/controllers"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/gin-contrib/cors"
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
 	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
@@ -43,26 +44,29 @@ func main() {
 	docs.SwaggerInfo.Title = "Swagger Example API"
 	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "http://localhost:8080"
+	docs.SwaggerInfo.Host = "localhost:8080"
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	router := gin.Default()
 
-// Apply CORS middleware before your routes
-    router.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"}, // Your React URL
-        AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-        ExposeHeaders:    []string{"Content-Length"},
-        AllowCredentials: true,
-    }))
+	// Apply CORS middleware before your routes
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"}, // Your React URL
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
 	{
 		v1 := router.Group("/api/v1")
 		v1.GET("/search/:query", services.Search)
+
 		v1.GET("/playlist", services.GetPlaylists)
-		v1.POST("/playlist/create/", services.PostPlaylist)
+		v1.POST("/playlist", services.PostPlaylist)
+		v1.DELETE("/playlist/:id", controllers.DeletePlaylist)
+		v1.DELETE("/playlist", services.ClearPlaylists)
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
