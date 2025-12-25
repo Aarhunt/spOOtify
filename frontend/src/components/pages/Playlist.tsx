@@ -18,39 +18,78 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 import { usePlaylistStore } from "@/components/stores/playlist.store"
 
 export default function Playlist() {
     const fetchPlaylists = usePlaylistStore((state) => state.fetch);
 
-    // Fetch data when the component mounts
     React.useEffect(() => {
         fetchPlaylists();
     }, [fetchPlaylists]);
 
     return (
-        // <div className="flex items-center gap-2">
-        <>
+        <div className="flex items-center gap-2">
         <PlaylistSearch />
-        <PlaylistCreate />
-        </>
-        // </div>
+        <DialogCloseButton />
+        </div>
     )
 }
 
-function PlaylistCreate() {
-    return <Button variant={'green'}> <Plus /> Create Playlist</Button>
+export function DialogCloseButton() {
+    const createPlaylist = usePlaylistStore((state) => state.createPlaylist);
+    const name = React.useId()
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="green">Create</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create Playlist</DialogTitle>
+          <DialogDescription>
+            Fill in the name of the playlist here.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center gap-2">
+          <div className="grid flex-1 gap-2">
+            <Label htmlFor="link" className="sr-only">
+              Name
+            </Label>
+            <Input
+              id={name}
+              defaultValue="My Playlist"
+            />
+          </div>
+        </div>
+        <DialogFooter className="sm:justify-start">
+          <DialogClose asChild>
+            <Button variant="outline" onClick={() => createPlaylist(name)}>Create</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 function PlaylistSearch() {
     const [open, setOpen] = React.useState(false)
     const [value, setValue] = React.useState("")
     
-    // 1. Destructure data and loading from the store
     const { data, loading } = usePlaylistStore();
 
-    // 2. Prevent crash: If data is undefined or null, fallback to an empty array
     const safeData = data || [];
 
     return (
