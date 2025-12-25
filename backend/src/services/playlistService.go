@@ -2,7 +2,6 @@ package services
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/aarhunt/autistify/src"
 	"github.com/aarhunt/autistify/src/model"

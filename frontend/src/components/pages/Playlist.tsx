@@ -64,7 +64,7 @@ export function DialogCloseButton() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="green">Create</Button>
+                <Button variant="green"><Plus />Create Playlist</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
@@ -104,9 +104,8 @@ export function DialogCloseButton() {
 
 function PlaylistSearch() {
     const [open, setOpen] = React.useState(false)
-    const [value, setValue] = React.useState("")
     
-    const { data, loading } = usePlaylistStore();
+    const { data, loading, current, setCurrent } = usePlaylistStore();
 
     const safeData = data || [];
 
@@ -120,9 +119,8 @@ function PlaylistSearch() {
                     className="w-[200px] justify-between"
                     disabled={loading} // Disable button while loading
                 >
-                    {/* 3. Safe Check: Use optional chaining (?.) to prevent crashes */}
-                    {value
-                        ? safeData.find((p) => p.name === value)?.name || "Select playlist..."
+                    { current
+                        ? safeData.find((p) => p.name === current)?.name || "Select playlist..."
                         : "Select playlist..."}
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -133,20 +131,19 @@ function PlaylistSearch() {
                     <CommandList>
                         <CommandEmpty>No playlist found.</CommandEmpty>
                         <CommandGroup>
-                            {/* 4. Use the safeData array */}
                             {safeData.map((p) => (
                                 <CommandItem
                                     key={p.id || p.name}
                                     value={p.name}
                                     onSelect={(currentValue) => {
-                                        setValue(currentValue === value ? "" : currentValue)
+                                        setCurrent(currentValue === current ? "" : currentValue)
                                         setOpen(false)
                                     }}
                                 >
                                     <CheckIcon
                                         className={cn(
                                             "mr-2 h-4 w-4",
-                                            value === p.name ? "opacity-100" : "opacity-0"
+                                            current === p.name ? "opacity-100" : "opacity-0"
                                         )}
                                     />
                                     {p.name}
@@ -159,3 +156,5 @@ function PlaylistSearch() {
         </Popover>
     )
 }
+
+

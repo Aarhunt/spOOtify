@@ -17,7 +17,6 @@ type Playlist struct {
 	Exclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
-// PlaylistCreateRequest represents the payload to create a playlist
 type PlaylistCreateRequest struct {
 	Name string `json:"name" binding:"required" example:"My Playlist"`
 }

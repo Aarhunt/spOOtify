@@ -5,16 +5,21 @@ import type { ModelPlaylist } from "@/client/types.gen"
 
 interface PlaylistState {
     data: ModelPlaylist[];
+    current: string;
     loading: boolean;
     error: boolean;
     fetch: () => Promise<void>;
+    setCurrent: (val: string) => void;
     createPlaylist: (name: string) => Promise<void>;
 }
 
 export const usePlaylistStore = create<PlaylistState>((set) => ({
     data: [],
+    current: "",
     loading: false,
     error: false,
+
+    setCurrent: (val) => set({ current: val }),
 
     fetch: async () => {
         set({ loading: true });
