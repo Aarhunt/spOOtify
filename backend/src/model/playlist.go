@@ -22,6 +22,14 @@ type PlaylistCreateRequest struct {
 	Name string `json:"name" binding:"required" example:"My Playlist"`
 }
 
+type PlaylistResponse struct {
+	Name              string `json:"name"`
+	SpotifyID         spotify.ID
+	Inclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	IncludedPlaylists []Playlist `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Exclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+}
+
 
 func (p *Playlist) AddItem(item IdItem) {
 	p.Inclusions = append(p.Inclusions, item)
@@ -37,6 +45,16 @@ func (p *Playlist) AddPlaylist(p1 Playlist) {
 
 func (p Playlist) getSpotifyID() spotify.ID {
 	return p.SpotifyID
+}
+
+func (p Playlist) ToResponse() *PlaylistResponse {
+	return &PlaylistResponse{
+		Name:              p.Name,
+		SpotifyID:         p.SpotifyID,
+		Inclusions:        p.Inclusions,
+		IncludedPlaylists: p.IncludedPlaylists,
+		Exclusions:        p.Exclusions,
+	}
 }
 
 func (p Playlist) getTracks(ctx context.Context, client spotify.Client) []IdItem {

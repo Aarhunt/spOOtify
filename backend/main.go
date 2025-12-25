@@ -61,12 +61,12 @@ func main() {
 
 	{
 		v1 := router.Group("/api/v1")
-		v1.GET("/search/:query", services.Search)
+		v1.GET("/search/:query", controllers.Search)
 
-		v1.GET("/playlist", services.GetPlaylists)
-		v1.POST("/playlist", services.PostPlaylist)
+		v1.GET("/playlist", controllers.GetPlaylists)
+		v1.POST("/playlist", controllers.PostPlaylist)
 		v1.DELETE("/playlist/:id", controllers.DeletePlaylist)
-		v1.DELETE("/playlist", services.ClearPlaylists)
+		v1.DELETE("/playlist", controllers.ClearPlaylists)
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

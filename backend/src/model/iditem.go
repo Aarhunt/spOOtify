@@ -16,7 +16,7 @@ const (
 
 var itemType = map[ItemType]string{
 	PlaylistItem: 	"playlist",
-	Artist: 		"connected",
+	Artist: 		"artist",
 	Album:			"album",
 	Track:			"track",
 }
