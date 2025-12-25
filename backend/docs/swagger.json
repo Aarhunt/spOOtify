@@ -18,6 +18,38 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/playlist": {
+            "get": {
+                "description": "Responds with the list of all playlists as JSON.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Get all playlists",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Playlist"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/playlist/create": {
             "post": {
                 "description": "Create a new playlist locally and on Spotify",

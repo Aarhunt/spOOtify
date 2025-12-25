@@ -1,22 +1,25 @@
 import { create } from 'zustand'
-import axios from "axios";
+import { getPlaylist } from '@/client';
+import type { ModelPlaylist } from "@/client/types.gen"
 
-const initialState = {
-  loading: false,
-  success: false,
-  error: false,
-  data: null,
-  errorData: null,
-};
 
-const usePlaylistStore = create((set, get) => ({
-    ...initialState,
+interface PlaylistState {
+    data: ModelPlaylist[];
+    loading: boolean;
+    fetch: () => Promise<void>;
+}
 
-    execute: async () => {
-        set({...initialState, loading: true});
+export const usePlaylistStore = create<PlaylistState>((set) => ({
+    data: [],
+    loading: false,
+    fetch: async () => {
+        set({ loading: true });
         try {
-            const res = await axios.get("localhost:8080/playlists");
-            set({...initialState, success: true, data: res.data})
+            // "getPlaylists" is typed! It knows it returns Playlist[]
+            const response = await getPlaylist(); 
+            set({ data: response.data, loading: false });
+        } catch (error) {
+            set({ loading: false });
         }
     }
 }));

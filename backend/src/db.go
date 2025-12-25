@@ -8,6 +8,7 @@ import (
 	// "gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"github.com/aarhunt/autistify/src/model"
 )
 
 var lockDbConn = &sync.Mutex{}
@@ -26,6 +27,8 @@ func createDbConn() *dbConn{
 	  if err != nil {
 		panic("failed to connect database")
 	  }
+
+	db.AutoMigrate(&model.Playlist{})
 
 	return &dbConn{Ctx: ctx, Db: db}
 }

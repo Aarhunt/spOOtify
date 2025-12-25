@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aarhunt/autistify/src/model"
+	"github.com/aarhunt/autistify/docs"
+	"github.com/aarhunt/autistify/src/services"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-"github.com/swaggo/gin-swagger" // gin-swagger middleware
-"github.com/aarhunt/autistify/docs"
-"github.com/swaggo/files" // swagger embed files
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
 // @title           Swagger Example API
@@ -33,10 +33,10 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
-	err := godotenv.Load() 
-    if err != nil {
-    	log.Fatal(err)
-    }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// programmatically set swagger info
 	docs.SwaggerInfo.Title = "Swagger Example API"
@@ -50,14 +50,15 @@ func main() {
 	// router.GET("/albums", src.GetAlbums)
 	// router.GET("/albums/:id", src.GetAlbumByID)
 	// router.POST("/albums", src.PostAlbums)
-	router.GET("/search/:query", model.Search)
-	router.POST("/playlist/create/", model.PostPlaylist)
+	router.GET("/search/:query", services.Search)
+	router.GET("/playlist", services.GetPlaylists)
+	router.POST("/playlist/create/", services.PostPlaylist)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.Run("localhost:8080")
 }
 
-func handler(w http.ResponseWriter, r *http.Request)  {
+func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hello, World!")
 }
