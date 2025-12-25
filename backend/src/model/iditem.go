@@ -27,3 +27,14 @@ type IdItem struct {
 	ItemType 	ItemType
 	PlaylistID 	uint
 }
+
+type ItemRequest struct {
+	ItemSpotifyID	spotify.ID `json:"spotid" binding:"required"`
+	ItemType 	ItemType `json:"type" binding:"required"`
+	PlaylistID 	uint `json:"playlistid" binding:"required"`
+}
+
+type ItemPlaylistRequest struct {
+	ParentSpotifyID spotify.ID	`json:"pspotid" binding:"required"`
+	ChildSpotifyID spotify.ID`json:"cspotid" binding:"required"`
+}
