@@ -19,7 +19,7 @@ func GetPlaylists() ([]model.PlaylistResponse, error) {
 	}), err.Error
 }
 
-func DeletePlaylist(id uint) *gorm.DB {
+func DeletePlaylist(id string) *gorm.DB {
 	db := src.GetDbConn().Db
 
 	return db.Delete(&model.Playlist{}, id)
@@ -37,8 +37,8 @@ func PostPlaylist(req model.PlaylistCreateRequest) (*model.PlaylistResponse, err
 	}
 
 	localPlaylist := model.Playlist{
+		SpotifyID:		   spotPlaylist.ID,
 		Name:              req.Name,
-		SpotifyID:         spotPlaylist.ID,
 		Inclusions:        []model.IdItem{},
 		IncludedPlaylists: []model.Playlist{},
 		Exclusions:        []model.IdItem{},

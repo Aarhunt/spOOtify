@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/zmb3/spotify/v2"
-	"gorm.io/gorm"
 )
 
 type ItemType int
@@ -22,16 +21,15 @@ var itemType = map[ItemType]string{
 }
 
 type IdItem struct {
-	gorm.Model
-	SpotifyID	spotify.ID	
+	SpotifyID   spotify.ID `gorm:"primaryKey;type:varchar(255);not null" json:"id" example:"37i9dQZF1DXcBWIGoYBM3M"`
 	ItemType 	ItemType
-	PlaylistID 	uint
+	Playlists 	[]Playlist
 }
 
 type ItemRequest struct {
 	ItemSpotifyID	spotify.ID `json:"spotid" binding:"required"`
 	ItemType 	ItemType `json:"type" binding:"required"`
-	PlaylistID 	uint `json:"playlistid" binding:"required"`
+	PlaylistID 	spotify.ID `json:"playlistid" binding:"required"`
 }
 
 type ItemPlaylistRequest struct {
