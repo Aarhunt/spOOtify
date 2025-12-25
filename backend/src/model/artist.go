@@ -32,7 +32,7 @@ func getAlbumsFromArtist(ctx context.Context, client spotify.Client, idItem IdIt
 	// handle album results
 	if albums != nil {
 		for _, album := range albums.Albums {
-			result = append(result, IdItem{ID: "1", SpotifyID: album.ID, ItemType: Album})
+			result = append(result, IdItem{SpotifyID: album.ID, ItemType: Album})
 		}
 	}
 

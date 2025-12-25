@@ -1,0 +1,124 @@
+basePath: /api/v1
+definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  model.IdItem:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      itemType:
+        $ref: '#/definitions/model.ItemType'
+      playlistID:
+        type: integer
+      spotifyID:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.ItemType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - PlaylistItem
+    - Artist
+    - Album
+    - Track
+  model.Playlist:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      exclusions:
+        items:
+          $ref: '#/definitions/model.IdItem'
+        type: array
+      id:
+        type: integer
+      includedPlaylists:
+        items:
+          $ref: '#/definitions/model.Playlist'
+        type: array
+      inclusions:
+        items:
+          $ref: '#/definitions/model.IdItem'
+        type: array
+      name:
+        type: string
+      spotifyID:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  model.PlaylistCreateRequest:
+    properties:
+      name:
+        example: My Playlist
+        type: string
+    required:
+    - name
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server celler server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /playlist/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new playlist locally and on Spotify
+      parameters:
+      - description: Playlist name
+        in: body
+        name: playlist
+        required: true
+        schema:
+          $ref: '#/definitions/model.PlaylistCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Playlist'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create new playlist
+      tags:
+      - playlists
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
