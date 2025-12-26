@@ -3,29 +3,80 @@ definitions:
   gin.H:
     additionalProperties: {}
     type: object
-  gorm.DeletedAt:
-    properties:
-      time:
-        type: string
-      valid:
-        description: Valid is true if Time is not NULL
-        type: boolean
-    type: object
   model.IdItem:
     properties:
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       id:
-        type: integer
+        example: 37i9dQZF1DXcBWIGoYBM3M
+        type: string
       itemType:
         $ref: '#/definitions/model.ItemType'
-      playlistID:
-        type: integer
-      spotifyID:
+      playlists:
+        items:
+          $ref: '#/definitions/model.Playlist'
+        type: array
+    type: object
+  model.InclusionType:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - Nothing
+    - Included
+    - Excluded
+  model.ItemInclusionRequest:
+    properties:
+      include:
+        type: boolean
+      playlistid:
         type: string
-      updatedAt:
+      spotid:
+        type: string
+      type:
+        $ref: '#/definitions/model.ItemType'
+    required:
+    - include
+    - playlistid
+    - spotid
+    - type
+    type: object
+  model.ItemPlaylistRequest:
+    properties:
+      cspotid:
+        type: string
+      pspotid:
+        type: string
+    required:
+    - cspotid
+    - pspotid
+    type: object
+  model.ItemRequest:
+    properties:
+      artistid:
+        type: string
+      playlistid:
+        type: string
+      type:
+        $ref: '#/definitions/model.ItemType'
+    required:
+    - artistid
+    - playlistid
+    - type
+    type: object
+  model.ItemResponse:
+    properties:
+      icon:
+        items:
+          $ref: '#/definitions/spotify.Image'
+        type: array
+      included:
+        $ref: '#/definitions/model.InclusionType'
+      itemType:
+        $ref: '#/definitions/model.ItemType'
+      name:
+        type: string
+      spotifyID:
         type: string
     type: object
   model.ItemType:
@@ -42,16 +93,42 @@ definitions:
     - Track
   model.Playlist:
     properties:
-      createdAt:
-        type: string
-      deletedAt:
-        $ref: '#/definitions/gorm.DeletedAt'
       exclusions:
         items:
           $ref: '#/definitions/model.IdItem'
         type: array
       id:
-        type: integer
+        example: 37i9dQZF1DXcBWIGoYBM3M
+        type: string
+      includedIn:
+        items:
+          $ref: '#/definitions/model.Playlist'
+        type: array
+      includedPlaylists:
+        items:
+          $ref: '#/definitions/model.Playlist'
+        type: array
+      inclusions:
+        items:
+          $ref: '#/definitions/model.IdItem'
+        type: array
+      name:
+        type: string
+    type: object
+  model.PlaylistCreateRequest:
+    properties:
+      name:
+        example: My Playlist
+        type: string
+    required:
+    - name
+    type: object
+  model.PlaylistResponse:
+    properties:
+      exclusions:
+        items:
+          $ref: '#/definitions/model.IdItem'
+        type: array
       includedPlaylists:
         items:
           $ref: '#/definitions/model.Playlist'
@@ -64,16 +141,31 @@ definitions:
         type: string
       spotifyID:
         type: string
-      updatedAt:
-        type: string
     type: object
-  model.PlaylistCreateRequest:
+  model.SearchRequest:
     properties:
-      name:
-        example: My Playlist
+      playlistid:
         type: string
+      query:
+        type: string
+      type:
+        $ref: '#/definitions/model.ItemType'
     required:
-    - name
+    - playlistid
+    - query
+    - type
+    type: object
+  spotify.Image:
+    properties:
+      height:
+        description: The image height, in pixels.
+        type: integer
+      url:
+        description: The source URL of the image.
+        type: string
+      width:
+        description: The image width, in pixels.
+        type: integer
     type: object
 externalDocs:
   description: OpenAPI
@@ -147,7 +239,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.Playlist'
+            $ref: '#/definitions/model.PlaylistResponse'
         "400":
           description: Bad Request
           schema:
@@ -176,6 +268,153 @@ paths:
       summary: Delete a playlist
       tags:
       - playlists
+  /playlist/include:
+    post:
+      consumes:
+      - application/json
+      description: Includes one playlist inside another parent playlist
+      parameters:
+      - description: Playlist Linking Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ItemPlaylistRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Nest a Playlist
+      tags:
+      - playlists
+  /playlist/item:
+    post:
+      consumes:
+      - application/json
+      description: Adds an IdItem to either the inclusions or exclusions of a playlist
+      parameters:
+      - description: Inclusion/Exclusion Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ItemInclusionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Include or Exclude an Item
+      tags:
+      - items
+  /search:
+    post:
+      consumes:
+      - application/json
+      description: Search Spotify for Artists, Albums, or Tracks based on the provided
+        ItemType.
+      parameters:
+      - description: Search Query and Item Type
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.SearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ItemResponse'
+            type: array
+        "400":
+          description: Invalid Item Type
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Unified Spotify Search
+      tags:
+      - search
+  /spotify/album/tracks:
+    post:
+      consumes:
+      - application/json
+      description: Fetches all tracks for a specific Spotify album
+      parameters:
+      - description: Album and Playlist Context
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ItemResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Tracks by Album
+      tags:
+      - spotify
+  /spotify/artist/albums:
+    post:
+      consumes:
+      - application/json
+      description: Fetches albums and singles from Spotify for a specific artist
+      parameters:
+      - description: Artist and Playlist Context
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ItemRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ItemResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Albums by Artist
+      tags:
+      - spotify
 securityDefinitions:
   BasicAuth:
     type: basic

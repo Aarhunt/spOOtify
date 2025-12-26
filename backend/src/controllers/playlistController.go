@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/aarhunt/autistify/src/model"
 	"github.com/aarhunt/autistify/src/services"
@@ -15,7 +14,7 @@ import (
 // @Description  Responds with the list of all playlists as JSON.
 // @Tags         playlists
 // @Produce      json
-// @Success      200  {array}   model.Playlist
+// @Success      200  {array}   model.PlaylistResponse
 // @Failure      500  {object}  map[string]string
 // @Router       /playlist [get]
 func GetPlaylists(c *gin.Context) {

@@ -8,40 +8,82 @@ export type GinH = {
     [key: string]: unknown;
 };
 
-export type GormDeletedAt = {
-    time?: string;
-    /**
-     * Valid is true if Time is not NULL
-     */
-    valid?: boolean;
+export type ModelIdItem = {
+    id?: string;
+    itemType?: ModelItemType;
+    playlists?: Array<ModelPlaylist>;
 };
 
-export type ModelIdItem = {
-    createdAt?: string;
-    deletedAt?: GormDeletedAt;
-    id?: number;
+export type ModelInclusionType = 0 | 1 | 2;
+
+export type ModelItemInclusionRequest = {
+    include: boolean;
+    playlistid: string;
+    spotid: string;
+    type: ModelItemType;
+};
+
+export type ModelItemPlaylistRequest = {
+    cspotid: string;
+    pspotid: string;
+};
+
+export type ModelItemRequest = {
+    artistid: string;
+    playlistid: string;
+    type: ModelItemType;
+};
+
+export type ModelItemResponse = {
+    icon?: Array<SpotifyImage>;
+    included?: ModelInclusionType;
     itemType?: ModelItemType;
-    playlistID?: number;
+    name?: string;
     spotifyID?: string;
-    updatedAt?: string;
 };
 
 export type ModelItemType = 0 | 1 | 2 | 3;
 
 export type ModelPlaylist = {
-    createdAt?: string;
-    deletedAt?: GormDeletedAt;
     exclusions?: Array<ModelIdItem>;
-    id?: number;
+    id?: string;
+    includedIn?: Array<ModelPlaylist>;
     includedPlaylists?: Array<ModelPlaylist>;
     inclusions?: Array<ModelIdItem>;
     name?: string;
-    spotifyID?: string;
-    updatedAt?: string;
 };
 
 export type ModelPlaylistCreateRequest = {
     name: string;
+};
+
+export type ModelPlaylistResponse = {
+    exclusions?: Array<ModelIdItem>;
+    includedPlaylists?: Array<ModelPlaylist>;
+    inclusions?: Array<ModelIdItem>;
+    name?: string;
+    spotifyID?: string;
+};
+
+export type ModelSearchRequest = {
+    playlistid: string;
+    query: string;
+    type: ModelItemType;
+};
+
+export type SpotifyImage = {
+    /**
+     * The image height, in pixels.
+     */
+    height?: number;
+    /**
+     * The source URL of the image.
+     */
+    url?: string;
+    /**
+     * The image width, in pixels.
+     */
+    width?: number;
 };
 
 export type DeletePlaylistData = {
@@ -123,10 +165,70 @@ export type PostPlaylistResponses = {
     /**
      * Created
      */
-    201: ModelPlaylist;
+    201: ModelPlaylistResponse;
 };
 
 export type PostPlaylistResponse = PostPlaylistResponses[keyof PostPlaylistResponses];
+
+export type PostPlaylistIncludeData = {
+    /**
+     * Playlist Linking Details
+     */
+    body: ModelItemPlaylistRequest;
+    path?: never;
+    query?: never;
+    url: '/playlist/include';
+};
+
+export type PostPlaylistIncludeErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type PostPlaylistIncludeError = PostPlaylistIncludeErrors[keyof PostPlaylistIncludeErrors];
+
+export type PostPlaylistIncludeResponses = {
+    /**
+     * OK
+     */
+    200: ModelPlaylistResponse;
+};
+
+export type PostPlaylistIncludeResponse = PostPlaylistIncludeResponses[keyof PostPlaylistIncludeResponses];
+
+export type PostPlaylistItemData = {
+    /**
+     * Inclusion/Exclusion Details
+     */
+    body: ModelItemInclusionRequest;
+    path?: never;
+    query?: never;
+    url: '/playlist/item';
+};
+
+export type PostPlaylistItemErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type PostPlaylistItemError = PostPlaylistItemErrors[keyof PostPlaylistItemErrors];
+
+export type PostPlaylistItemResponses = {
+    /**
+     * OK
+     */
+    200: ModelPlaylistResponse;
+};
+
+export type PostPlaylistItemResponse = PostPlaylistItemResponses[keyof PostPlaylistItemResponses];
 
 export type DeletePlaylistByIdData = {
     body?: never;
@@ -157,3 +259,93 @@ export type DeletePlaylistByIdResponses = {
      */
     204: unknown;
 };
+
+export type PostSearchData = {
+    /**
+     * Search Query and Item Type
+     */
+    body: ModelSearchRequest;
+    path?: never;
+    query?: never;
+    url: '/search';
+};
+
+export type PostSearchErrors = {
+    /**
+     * Invalid Item Type
+     */
+    400: {
+        [key: string]: string;
+    };
+};
+
+export type PostSearchError = PostSearchErrors[keyof PostSearchErrors];
+
+export type PostSearchResponses = {
+    /**
+     * OK
+     */
+    200: Array<ModelItemResponse>;
+};
+
+export type PostSearchResponse = PostSearchResponses[keyof PostSearchResponses];
+
+export type PostSpotifyAlbumTracksData = {
+    /**
+     * Album and Playlist Context
+     */
+    body: ModelItemRequest;
+    path?: never;
+    query?: never;
+    url: '/spotify/album/tracks';
+};
+
+export type PostSpotifyAlbumTracksErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type PostSpotifyAlbumTracksError = PostSpotifyAlbumTracksErrors[keyof PostSpotifyAlbumTracksErrors];
+
+export type PostSpotifyAlbumTracksResponses = {
+    /**
+     * OK
+     */
+    200: Array<ModelItemResponse>;
+};
+
+export type PostSpotifyAlbumTracksResponse = PostSpotifyAlbumTracksResponses[keyof PostSpotifyAlbumTracksResponses];
+
+export type PostSpotifyArtistAlbumsData = {
+    /**
+     * Artist and Playlist Context
+     */
+    body: ModelItemRequest;
+    path?: never;
+    query?: never;
+    url: '/spotify/artist/albums';
+};
+
+export type PostSpotifyArtistAlbumsErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type PostSpotifyArtistAlbumsError = PostSpotifyArtistAlbumsErrors[keyof PostSpotifyArtistAlbumsErrors];
+
+export type PostSpotifyArtistAlbumsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ModelItemResponse>;
+};
+
+export type PostSpotifyArtistAlbumsResponse = PostSpotifyArtistAlbumsResponses[keyof PostSpotifyArtistAlbumsResponses];

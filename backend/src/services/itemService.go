@@ -14,9 +14,9 @@ import (
 
 func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.PlaylistResponse, error) {
 	dbConn := src.GetDbConn()
-	ctx, db := dbConn.Ctx, dbConn.Db
+	db := dbConn.Db
 
-	playlist, err := gorm.G[model.Playlist](db).Where("id = ?", req.PlaylistID).First(ctx)
+	playlist, err := getPlaylist(req.PlaylistID)
 
 	newItem := model.IdItem{
 		SpotifyID: req.ItemSpotifyID,
@@ -51,8 +51,8 @@ func IncludePlaylist(req model.ItemPlaylistRequest) (*model.PlaylistResponse, er
 	dbConn := src.GetDbConn()
 	ctx, db := dbConn.Ctx, dbConn.Db
 
-	parentPlaylist, err := gorm.G[model.Playlist](db).Where("id = ?", req.ParentSpotifyID).First(ctx)
-	childPlaylist, err := gorm.G[model.Playlist](db).Where("id = ?", req.ChildSpotifyID).First(ctx)
+	parentPlaylist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", req.ParentSpotifyID).First(ctx)
+	childPlaylist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", req.ChildSpotifyID).First(ctx)
 
 	err = db.Model(&parentPlaylist).Association("IncludedPlaylists").Append(&childPlaylist)
 	return parentPlaylist.ToResponse(), err
@@ -84,7 +84,7 @@ func GetTracksFromAlbum(req model.ItemRequest) ([]model.ItemResponse, error) {
 
 func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []model.ItemResponse {
 	trackIDs := utils.Map(tracks, func(a spotify.SimpleTrack) spotify.ID {
-		return *&a.ID
+		return a.ID
 	})
 
 	includedTracks, excludedTracks := getInclusionsExclusions(playlist, trackIDs)
@@ -108,7 +108,7 @@ func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []m
 
 func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []model.ItemResponse {
 	albumIDs := utils.Map(albums, func(a spotify.SimpleAlbum) spotify.ID {
-		return *&a.ID
+		return a.ID
 	})
 
 	includedAlbums, excludedAlbums := getInclusionsExclusions(playlist, albumIDs)
@@ -132,7 +132,7 @@ func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []m
 
 func artistToResponse(artists []spotify.FullArtist, playlist *model.Playlist) []model.ItemResponse {
 	artistIDs := utils.Map(artists, func(a spotify.FullArtist) spotify.ID {
-		return *&a.ID
+		return a.ID
 	})
 
 	includedArtists, excludedArtists := getInclusionsExclusions(playlist, artistIDs)
@@ -158,7 +158,7 @@ func getInclusionsExclusions(playlist *model.Playlist, itemIDs []spotify.ID) ([]
 	includedItems := GetIncludedItemsFromPlaylist(playlist, itemIDs)
 	excludedItems := GetExcludedItemsFromPlaylist(playlist, itemIDs)
 	includedPlaylists := GetIncludedPlaylistsFromPlaylist(playlist)
-	for len(includedPlaylists) >= 0 {
+	for len(includedPlaylists) > 0 {
 		var newIncludedPlaylists = []model.Playlist{}
 		for _, item := range includedPlaylists {
 			includedItems = append(includedItems, GetIncludedItemsFromPlaylist(&item, itemIDs)...)

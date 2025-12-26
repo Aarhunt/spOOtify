@@ -82,7 +82,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.Playlist"
+                            "$ref": "#/definitions/model.PlaylistResponse"
                         }
                     },
                     "400": {
@@ -105,6 +105,92 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/playlist/include": {
+            "post": {
+                "description": "Includes one playlist inside another parent playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Nest a Playlist",
+                "parameters": [
+                    {
+                        "description": "Playlist Linking Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ItemPlaylistRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.PlaylistResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/playlist/item": {
+            "post": {
+                "description": "Adds an IdItem to either the inclusions or exclusions of a playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Include or Exclude an Item",
+                "parameters": [
+                    {
+                        "description": "Inclusion/Exclusion Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ItemInclusionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.PlaylistResponse"
                         }
                     },
                     "500": {
@@ -150,6 +236,144 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/search": {
+            "post": {
+                "description": "Search Spotify for Artists, Albums, or Tracks based on the provided ItemType.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Unified Spotify Search",
+                "parameters": [
+                    {
+                        "description": "Search Query and Item Type",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.SearchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ItemResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid Item Type",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/spotify/album/tracks": {
+            "post": {
+                "description": "Fetches all tracks for a specific Spotify album",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spotify"
+                ],
+                "summary": "Get Tracks by Album",
+                "parameters": [
+                    {
+                        "description": "Album and Playlist Context",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ItemResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/spotify/artist/albums": {
+            "post": {
+                "description": "Fetches albums and singles from Spotify for a specific artist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "spotify"
+                ],
+                "summary": "Get Albums by Artist",
+                "parameters": [
+                    {
+                        "description": "Artist and Playlist Context",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ItemResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -157,40 +381,113 @@ const docTemplate = `{
             "type": "object",
             "additionalProperties": {}
         },
-        "gorm.DeletedAt": {
-            "type": "object",
-            "properties": {
-                "time": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if Time is not NULL",
-                    "type": "boolean"
-                }
-            }
-        },
         "model.IdItem": {
             "type": "object",
             "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "id": {
-                    "type": "integer"
+                    "type": "string",
+                    "example": "37i9dQZF1DXcBWIGoYBM3M"
                 },
                 "itemType": {
                     "$ref": "#/definitions/model.ItemType"
                 },
-                "playlistID": {
-                    "type": "integer"
+                "playlists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Playlist"
+                    }
+                }
+            }
+        },
+        "model.InclusionType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "Nothing",
+                "Included",
+                "Excluded"
+            ]
+        },
+        "model.ItemInclusionRequest": {
+            "type": "object",
+            "required": [
+                "include",
+                "playlistid",
+                "spotid",
+                "type"
+            ],
+            "properties": {
+                "include": {
+                    "type": "boolean"
                 },
-                "spotifyID": {
+                "playlistid": {
                     "type": "string"
                 },
-                "updatedAt": {
+                "spotid": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/model.ItemType"
+                }
+            }
+        },
+        "model.ItemPlaylistRequest": {
+            "type": "object",
+            "required": [
+                "cspotid",
+                "pspotid"
+            ],
+            "properties": {
+                "cspotid": {
+                    "type": "string"
+                },
+                "pspotid": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ItemRequest": {
+            "type": "object",
+            "required": [
+                "artistid",
+                "playlistid",
+                "type"
+            ],
+            "properties": {
+                "artistid": {
+                    "type": "string"
+                },
+                "playlistid": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/model.ItemType"
+                }
+            }
+        },
+        "model.ItemResponse": {
+            "type": "object",
+            "properties": {
+                "icon": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotify.Image"
+                    }
+                },
+                "included": {
+                    "$ref": "#/definitions/model.InclusionType"
+                },
+                "itemType": {
+                    "$ref": "#/definitions/model.ItemType"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "spotifyID": {
                     "type": "string"
                 }
             }
@@ -213,12 +510,6 @@ const docTemplate = `{
         "model.Playlist": {
             "type": "object",
             "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
                 "exclusions": {
                     "type": "array",
                     "items": {
@@ -226,7 +517,52 @@ const docTemplate = `{
                     }
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string",
+                    "example": "37i9dQZF1DXcBWIGoYBM3M"
+                },
+                "includedIn": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Playlist"
+                    }
+                },
+                "includedPlaylists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Playlist"
+                    }
+                },
+                "inclusions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.IdItem"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.PlaylistCreateRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "My Playlist"
+                }
+            }
+        },
+        "model.PlaylistResponse": {
+            "type": "object",
+            "properties": {
+                "exclusions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.IdItem"
+                    }
                 },
                 "includedPlaylists": {
                     "type": "array",
@@ -245,21 +581,42 @@ const docTemplate = `{
                 },
                 "spotifyID": {
                     "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
                 }
             }
         },
-        "model.PlaylistCreateRequest": {
+        "model.SearchRequest": {
             "type": "object",
             "required": [
-                "name"
+                "playlistid",
+                "query",
+                "type"
             ],
             "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "My Playlist"
+                "playlistid": {
+                    "type": "string"
+                },
+                "query": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/model.ItemType"
+                }
+            }
+        },
+        "spotify.Image": {
+            "type": "object",
+            "properties": {
+                "height": {
+                    "description": "The image height, in pixels.",
+                    "type": "integer"
+                },
+                "url": {
+                    "description": "The source URL of the image.",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "The image width, in pixels.",
+                    "type": "integer"
                 }
             }
         }

@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 import { getPlaylist, postPlaylist } from '@/client';
-import type { ModelPlaylist } from "@/client/types.gen"
+import type { ModelPlaylistResponse } from "@/client/types.gen"
 
 
 interface PlaylistState {
-    data: ModelPlaylist[];
+    data: ModelPlaylistResponse[];
     current: string;
     loading: boolean;
     error: boolean;

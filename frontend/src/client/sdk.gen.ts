@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistResponses } from './types.gen';
+import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistIncludeData, PostPlaylistIncludeErrors, PostPlaylistIncludeResponses, PostPlaylistItemData, PostPlaylistItemErrors, PostPlaylistItemResponses, PostPlaylistResponses, PostSearchData, PostSearchErrors, PostSearchResponses, PostSpotifyAlbumTracksData, PostSpotifyAlbumTracksErrors, PostSpotifyAlbumTracksResponses, PostSpotifyArtistAlbumsData, PostSpotifyArtistAlbumsErrors, PostSpotifyArtistAlbumsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -47,8 +47,78 @@ export const postPlaylist = <ThrowOnError extends boolean = false>(options: Opti
 });
 
 /**
+ * Nest a Playlist
+ *
+ * Includes one playlist inside another parent playlist
+ */
+export const postPlaylistInclude = <ThrowOnError extends boolean = false>(options: Options<PostPlaylistIncludeData, ThrowOnError>) => (options.client ?? client).post<PostPlaylistIncludeResponses, PostPlaylistIncludeErrors, ThrowOnError>({
+    url: '/playlist/include',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Include or Exclude an Item
+ *
+ * Adds an IdItem to either the inclusions or exclusions of a playlist
+ */
+export const postPlaylistItem = <ThrowOnError extends boolean = false>(options: Options<PostPlaylistItemData, ThrowOnError>) => (options.client ?? client).post<PostPlaylistItemResponses, PostPlaylistItemErrors, ThrowOnError>({
+    url: '/playlist/item',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Delete a playlist
  *
  * Delete a specific playlist by its ID
  */
 export const deletePlaylistById = <ThrowOnError extends boolean = false>(options: Options<DeletePlaylistByIdData, ThrowOnError>) => (options.client ?? client).delete<DeletePlaylistByIdResponses, DeletePlaylistByIdErrors, ThrowOnError>({ url: '/playlist/{id}', ...options });
+
+/**
+ * Unified Spotify Search
+ *
+ * Search Spotify for Artists, Albums, or Tracks based on the provided ItemType.
+ */
+export const postSearch = <ThrowOnError extends boolean = false>(options: Options<PostSearchData, ThrowOnError>) => (options.client ?? client).post<PostSearchResponses, PostSearchErrors, ThrowOnError>({
+    url: '/search',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Tracks by Album
+ *
+ * Fetches all tracks for a specific Spotify album
+ */
+export const postSpotifyAlbumTracks = <ThrowOnError extends boolean = false>(options: Options<PostSpotifyAlbumTracksData, ThrowOnError>) => (options.client ?? client).post<PostSpotifyAlbumTracksResponses, PostSpotifyAlbumTracksErrors, ThrowOnError>({
+    url: '/spotify/album/tracks',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Albums by Artist
+ *
+ * Fetches albums and singles from Spotify for a specific artist
+ */
+export const postSpotifyArtistAlbums = <ThrowOnError extends boolean = false>(options: Options<PostSpotifyArtistAlbumsData, ThrowOnError>) => (options.client ?? client).post<PostSpotifyArtistAlbumsResponses, PostSpotifyArtistAlbumsErrors, ThrowOnError>({
+    url: '/spotify/artist/albums',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});

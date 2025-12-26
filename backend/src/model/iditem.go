@@ -36,7 +36,7 @@ var inclusionType = map[InclusionType]string{
 type IdItem struct {
 	SpotifyID   spotify.ID `gorm:"primaryKey;type:varchar(255);not null" json:"id" example:"37i9dQZF1DXcBWIGoYBM3M"`
 	ItemType 	ItemType
-	Playlists 	[]Playlist
+	Playlists 	[]Playlist `gorm:"many2many:playlist_inclusions;" json:"included_in"`
 }
 
 type ItemInclusionRequest struct {

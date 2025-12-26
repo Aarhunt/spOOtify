@@ -1,2 +1,4 @@
+backend/docs/*
+frontend/src/client/*
 .env
 *.db

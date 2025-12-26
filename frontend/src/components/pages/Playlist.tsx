@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import { usePlaylistStore } from "@/components/stores/playlist.store"
+import { useSearchStore } from "@/components/stores/search.store"
 
 export default function Playlist() {
     const fetchPlaylists = usePlaylistStore((state) => state.fetch);
@@ -102,12 +103,11 @@ export function DialogCloseButton() {
     )
 }
 
-function PlaylistSearch() {
+export function PlaylistSearch() {
     const [open, setOpen] = React.useState(false)
     
     const { data, loading, current, setCurrent } = usePlaylistStore();
-
-    const safeData = data || [];
+    const { setPlaylistId } = useSearchStore();
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -120,7 +120,7 @@ function PlaylistSearch() {
                     disabled={loading} // Disable button while loading
                 >
                     { current
-                        ? safeData.find((p) => p.name === current)?.name || "Select playlist..."
+                        ? data.find((p) => p.name === current)?.name || "Select playlist..."
                         : "Select playlist..."}
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -130,26 +130,28 @@ function PlaylistSearch() {
                     <CommandInput placeholder="Search playlists..." />
                     <CommandList>
                         <CommandEmpty>No playlist found.</CommandEmpty>
-                        <CommandGroup>
-                            {safeData.map((p) => (
-                                <CommandItem
-                                    key={p.id || p.name}
-                                    value={p.name}
-                                    onSelect={(currentValue) => {
-                                        setCurrent(currentValue === current ? "" : currentValue)
-                                        setOpen(false)
-                                    }}
-                                >
-                                    <CheckIcon
-                                        className={cn(
-                                            "mr-2 h-4 w-4",
-                                            current === p.name ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                    {p.name}
-                                </CommandItem>
-                            ))}
-                        </CommandGroup>
+                            <CommandGroup>
+                                {data.map((p) => (
+                                    <CommandItem
+                                        key={p.spotifyID} 
+                                        value={p.spotifyID}
+                                        onSelect={() => {
+                                            const isSelected = current === p.name;
+                                            setCurrent(isSelected ? "" : (p.name as string));
+                                            setPlaylistId(isSelected ? "" : (p.spotifyID as string));
+                                            setOpen(false);
+                                        }}
+                                    >
+                                        <CheckIcon
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                current === p.name ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        {p.name}
+                                    </CommandItem>
+                                ))}
+                            </CommandGroup>
                     </CommandList>
                 </Command>
             </PopoverContent>

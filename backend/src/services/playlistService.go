@@ -23,7 +23,7 @@ func GetPlaylists() ([]model.PlaylistResponse, error) {
 func getPlaylist(id spotify.ID) (*model.Playlist, error) {
 	dbConn := src.GetDbConn()
 	ctx, db := dbConn.Ctx, dbConn.Db
-	playlist, err := gorm.G[model.Playlist](db).Where("id = ?", id).First(ctx)
+	playlist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", id).First(ctx)
 
 	return &playlist, err
 }
@@ -70,7 +70,7 @@ func GetIncludedItemsFromPlaylist(p *model.Playlist, ids []spotify.ID) ([]spotif
 	ctx, db := dbConn.Ctx, dbConn.Db
 
 	var includedItems = []spotify.ID{}
-	db.Model(&p).Select("SpotifyId").Where("iditem_id IN ?", ids).Association("Inclusions").Find(ctx, &includedItems)
+	db.Model(&p).Select("playlist_spotify_id").Where("id_item_spotify_id IN ?", ids).Association("Inclusions").Find(ctx, &includedItems)
 
 	return includedItems
 }
@@ -80,7 +80,7 @@ func GetExcludedItemsFromPlaylist(p *model.Playlist, ids []spotify.ID) ([]spotif
 	ctx, db := dbConn.Ctx, dbConn.Db
 
 	var excludedItems = []spotify.ID{}
-	db.Model(&p).Select("SpotifyId").Where("iditem_id IN ?", ids).Association("Exclusions").Find(ctx, &excludedItems)
+	db.Model(&p).Select("playlist_spotify_id").Where("id_item_spotify_id IN ?", ids).Association("Exclusions").Find(ctx, &excludedItems)
 
 	return excludedItems
 }

@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/aarhunt/autistify/docs"
-	"github.com/aarhunt/autistify/src/services"
 	"github.com/aarhunt/autistify/src/controllers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -61,7 +60,7 @@ func main() {
 
 	{
 		v1 := router.Group("/api/v1")
-		v1.GET("/search", controllers.Search)
+		v1.POST("/search", controllers.Search)
 
 		{
 			play := v1.Group("/playlist")
