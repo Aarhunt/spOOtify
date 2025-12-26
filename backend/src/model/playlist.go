@@ -11,7 +11,8 @@ type Playlist struct {
 	SpotifyID   spotify.ID `gorm:"primaryKey;type:varchar(255);not null" json:"id" example:"37i9dQZF1DXcBWIGoYBM3M"`
 	Name              string `json:"name"`
 	Inclusions        []IdItem   `gorm:"many2many:playlist_inclusions;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	IncludedPlaylists []Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	IncludedPlaylists []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	IncludedIn 		  []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Exclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
@@ -23,7 +24,7 @@ type PlaylistResponse struct {
 	Name              string `json:"name"`
 	SpotifyID         spotify.ID
 	Inclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	IncludedPlaylists []Playlist `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	IncludedPlaylists []*Playlist `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Exclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
@@ -88,3 +89,15 @@ func (p Playlist) getTracks(ctx context.Context, client spotify.Client) []IdItem
 
 	return resultTracks
 }
+
+// func GetFullPlaylist(id string) (Playlist, error) {
+//     var p Playlist
+//     db := src.GetDbConn().Db
+//     
+//     err := db.Preload("Inclusions").
+//               Preload("Exclusions").
+//               Preload("IncludedPlaylists").
+//               First(&p, "spotify_id = ?", id).Error
+//               
+//     return p, err
+// }

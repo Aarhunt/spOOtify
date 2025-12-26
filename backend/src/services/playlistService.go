@@ -6,6 +6,7 @@ import (
 	"github.com/aarhunt/autistify/src"
 	"github.com/aarhunt/autistify/src/model"
 	"github.com/aarhunt/autistify/src/utils"
+	"github.com/zmb3/spotify/v2"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +18,14 @@ func GetPlaylists() ([]model.PlaylistResponse, error) {
 	return utils.Map(playlists, func(p model.Playlist) model.PlaylistResponse {
 		return *p.ToResponse()
 	}), err.Error
+}
+
+func getPlaylist(id spotify.ID) (*model.Playlist, error) {
+	dbConn := src.GetDbConn()
+	ctx, db := dbConn.Ctx, dbConn.Db
+	playlist, err := gorm.G[model.Playlist](db).Where("id = ?", id).First(ctx)
+
+	return &playlist, err
 }
 
 func DeletePlaylist(id string) *gorm.DB {
@@ -40,7 +49,7 @@ func PostPlaylist(req model.PlaylistCreateRequest) (*model.PlaylistResponse, err
 		SpotifyID:		   spotPlaylist.ID,
 		Name:              req.Name,
 		Inclusions:        []model.IdItem{},
-		IncludedPlaylists: []model.Playlist{},
+		IncludedPlaylists: []*model.Playlist{},
 		Exclusions:        []model.IdItem{},
 	}
 
@@ -54,4 +63,36 @@ func ClearPlaylists() (int, error) {
 	ctx, db := dbConn.Ctx, dbConn.Db
 
 	return gorm.G[model.Playlist](db).Where("true").Delete(ctx)
+}
+
+// Internal Functions
+func GetIncludedItemsFromPlaylist(p *model.Playlist, ids []spotify.ID) ([]spotify.ID) {
+	dbConn := src.GetDbConn()
+	ctx, db := dbConn.Ctx, dbConn.Db
+
+	var includedItems = []spotify.ID{}
+	db.Model(&p).Select("SpotifyId").Where("iditem_id IN ?", ids).Association("Inclusions").Find(ctx, &includedItems)
+
+	return includedItems
+}
+
+// Internal Functions
+func GetExcludedItemsFromPlaylist(p *model.Playlist, ids []spotify.ID) ([]spotify.ID) {
+	dbConn := src.GetDbConn()
+	ctx, db := dbConn.Ctx, dbConn.Db
+
+	var excludedItems = []spotify.ID{}
+	db.Model(&p).Select("SpotifyId").Where("iditem_id IN ?", ids).Association("Exclusions").Find(ctx, &excludedItems)
+
+	return excludedItems
+}
+
+func GetIncludedPlaylistsFromPlaylist(p *model.Playlist) ([]model.Playlist) {
+	dbConn := src.GetDbConn()
+	ctx, db := dbConn.Ctx, dbConn.Db
+
+	var includedPlaylists = []model.Playlist{}
+	db.Model(&p).Association("IncludedPlaylists").Find(ctx, &includedPlaylists)
+
+	return includedPlaylists
 }
