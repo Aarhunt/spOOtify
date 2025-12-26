@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/aarhunt/autistify/src/services"
 	"github.com/aarhunt/autistify/src/model"
+	"github.com/aarhunt/autistify/src/services"
 	"github.com/gin-gonic/gin"
+	"github.com/zmb3/spotify/v2"
 )
 
 // GetPlaylists godoc
@@ -36,15 +37,9 @@ func GetPlaylists(c *gin.Context) {
 // @Failure      500  {object}  map[string]string
 // @Router       /playlist/{id} [delete]
 func DeletePlaylist(c *gin.Context) {
-    idStr := c.Param("id")
+    id := c.Param("id")
 
-    id, err := strconv.ParseUint(idStr, 10, 32)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format. ID must be a positive integer"})
-        return
-    }
-
-    result := services.DeletePlaylist(uint(id))
+    result := services.DeletePlaylist(spotify.ID(id))
     
     if result.Error != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})

@@ -61,12 +61,23 @@ func main() {
 
 	{
 		v1 := router.Group("/api/v1")
-		v1.GET("/search/:query", controllers.Search)
+		v1.GET("/search", controllers.Search)
 
-		v1.GET("/playlist", controllers.GetPlaylists)
-		v1.POST("/playlist", controllers.PostPlaylist)
-		v1.DELETE("/playlist/:id", controllers.DeletePlaylist)
-		v1.DELETE("/playlist", controllers.ClearPlaylists)
+		{
+			play := v1.Group("/playlist")
+			play.GET("", controllers.GetPlaylists)
+			play.POST("", controllers.PostPlaylist)
+			play.DELETE("/:id", controllers.DeletePlaylist)
+			play.DELETE("", controllers.ClearPlaylists)
+			play.POST("/item", controllers.IncludeExcludeItem)
+			play.POST("/include", controllers.IncludePlaylist)
+		}
+
+		{
+			spot := v1.Group("/spotify")
+			spot.POST("/artist/albums", controllers.GetAlbumsFromArtist)
+			spot.POST("/album/tracks", controllers.GetTracksFromAlbum)
+		}
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

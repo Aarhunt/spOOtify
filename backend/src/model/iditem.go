@@ -52,6 +52,12 @@ type ItemRequest struct {
 	ItemType 	ItemType `json:"type" binding:"required"`
 }
 
+type SearchRequest struct {
+	Query 		string `json:"query" binding:"required"`
+	PlaylistID 	spotify.ID `json:"playlistid" binding:"required"`
+	ItemType 	ItemType `json:"type" binding:"required"`
+}
+
 type ItemPlaylistRequest struct {
 	ParentSpotifyID spotify.ID	`json:"pspotid" binding:"required"`
 	ChildSpotifyID spotify.ID`json:"cspotid" binding:"required"`

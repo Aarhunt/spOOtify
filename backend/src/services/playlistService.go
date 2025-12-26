@@ -28,7 +28,7 @@ func getPlaylist(id spotify.ID) (*model.Playlist, error) {
 	return &playlist, err
 }
 
-func DeletePlaylist(id string) *gorm.DB {
+func DeletePlaylist(id spotify.ID) *gorm.DB {
 	db := src.GetDbConn().Db
 
 	return db.Delete(&model.Playlist{}, id)
@@ -65,7 +65,6 @@ func ClearPlaylists() (int, error) {
 	return gorm.G[model.Playlist](db).Where("true").Delete(ctx)
 }
 
-// Internal Functions
 func GetIncludedItemsFromPlaylist(p *model.Playlist, ids []spotify.ID) ([]spotify.ID) {
 	dbConn := src.GetDbConn()
 	ctx, db := dbConn.Ctx, dbConn.Db
@@ -76,7 +75,6 @@ func GetIncludedItemsFromPlaylist(p *model.Playlist, ids []spotify.ID) ([]spotif
 	return includedItems
 }
 
-// Internal Functions
 func GetExcludedItemsFromPlaylist(p *model.Playlist, ids []spotify.ID) ([]spotify.ID) {
 	dbConn := src.GetDbConn()
 	ctx, db := dbConn.Ctx, dbConn.Db

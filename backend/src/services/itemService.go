@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"log"
 	"slices"
 
@@ -59,7 +58,7 @@ func IncludePlaylist(req model.ItemPlaylistRequest) (*model.PlaylistResponse, er
 	return parentPlaylist.ToResponse(), err
 }
 
-func getAlbumFromArtist(req model.ItemRequest) ([]model.ItemResponse, error) {
+func GetAlbumFromArtist(req model.ItemRequest) ([]model.ItemResponse, error) {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
@@ -71,7 +70,7 @@ func getAlbumFromArtist(req model.ItemRequest) ([]model.ItemResponse, error) {
 	return albumToResponse(albums, playlist), err
 }
 
-func getTracksFromAlbum(req model.ItemRequest) ([]model.ItemResponse, error) {
+func GetTracksFromAlbum(req model.ItemRequest) ([]model.ItemResponse, error) {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
@@ -171,25 +170,12 @@ func getInclusionsExclusions(playlist *model.Playlist, itemIDs []spotify.ID) ([]
 	return includedItems, excludedItems
 }
 
-//	func SearchPlaylist(p spotify.ID, query string) []model.ItemResponse {
-//		conn := src.GetSpotifyConn()
-//		ctx, client := conn.Ctx, conn.Client
-//
-//		playlist, err := getPlaylist(p);
-//		results, err := client.Search(ctx, query, spotify.SearchTypePlaylist)
-//
-//		// handle album results
-//		if err != nil {
-//			log.Fatal("help")
-//		}
-//		return playlistToResponse(results.Playlists.Playlists, playlist)
-//	}
-func SearchArtist(p spotify.ID, query string) []model.ItemResponse {
+func SearchArtist(req model.SearchRequest) []model.ItemResponse {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
-	playlist, err := getPlaylist(p)
-	results, err := client.Search(ctx, query, spotify.SearchTypeArtist)
+	playlist, err := getPlaylist(req.PlaylistID)
+	results, err := client.Search(ctx, req.Query, spotify.SearchTypeArtist)
 
 	// handle album results
 	if err != nil {
@@ -198,12 +184,26 @@ func SearchArtist(p spotify.ID, query string) []model.ItemResponse {
 	return artistToResponse(results.Artists.Artists, playlist)
 }
 
-func SearchAlbum(p spotify.ID, query string) []model.ItemResponse {
+func SearchAlbum(req model.SearchRequest) []model.ItemResponse {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
-	playlist, err := getPlaylist(p)
-	results, err := client.Search(ctx, query, spotify.SearchTypeAlbum)
+	playlist, err := getPlaylist(req.PlaylistID)
+	results, err := client.Search(ctx, req.Query, spotify.SearchTypeAlbum)
+
+	// handle album results
+	if err != nil {
+		log.Fatal("help")
+	}
+	return albumToResponse(results.Albums.Albums, playlist)
+}
+
+func SearchTrack(req model.SearchRequest) []model.ItemResponse {
+	conn := src.GetSpotifyConn()
+	ctx, client := conn.Ctx, conn.Client
+
+	playlist, err := getPlaylist(req.PlaylistID)
+	results, err := client.Search(ctx, req.Query, spotify.SearchTypeAlbum)
 
 	// handle album results
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"github.com/aarhunt/autistify/src"
 	"github.com/aarhunt/autistify/src/model"
 	"github.com/zmb3/spotify/v2"
-	"gorm.io/gorm"
 )
 
 func Search(query string) ([]model.ItemResponse, error) {	
