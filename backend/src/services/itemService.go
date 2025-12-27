@@ -122,7 +122,7 @@ func GetTracksFromAlbum(req model.ItemRequest) ([]model.ItemResponse, error) {
 
 	var tracks = results.Tracks
 
-	return trackToResponse(tracks, playlist), err
+	return trackToResponse(tracks, playlist, req.ParentID), err
 }
 
 func artistToResponse(artists []spotify.FullArtist, playlist *model.Playlist) []model.ItemResponse {
@@ -181,12 +181,11 @@ func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []m
 }
 
 
-func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []model.ItemResponse {
+func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist, album spotify.ID) []model.ItemResponse {
 	trackIDs := utils.Map(tracks, func(a spotify.SimpleTrack) spotify.ID { return a.ID })
-	albumIDs := utils.Map(tracks, func(a spotify.SimpleTrack) spotify.ID { return a.Album.ID })
 
-	incMap := GetInclusionMap(playlist.SpotifyID, append(trackIDs, albumIDs...))
-	excMap := GetExclusionMap(playlist.SpotifyID, append(trackIDs, albumIDs...))
+	incMap := GetInclusionMap(playlist.SpotifyID, append(trackIDs, album))
+	excMap := GetExclusionMap(playlist.SpotifyID, append(trackIDs, album))
 
 	return utils.Map(tracks, func(a spotify.SimpleTrack) model.ItemResponse {
 
@@ -195,9 +194,9 @@ func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []m
 			included = model.Included
 		} else if excMap[a.ID] {
 			included = model.Excluded
-		} else if incMap[a.Album.ID] {
+		} else if incMap[album] {
 			included = model.Included
-		} else if excMap[a.Album.ID] {
+		} else if excMap[album] {
 			included = model.Excluded
 		}
 
@@ -205,7 +204,7 @@ func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []m
 			SpotifyID: a.ID,
 			Name:      a.Name,
 			Icon:      a.Album.Images,
-			ItemType:  model.Album,
+			ItemType:  model.Track,
 			Included:  included,
 			SortData:  int(a.TrackNumber),
 		}

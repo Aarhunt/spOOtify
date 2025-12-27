@@ -106,6 +106,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     includeItem: async (itemId: string, include: boolean, type: ModelItemType, index: number) => {
         set({ includeLoading: true });
 
+
         try {
             const response = await postPlaylistItem({
                 body: {
