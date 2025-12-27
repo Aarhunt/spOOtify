@@ -195,9 +195,9 @@ func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []m
 			included = model.Included
 		} else if excMap[a.ID] {
 			included = model.Excluded
-		} else if incMap[a.Artists[0].ID] {
+		} else if incMap[a.Album.ID] {
 			included = model.Included
-		} else if excMap[a.Artists[0].ID] {
+		} else if excMap[a.Album.ID] {
 			included = model.Excluded
 		}
 
@@ -287,10 +287,6 @@ func SearchTrack(req model.SearchRequest) []model.ItemResponse {
 
 	playlist, err := getPlaylist(req.PlaylistID)
 	results, err := client.Search(ctx, req.Query, spotify.SearchTypeTrack, spotify.Limit(5))
-
-	for _, item := range results.Tracks.Tracks {
-		log.Print(item.Album.Images)
-	}
 
 	// handle album results
 	if err != nil {
