@@ -12,7 +12,7 @@ func Search(query string) ([]model.ItemResponse, error) {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
-	results, err := client.Search(ctx, query, spotify.SearchTypePlaylist|spotify.SearchTypeAlbum|spotify.SearchTypeArtist)
+	results, err := client.Search(ctx, query, spotify.SearchTypePlaylist|spotify.SearchTypeAlbum|spotify.SearchTypeArtist, spotify.Limit(5))
 
 	responses := []model.ItemResponse{}
 

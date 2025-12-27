@@ -99,12 +99,13 @@ func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []m
 		return model.ItemResponse{
 			SpotifyID: a.ID,
 			Name:      a.Name,
-			Icon:      []spotify.Image{},
-			ItemType:  model.Album,
+			Icon:      a.Album.Images,
+			ItemType:  model.Track,
 			Included:  included,
 		}
 	})
 }
+
 
 func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []model.ItemResponse {
 	albumIDs := utils.Map(albums, func(a spotify.SimpleAlbum) spotify.ID {
@@ -148,7 +149,7 @@ func artistToResponse(artists []spotify.FullArtist, playlist *model.Playlist) []
 			SpotifyID: a.ID,
 			Name:      a.Name,
 			Icon:      a.Images,
-			ItemType:  model.Album,
+			ItemType:  model.Artist,
 			Included:  included,
 		}
 	})
@@ -175,7 +176,7 @@ func SearchArtist(req model.SearchRequest) []model.ItemResponse {
 	ctx, client := conn.Ctx, conn.Client
 
 	playlist, err := getPlaylist(req.PlaylistID)
-	results, err := client.Search(ctx, req.Query, spotify.SearchTypeArtist)
+	results, err := client.Search(ctx, req.Query, spotify.SearchTypeArtist, spotify.Limit(5))
 
 	// handle album results
 	if err != nil {
@@ -189,7 +190,7 @@ func SearchAlbum(req model.SearchRequest) []model.ItemResponse {
 	ctx, client := conn.Ctx, conn.Client
 
 	playlist, err := getPlaylist(req.PlaylistID)
-	results, err := client.Search(ctx, req.Query, spotify.SearchTypeAlbum)
+	results, err := client.Search(ctx, req.Query, spotify.SearchTypeAlbum, spotify.Limit(5))
 
 	// handle album results
 	if err != nil {
@@ -203,13 +204,27 @@ func SearchTrack(req model.SearchRequest) []model.ItemResponse {
 	ctx, client := conn.Ctx, conn.Client
 
 	playlist, err := getPlaylist(req.PlaylistID)
-	results, err := client.Search(ctx, req.Query, spotify.SearchTypeAlbum)
+	results, err := client.Search(ctx, req.Query, spotify.SearchTypeTrack, spotify.Limit(5))
+
+	for _, item := range results.Tracks.Tracks {
+		log.Print(item.Album.Images)
+	}
 
 	// handle album results
 	if err != nil {
 		log.Fatal("help")
 	}
-	return albumToResponse(results.Albums.Albums, playlist)
+	return trackToResponse(fullToSimpleTrack(results.Tracks.Tracks), playlist)
+}
+
+func fullToSimpleTrack(tracks []spotify.FullTrack) []spotify.SimpleTrack {
+	return utils.Map(tracks, func(t spotify.FullTrack) spotify.SimpleTrack {
+		return spotify.SimpleTrack {
+			Album: t.Album,	
+			ID: t.ID,	
+			Name: t.Name,
+		}
+	})
 }
 
 func getFullPlaylist(id spotify.ID) (model.Playlist, error) { //TODO

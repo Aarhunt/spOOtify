@@ -1,19 +1,20 @@
 import { create } from 'zustand'
-import { postSearch } from '@/client';
+import { postSearch, postSpotifyArtistAlbums } from '@/client';
 import type { ModelItemResponse, ModelItemType } from "@/client/types.gen"
 
 
 interface SearchState {
-    data: ModelItemResponse[];
+    searchData: ModelItemResponse[];
     playlistId: string;
     loading: boolean;
     error: boolean;
     setPlaylistId: (val: string) => void;
     search: (query: string, type: ModelItemType) => Promise<void>;
+    search: () => Promise<void>;
 }
 
 export const useSearchStore = create<SearchState>((set, get) => ({
-    data: [],
+    searchData: [],
     playlistId: "", 
     loading: false,
     error: false,
@@ -32,11 +33,25 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         });
 
         if (response.data) {
-            set({ data: response.data, loading: false, error: false });
+            set({ searchData: response.data, loading: false, error: false });
         } else {
             set({ loading: false, error: true });
         }
     },
     
     setPlaylistId: (id: string) => set({ playlistId: id }),
+
+    getAlbumsFromArtist: async (artistId: string) => {
+        set({ loading: true })
+
+        const currentPlaylistId = get().playlistId;
+
+        const response = await postSpotifyArtistAlbums({
+            body: {
+                artistid: artistId,
+                playlistid: get().playlistId,
+                type: 1,
+            }
+        })
+    }
 }));

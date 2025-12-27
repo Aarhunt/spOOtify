@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/aarhunt/autistify/docs"
+	"github.com/aarhunt/autistify/src"
 	"github.com/aarhunt/autistify/src/controllers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -38,6 +39,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	_ = src.GetSpotifyConn;
 
 	// programmatically set swagger info
 	docs.SwaggerInfo.Title = "Swagger Example API"

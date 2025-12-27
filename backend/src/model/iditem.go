@@ -64,9 +64,9 @@ type ItemPlaylistRequest struct {
 }
 
 type ItemResponse struct {
-	SpotifyID spotify.ID
+	SpotifyID spotify.ID `json:"spotifyID"`
 	Name      string `json:"name"`
-	Icon      []spotify.Image
-	ItemType 	ItemType
-	Included 	InclusionType
+	Icon      []spotify.Image `json:"icon"`
+	ItemType 	ItemType `json:"itemType"`
+	Included 	InclusionType `json:"included"`
 }
