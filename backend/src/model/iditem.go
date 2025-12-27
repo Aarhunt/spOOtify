@@ -43,7 +43,7 @@ type ItemInclusionRequest struct {
 	ItemSpotifyID	spotify.ID `json:"spotid" binding:"required"`
 	ItemType 	ItemType `json:"type" binding:"required"`
 	PlaylistID 	spotify.ID `json:"playlistid" binding:"required"`
-	Include 	bool `json:"include" binding:"required"`
+	Include 	*bool `json:"include" binding:"required"`
 }
 
 type ItemRequest struct {

@@ -107,7 +107,7 @@ export function SearchResultItem({ item, index, onAction, onExpand }: SearchResu
           className="h-8 w-8"
           onClick={(e) => {
                 e.stopPropagation();
-              item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, index, item.included === 1);}}
+              item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, index, item.included === 2);}}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -175,7 +175,7 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
           )}
           onClick={(e) => {
             e.stopPropagation();
-            item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, index, item.included === 1);
+            item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, index, item.included === 2);
           }}
         >
           <X className="h-3.5 w-3.5" />

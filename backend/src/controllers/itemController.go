@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/aarhunt/autistify/src/model"
@@ -22,6 +23,7 @@ func IncludeExcludeItem(c *gin.Context) {
 	var req model.ItemInclusionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Print(c.Get("include"))
 		return
 	}
 

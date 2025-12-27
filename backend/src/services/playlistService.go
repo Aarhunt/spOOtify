@@ -66,23 +66,67 @@ func ClearPlaylists() (int, error) {
 }
 
 func GetIncludedItemsFromPlaylist(p *model.Playlist, ids []spotify.ID) ([]spotify.ID) {
-	dbConn := src.GetDbConn()
-	ctx, db := dbConn.Ctx, dbConn.Db
+	db:= src.GetDbConn().Db
 
-	var includedItems = []spotify.ID{}
-	db.Model(&p).Select("playlist_spotify_id").Where("id_item_spotify_id IN ?", ids).Association("Inclusions").Find(ctx, &includedItems)
+	var includedIDs = []spotify.ID{}
+	_ =	db.Table("playlist_inclusions").
+        Where("playlist_spotify_id = ?", p.SpotifyID).
+        Where("id_item_spotify_id IN ?", ids).
+        Pluck("id_item_spotify_id", &includedIDs).Error
 
-	return includedItems
+	return includedIDs
+}
+
+func IsItemIncluded(playlistID spotify.ID, itemID spotify.ID) bool {
+    var count int64
+    src.GetDbConn().Db.Table("playlist_inclusions").
+        Where("playlist_spotify_id = ? AND id_item_spotify_id = ?", playlistID, itemID).
+        Count(&count)
+    
+    return count > 0
 }
 
 func GetExcludedItemsFromPlaylist(p *model.Playlist, ids []spotify.ID) ([]spotify.ID) {
-	dbConn := src.GetDbConn()
-	ctx, db := dbConn.Ctx, dbConn.Db
+	db:= src.GetDbConn().Db
 
-	var excludedItems = []spotify.ID{}
-	db.Model(&p).Select("playlist_spotify_id").Where("id_item_spotify_id IN ?", ids).Association("Exclusions").Find(ctx, &excludedItems)
+	var excludedIDs = []spotify.ID{}
+	_ =	db.Table("playlist_exclusions").
+        Where("playlist_spotify_id = ?", p.SpotifyID).
+        Where("id_item_spotify_id IN ?", ids).
+        Pluck("id_item_spotify_id", &excludedIDs).Error
 
-	return excludedItems
+	return excludedIDs
+}
+
+func IsItemExcluded(playlistID spotify.ID, itemID spotify.ID) bool {
+    var count int64
+    src.GetDbConn().Db.Table("playlist_exclusions").
+        Where("playlist_spotify_id = ? AND id_item_spotify_id = ?", playlistID, itemID).
+        Count(&count)
+    
+    return count > 0
+}
+
+func GetInclusionMap(playlistID spotify.ID, ids []spotify.ID) map[spotify.ID]bool {
+	var matchedIDs []spotify.ID
+	src.GetDbConn().Db.Table("playlist_inclusions").
+        Where("playlist_spotify_id = ? AND id_item_spotify_id IN ?", playlistID, ids).
+        Pluck("id_item_spotify_id", &matchedIDs)
+
+	m := make(map[spotify.ID]bool)
+	for _, id := range matchedIDs { m[id] = true }
+	return m
+}
+
+func GetExclusionMap(playlistID spotify.ID, ids []spotify.ID) map[spotify.ID]bool {
+	var matchedIDs []spotify.ID
+	src.GetDbConn().Db.Table("playlist_exclusions").
+        Where("playlist_spotify_id = ? AND id_item_spotify_id IN ?", playlistID, ids).
+        Pluck("id_item_spotify_id", &matchedIDs)
+
+	m := make(map[spotify.ID]bool)
+	for _, id := range matchedIDs { m[id] = true }
+	return m
 }
 
 func GetIncludedPlaylistsFromPlaylist(p *model.Playlist) ([]model.Playlist) {
