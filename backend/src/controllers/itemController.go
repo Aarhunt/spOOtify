@@ -15,7 +15,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        request  body      model.ItemInclusionRequest  true  "Inclusion/Exclusion Details"
-// @Success      200      {object}  model.PlaylistResponse
+// @Success      200      {object}  model.InclusionResponse
 // @Failure      500      {object}  map[string]string
 // @Router       /playlist/item [post]
 func IncludeExcludeItem(c *gin.Context) {
@@ -32,6 +32,33 @@ func IncludeExcludeItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, res)
+}
+
+// UndoIncludeExcludeItem godoc
+// @Summary      Undo Include or Exclude
+// @Description  Removes an IdItem from both inclusions and exclusions of a playlist
+// @Tags         items
+// @Accept       json
+// @Produce      json
+// @Param        request  body      model.ItemInclusionRequest  true  "Item to remove"
+// @Success      200      {object}  model.InclusionResponse
+// @Failure      500      {object}  map[string]string
+// @Router       /playlist/item/undo [post]
+func UndoIncludeExcludeItem(c *gin.Context) {
+    var req model.ItemInclusionRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    res, err := services.UndoIncludeExcludeItem(req)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+
+    // Returns the InclusionResponse with Included: 0 (Nothing)
+    c.JSON(http.StatusOK, res)
 }
 
 // IncludePlaylist godoc

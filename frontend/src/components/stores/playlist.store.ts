@@ -48,5 +48,7 @@ export const usePlaylistStore = create<PlaylistState>((set) => ({
             console.error("Creation failed", err);
             set({ loading: false, error: true });
         }
-    }
+    },
+
+
 }));

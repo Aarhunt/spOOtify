@@ -47,7 +47,7 @@ type ItemInclusionRequest struct {
 }
 
 type ItemRequest struct {
-	ArtistID 	spotify.ID	`json:"artistid" binding:"required"`
+	ParentID 	spotify.ID	`json:"parentid" binding:"required"`
 	PlaylistID 	spotify.ID `json:"playlistid" binding:"required"`
 	ItemType 	ItemType `json:"type" binding:"required"`
 }
@@ -68,5 +68,11 @@ type ItemResponse struct {
 	Name      string `json:"name"`
 	Icon      []spotify.Image `json:"icon"`
 	ItemType 	ItemType `json:"itemType"`
+	Included 	InclusionType `json:"included"`
+	SortData 	int `json:"sortdata"`
+}
+
+type InclusionResponse struct {
+	SpotifyID spotify.ID `json:"spotifyID"`
 	Included 	InclusionType `json:"included"`
 }

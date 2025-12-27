@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.PlaylistResponse, error) {
+func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionResponse, error) {
 	dbConn := src.GetDbConn()
 	db := dbConn.Db
 
@@ -24,8 +24,14 @@ func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.PlaylistResponse
 		Playlists: []model.Playlist{},
 	}
 
+	returnItem := model.InclusionResponse{
+		SpotifyID: req.ItemSpotifyID,
+		Included: model.InclusionType(0),
+	}
+
 	db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "spotify_id"}},
 			UpdateAll: true,
 		}).Omit(clause.Associations).Create(&newItem).Error
 		if err != nil {
@@ -34,8 +40,10 @@ func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.PlaylistResponse
 
 		if req.Include {
 			err = tx.Model(&playlist).Association("Inclusions").Append(&newItem)
+			returnItem.Included = 1;
 		} else {
 			err = tx.Model(&playlist).Association("Exclusions").Append(&newItem)
+			returnItem.Included = 2;
 		}
 		if err != nil {
 			return err
@@ -44,8 +52,41 @@ func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.PlaylistResponse
 		return nil
 	})
 
-	return playlist.ToResponse(), err
+	return &returnItem, err
 }
+
+func UndoIncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionResponse, error) {
+    dbConn := src.GetDbConn()
+    db := dbConn.Db
+
+    playlist, err := getPlaylist(req.PlaylistID)
+    if err != nil {
+        return nil, err
+    }
+
+    item := model.IdItem{SpotifyID: req.ItemSpotifyID}
+
+    returnItem := model.InclusionResponse{
+        SpotifyID: req.ItemSpotifyID,
+        Included:  model.InclusionType(0), 
+    }
+
+    err = db.Transaction(func(tx *gorm.DB) error {
+        if err := tx.Model(&playlist).Association("Inclusions").Delete(&item); err != nil {
+            return err
+        }
+
+        if err := tx.Model(&playlist).Association("Exclusions").Delete(&item); err != nil {
+            return err
+        }
+
+        return nil
+    })
+
+    return &returnItem, err
+}
+
+
 
 func IncludePlaylist(req model.ItemPlaylistRequest) (*model.PlaylistResponse, error) {
 	dbConn := src.GetDbConn()
@@ -63,7 +104,7 @@ func GetAlbumFromArtist(req model.ItemRequest) ([]model.ItemResponse, error) {
 	ctx, client := conn.Ctx, conn.Client
 
 	playlist, err := getPlaylist(req.PlaylistID)
-	results, err := client.GetArtistAlbums(ctx, req.ArtistID, []spotify.AlbumType{spotify.AlbumTypeAlbum, spotify.AlbumTypeSingle})
+	results, err := client.GetArtistAlbums(ctx, req.ParentID, []spotify.AlbumType{spotify.AlbumTypeAlbum}, spotify.Limit(50))
 
 	var albums = results.Albums
 
@@ -75,7 +116,7 @@ func GetTracksFromAlbum(req model.ItemRequest) ([]model.ItemResponse, error) {
 	ctx, client := conn.Ctx, conn.Client
 
 	playlist, err := getPlaylist(req.PlaylistID)
-	results, err := client.GetAlbumTracks(ctx, req.ArtistID)
+	results, err := client.GetAlbumTracks(ctx, req.ParentID, spotify.Limit(50))
 
 	var tracks = results.Tracks
 
@@ -102,6 +143,7 @@ func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []m
 			Icon:      a.Album.Images,
 			ItemType:  model.Track,
 			Included:  included,
+			SortData:  int(a.TrackNumber),
 		}
 	})
 }
@@ -127,6 +169,7 @@ func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []m
 			Icon:      a.Images,
 			ItemType:  model.Album,
 			Included:  included,
+			SortData:  a.ReleaseDateTime().Year(),
 		}
 	})
 }

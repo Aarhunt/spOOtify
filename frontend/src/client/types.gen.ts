@@ -10,8 +10,13 @@ export type GinH = {
 
 export type ModelIdItem = {
     id?: string;
+    included_in?: Array<ModelPlaylist>;
     itemType?: ModelItemType;
-    playlists?: Array<ModelPlaylist>;
+};
+
+export type ModelInclusionResponse = {
+    included?: ModelInclusionType;
+    spotifyID?: string;
 };
 
 export type ModelInclusionType = 0 | 1 | 2;
@@ -29,7 +34,7 @@ export type ModelItemPlaylistRequest = {
 };
 
 export type ModelItemRequest = {
-    artistid: string;
+    parentid: string;
     playlistid: string;
     type: ModelItemType;
 };
@@ -39,15 +44,18 @@ export type ModelItemResponse = {
     included?: ModelInclusionType;
     itemType?: ModelItemType;
     name?: string;
+    sortdata?: number;
     spotifyID?: string;
 };
 
 export type ModelItemType = 0 | 1 | 2 | 3;
 
 export type ModelPlaylist = {
+    /**
+     * IncludedIn 		  []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+     */
     exclusions?: Array<ModelIdItem>;
     id?: string;
-    includedIn?: Array<ModelPlaylist>;
     includedPlaylists?: Array<ModelPlaylist>;
     inclusions?: Array<ModelIdItem>;
     name?: string;
@@ -137,7 +145,7 @@ export type GetPlaylistResponses = {
     /**
      * OK
      */
-    200: Array<ModelPlaylist>;
+    200: Array<ModelPlaylistResponse>;
 };
 
 export type GetPlaylistResponse = GetPlaylistResponses[keyof GetPlaylistResponses];
@@ -225,10 +233,40 @@ export type PostPlaylistItemResponses = {
     /**
      * OK
      */
-    200: ModelPlaylistResponse;
+    200: ModelInclusionResponse;
 };
 
 export type PostPlaylistItemResponse = PostPlaylistItemResponses[keyof PostPlaylistItemResponses];
+
+export type PostPlaylistItemUndoData = {
+    /**
+     * Item to remove
+     */
+    body: ModelItemInclusionRequest;
+    path?: never;
+    query?: never;
+    url: '/playlist/item/undo';
+};
+
+export type PostPlaylistItemUndoErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type PostPlaylistItemUndoError = PostPlaylistItemUndoErrors[keyof PostPlaylistItemUndoErrors];
+
+export type PostPlaylistItemUndoResponses = {
+    /**
+     * OK
+     */
+    200: ModelInclusionResponse;
+};
+
+export type PostPlaylistItemUndoResponse = PostPlaylistItemUndoResponses[keyof PostPlaylistItemUndoResponses];
 
 export type DeletePlaylistByIdData = {
     body?: never;

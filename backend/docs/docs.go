@@ -40,7 +40,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Playlist"
+                                "$ref": "#/definitions/model.PlaylistResponse"
                             }
                         }
                     },
@@ -190,7 +190,50 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.PlaylistResponse"
+                            "$ref": "#/definitions/model.InclusionResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/playlist/item/undo": {
+            "post": {
+                "description": "Removes an IdItem from both inclusions and exclusions of a playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "items"
+                ],
+                "summary": "Undo Include or Exclude",
+                "parameters": [
+                    {
+                        "description": "Item to remove",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ItemInclusionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.InclusionResponse"
                         }
                     },
                     "500": {
@@ -388,14 +431,25 @@ const docTemplate = `{
                     "type": "string",
                     "example": "37i9dQZF1DXcBWIGoYBM3M"
                 },
-                "itemType": {
-                    "$ref": "#/definitions/model.ItemType"
-                },
-                "playlists": {
+                "included_in": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.Playlist"
                     }
+                },
+                "itemType": {
+                    "$ref": "#/definitions/model.ItemType"
+                }
+            }
+        },
+        "model.InclusionResponse": {
+            "type": "object",
+            "properties": {
+                "included": {
+                    "$ref": "#/definitions/model.InclusionType"
+                },
+                "spotifyID": {
+                    "type": "string"
                 }
             }
         },
@@ -453,12 +507,12 @@ const docTemplate = `{
         "model.ItemRequest": {
             "type": "object",
             "required": [
-                "artistid",
+                "parentid",
                 "playlistid",
                 "type"
             ],
             "properties": {
-                "artistid": {
+                "parentid": {
                     "type": "string"
                 },
                 "playlistid": {
@@ -487,6 +541,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "sortdata": {
+                    "type": "integer"
+                },
                 "spotifyID": {
                     "type": "string"
                 }
@@ -511,6 +568,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "exclusions": {
+                    "description": "IncludedIn \t\t  []*Playlist ` + "`" + `gorm:\"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE\"` + "`" + `",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.IdItem"
@@ -519,12 +577,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string",
                     "example": "37i9dQZF1DXcBWIGoYBM3M"
-                },
-                "includedIn": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Playlist"
-                    }
                 },
                 "includedPlaylists": {
                     "type": "array",

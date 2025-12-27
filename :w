@@ -1,0 +1,118 @@
+import { create } from 'zustand'
+import { postSearch, postSpotifyAlbumTracks, postSpotifyArtistAlbums, postPlaylistItem } from '@/client';
+import type { ModelItemResponse, ModelItemType } from "@/client/types.gen"
+
+
+interface SearchState {
+    searchData: ModelItemResponse[];
+    albumData: ModelItemResponse[];
+    trackData: ModelItemResponse[];
+    playlistId: string;
+    searchLoading: boolean;
+    albumLoading: boolean;
+    trackLoading: boolean;
+    includeLoading: boolean;
+    error: boolean;
+    searchType: ModelItemType;
+    setPlaylistId: (val: string) => void;
+    search: (query: string) => Promise<void>;
+    getAlbumsFromArtist: (artistId: string) => Promise<void>;
+    getTracksFromAlbum: (artistId: string) => Promise<void>;
+    setSearchType: (val: ModelItemType) => void;
+    includeItem: (itemId: string, include: boolean, type: ModelItemType) => Promise<void>;
+}
+
+export const useSearchStore = create<SearchState>((set, get) => ({
+    searchData: [],
+    albumData: [],
+    trackData: [],
+    playlistId: "", 
+    searchLoading: false,
+    albumLoading: false,
+    trackLoading: false,
+    includeLoading: false,
+    error: false,
+    searchType: 1,
+
+    search: async (query: string) => {
+        set({ searchLoading: true, searchData: [], albumData: [], trackData: [] });
+
+        const currentPlaylistId = get().playlistId;
+        const searchType = get().searchType;
+
+        const response = await postSearch({
+            body: {
+                playlistid: currentPlaylistId,
+                query: query,
+                type: searchType,
+            }
+        });
+
+        if (response.data) {
+            set({ searchData: response.data, searchLoading: false, error: false });
+        } else {
+            set({ searchLoading: false, error: true });
+        }
+    },
+
+    setSearchType: (val: ModelItemType) => set({ searchType: val, searchData: [], albumData: [], trackData: []}),
+    
+    setPlaylistId: (id: string) => set({ playlistId: id }),
+
+    getAlbumsFromArtist: async (artistId: string) => {
+        set({ albumLoading: true, trackData: [] })
+
+        const response = await postSpotifyArtistAlbums({
+            body: {
+                parentid: artistId,
+                playlistid: get().playlistId,
+                type: 1,
+            }
+        })
+
+        if (response.data) {
+            set({ albumData: response.data, albumLoading: false, error: false });
+        } else {
+            set({ albumLoading: false, error: true });
+        }
+    },
+
+    getTracksFromAlbum: async (albumId: string) => {
+        set({ trackLoading: true })
+
+        const response = await postSpotifyAlbumTracks({
+            body: {
+                parentid: albumId,
+                playlistid: get().playlistId,
+                type: 1,
+            }
+        })
+
+        if (response.data) {
+            set({ trackData: response.data, trackLoading: false, error: false });
+        } else {
+            set({ trackLoading: false, error: true });
+        }
+    },
+
+    includeItem: async (itemId: string, include: boolean, type: ModelItemType) => {
+        set({ includeLoading: true });
+        try {
+            const response = await postPlaylistItem({
+                body: {
+                    include: include,
+                    playlistid: get().playlistId,
+                    spotid: itemId,
+                    type: type,
+                }
+            })
+
+            if (response.data) {
+
+            }
+        } catch (err) {
+            console.error("Inclusion failed", err);
+            set({ includeLoading: false, error: true });
+        }
+    },
+}));

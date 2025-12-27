@@ -8,12 +8,19 @@ definitions:
       id:
         example: 37i9dQZF1DXcBWIGoYBM3M
         type: string
-      itemType:
-        $ref: '#/definitions/model.ItemType'
-      playlists:
+      included_in:
         items:
           $ref: '#/definitions/model.Playlist'
         type: array
+      itemType:
+        $ref: '#/definitions/model.ItemType'
+    type: object
+  model.InclusionResponse:
+    properties:
+      included:
+        $ref: '#/definitions/model.InclusionType'
+      spotifyID:
+        type: string
     type: object
   model.InclusionType:
     enum:
@@ -53,14 +60,14 @@ definitions:
     type: object
   model.ItemRequest:
     properties:
-      artistid:
+      parentid:
         type: string
       playlistid:
         type: string
       type:
         $ref: '#/definitions/model.ItemType'
     required:
-    - artistid
+    - parentid
     - playlistid
     - type
     type: object
@@ -76,6 +83,8 @@ definitions:
         $ref: '#/definitions/model.ItemType'
       name:
         type: string
+      sortdata:
+        type: integer
       spotifyID:
         type: string
     type: object
@@ -94,16 +103,13 @@ definitions:
   model.Playlist:
     properties:
       exclusions:
+        description: "IncludedIn \t\t  []*Playlist `gorm:\"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE\"`"
         items:
           $ref: '#/definitions/model.IdItem'
         type: array
       id:
         example: 37i9dQZF1DXcBWIGoYBM3M
         type: string
-      includedIn:
-        items:
-          $ref: '#/definitions/model.Playlist'
-        type: array
       includedPlaylists:
         items:
           $ref: '#/definitions/model.Playlist'
@@ -211,7 +217,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Playlist'
+              $ref: '#/definitions/model.PlaylistResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -314,7 +320,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.PlaylistResponse'
+            $ref: '#/definitions/model.InclusionResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -322,6 +328,34 @@ paths:
               type: string
             type: object
       summary: Include or Exclude an Item
+      tags:
+      - items
+  /playlist/item/undo:
+    post:
+      consumes:
+      - application/json
+      description: Removes an IdItem from both inclusions and exclusions of a playlist
+      parameters:
+      - description: Item to remove
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ItemInclusionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.InclusionResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Undo Include or Exclude
       tags:
       - items
   /search:

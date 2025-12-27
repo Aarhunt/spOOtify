@@ -72,6 +72,7 @@ func main() {
 			play.DELETE("/:id", controllers.DeletePlaylist)
 			play.DELETE("", controllers.ClearPlaylists)
 			play.POST("/item", controllers.IncludeExcludeItem)
+			play.POST("/item/undo", controllers.UndoIncludeExcludeItem)
 			play.POST("/include", controllers.IncludePlaylist)
 		}
 
