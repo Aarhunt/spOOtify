@@ -248,6 +248,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/playlist/publish": {
+            "post": {
+                "description": "Calculates the current tracklist based on inclusions/exclusions and replaces the Spotify playlist content.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Publish a playlist to Spotify",
+                "parameters": [
+                    {
+                        "description": "Playlist Publish Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.PlaylistPublishRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message: Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error: Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error: Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/playlist/{id}": {
             "delete": {
                 "description": "Delete a specific playlist by its ID",
@@ -458,12 +513,16 @@ const docTemplate = `{
             "enum": [
                 0,
                 1,
-                2
+                2,
+                3,
+                4
             ],
             "x-enum-varnames": [
                 "Nothing",
                 "Included",
-                "Excluded"
+                "Excluded",
+                "IncludedByProxy",
+                "ExcludedByProxy"
             ]
         },
         "model.ItemInclusionRequest": {
@@ -604,6 +663,14 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "My Playlist"
+                }
+            }
+        },
+        "model.PlaylistPublishRequest": {
+            "type": "object",
+            "properties": {
+                "spotifyID": {
+                    "type": "string"
                 }
             }
         },

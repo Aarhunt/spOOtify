@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getPlaylist, postPlaylist } from '@/client';
+import { getPlaylist, postPlaylist, postPlaylistPublish } from '@/client';
 import type { ModelPlaylistResponse } from "@/client/types.gen"
 
 
@@ -9,7 +9,7 @@ interface PlaylistState {
     loading: boolean;
     error: boolean;
     fetch: () => Promise<void>;
-    setCurrent: (val: string) => void;
+    setCurrent: (name: string) => void;
     createPlaylist: (name: string) => Promise<void>;
 }
 
@@ -19,7 +19,7 @@ export const usePlaylistStore = create<PlaylistState>((set) => ({
     loading: false,
     error: false,
 
-    setCurrent: (val) => set({ current: val }),
+    setCurrent: (name) => set({ current: name }),
 
     fetch: async () => {
         set({ loading: true });
@@ -36,6 +36,25 @@ export const usePlaylistStore = create<PlaylistState>((set) => ({
         try {
             const response = await postPlaylist({
                 body: { name } // Hey API structure
+            });
+
+            if (response.data) {
+                set((state) => ({
+                    data: [...state.data, response.data],
+                    loading: false
+                }));
+            }
+        } catch (err) {
+            console.error("Creation failed", err);
+            set({ loading: false, error: true });
+        }
+    },
+
+    publishPlaylist: async (id: string) => {
+        set({ loading: true });
+        try {
+            const response = await postPlaylistPublish({
+                body: { spotifyID: id } // Hey API structure
             });
 
             if (response.data) {

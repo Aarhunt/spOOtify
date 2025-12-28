@@ -27,11 +27,15 @@ definitions:
     - 0
     - 1
     - 2
+    - 3
+    - 4
     type: integer
     x-enum-varnames:
     - Nothing
     - Included
     - Excluded
+    - IncludedByProxy
+    - ExcludedByProxy
   model.ItemInclusionRequest:
     properties:
       include:
@@ -128,6 +132,11 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  model.PlaylistPublishRequest:
+    properties:
+      spotifyID:
+        type: string
     type: object
   model.PlaylistResponse:
     properties:
@@ -358,6 +367,43 @@ paths:
       summary: Undo Include or Exclude
       tags:
       - items
+  /playlist/publish:
+    post:
+      consumes:
+      - application/json
+      description: Calculates the current tracklist based on inclusions/exclusions
+        and replaces the Spotify playlist content.
+      parameters:
+      - description: Playlist Publish Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.PlaylistPublishRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: Success'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'error: Bad Request'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'error: Internal Server Error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Publish a playlist to Spotify
+      tags:
+      - playlists
   /search:
     post:
       consumes:

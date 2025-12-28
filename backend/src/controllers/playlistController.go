@@ -98,3 +98,42 @@ func ClearPlaylists(c *gin.Context) {
 
     c.IndentedJSON(http.StatusOK, result)
 }
+
+// PublishPlaylistController handles the synchronization of the local playlist state to Spotify.
+// @Summary      Publish a playlist to Spotify
+// @Description  Calculates the current tracklist based on inclusions/exclusions and replaces the Spotify playlist content.
+// @Tags         playlists
+// @Accept       json
+// @Produce      json
+// @Param        request  body      model.PlaylistPublishRequest  true  "Playlist Publish Request"
+// @Success      200      {object}  map[string]string "message: Success"
+// @Failure      400      {object}  map[string]string "error: Bad Request"
+// @Failure      500      {object}  map[string]string "error: Internal Server Error"
+// @Router       /playlist/publish [post]
+func PublishPlaylist(c *gin.Context) {
+    var req model.PlaylistPublishRequest
+
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+        return
+    }
+
+    if req.SpotifyID == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Playlist Spotify ID is required"})
+        return
+    }
+
+    err := services.PublishPlaylist(req)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error":   "Failed to sync with Spotify",
+            "details": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "message":    "Playlist successfully synchronized",
+        "playlistId": req.SpotifyID,
+    })
+}

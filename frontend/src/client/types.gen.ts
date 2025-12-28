@@ -19,7 +19,7 @@ export type ModelInclusionResponse = {
     spotifyID?: string;
 };
 
-export type ModelInclusionType = 0 | 1 | 2;
+export type ModelInclusionType = 0 | 1 | 2 | 3 | 4;
 
 export type ModelItemInclusionRequest = {
     include: boolean;
@@ -63,6 +63,10 @@ export type ModelPlaylist = {
 
 export type ModelPlaylistCreateRequest = {
     name: string;
+};
+
+export type ModelPlaylistPublishRequest = {
+    spotifyID?: string;
 };
 
 export type ModelPlaylistResponse = {
@@ -267,6 +271,44 @@ export type PostPlaylistItemUndoResponses = {
 };
 
 export type PostPlaylistItemUndoResponse = PostPlaylistItemUndoResponses[keyof PostPlaylistItemUndoResponses];
+
+export type PostPlaylistPublishData = {
+    /**
+     * Playlist Publish Request
+     */
+    body: ModelPlaylistPublishRequest;
+    path?: never;
+    query?: never;
+    url: '/playlist/publish';
+};
+
+export type PostPlaylistPublishErrors = {
+    /**
+     * error: Bad Request
+     */
+    400: {
+        [key: string]: string;
+    };
+    /**
+     * error: Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type PostPlaylistPublishError = PostPlaylistPublishErrors[keyof PostPlaylistPublishErrors];
+
+export type PostPlaylistPublishResponses = {
+    /**
+     * message: Success
+     */
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type PostPlaylistPublishResponse = PostPlaylistPublishResponses[keyof PostPlaylistPublishResponses];
 
 export type DeletePlaylistByIdData = {
     body?: never;

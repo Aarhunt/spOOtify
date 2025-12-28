@@ -59,6 +59,10 @@ export function SearchResultItem({ item, index, onAction, onExpand }: SearchResu
         return <Badge className="bg-green-500 hover:bg-green-600">Included</Badge>;
       case 2: 
         return <Badge variant="destructive">Excluded</Badge>;
+      case 3: 
+        return <Badge className="bg-blue-500 hover:bg-blue-600">Included</Badge>;
+      case 4: 
+        return <Badge className="bg-orange-500 hover:bg-orange-600">Excluded</Badge>;
       default:
         return null;
     }
@@ -130,6 +134,10 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
         return <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-none h-5 px-1.5 text-[10px]">IN</Badge>;
       case 2:
         return <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/20 border-none h-5 px-1.5 text-[10px]">EX</Badge>;
+      case 3:
+        return <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-none h-5 px-1.5 text-[10px]">IN</Badge>;
+      case 4:
+        return <Badge className="bg-orange-500-500/10 text-orange-500 hover:bg-orange-500/20 border-none h-5 px-1.5 text-[10px]">EX</Badge>;
       default:
         return null;
     }
@@ -186,7 +194,7 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
 }
 
 function ResultBox() {
-  const { artistData, searchLoading, albumData, trackData, albumLoading, trackLoading, searchType, includeItem, undoIncludeItem, getAlbumsFromArtist, getTracksFromAlbum } = useSearchStore();
+  const { artistData, searchLoading, albumData, trackData, albumLoading, trackLoading, searchType, includeItem, undoIncludeItem, getAlbumsFromArtist, getTracksFromAlbum, setCurrentArtist, setCurrentAlbum } = useSearchStore();
   // You'll need an action in a store to handle the actual DB update
   const handleInclusion = (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => { 
     undo ? undoIncludeItem(id, include, type, index) : includeItem(id, include, type, index)
@@ -196,9 +204,11 @@ function ResultBox() {
     switch (type) {
         case 1:
             getAlbumsFromArtist(id) 
+            setCurrentArtist(id) 
             break;
         case 2:
             getTracksFromAlbum(id)
+            setCurrentAlbum(id)
             break;
         default:
             break;

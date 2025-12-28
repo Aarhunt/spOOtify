@@ -8,6 +8,8 @@ interface SearchState {
     albumData: ModelItemResponse[];
     trackData: ModelItemResponse[];
     playlistId: string;
+    currentArtist: string;
+    currentAlbum: string;
     searchLoading: boolean;
     albumLoading: boolean;
     trackLoading: boolean;
@@ -19,6 +21,8 @@ interface SearchState {
     getAlbumsFromArtist: (artistId: string) => Promise<void>;
     getTracksFromAlbum: (artistId: string) => Promise<void>;
     setSearchType: (val: ModelItemType) => void;
+    setCurrentArtist: (val: string) => void;
+    setCurrentAlbum: (val: string) => void;
     includeItem: (itemId: string, include: boolean, type: ModelItemType, index: number) => Promise<void>;
     undoIncludeItem: (itemId: string, include: boolean, type: ModelItemType, index: number) => Promise<void>;
 }
@@ -27,6 +31,8 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     artistData: [],
     albumData: [],
     trackData: [],
+    currentArtist: "",
+    currentAlbum: "",
     playlistId: "", 
     searchLoading: false,
     albumLoading: false,
@@ -64,6 +70,8 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     },
 
     setSearchType: (val: ModelItemType) => set({ searchType: val, artistData: [], albumData: [], trackData: []}),
+    setCurrentArtist: (val: string) => set({ currentArtist: val }),
+    setCurrentAlbum: (val: string) => set({ currentAlbum: val }),
 
         setPlaylistId: (id: string) => set({ playlistId: id }),
 
@@ -106,7 +114,6 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     includeItem: async (itemId: string, include: boolean, type: ModelItemType, index: number) => {
         set({ includeLoading: true });
 
-
         try {
             const response = await postPlaylistItem({
                 body: {
@@ -118,32 +125,34 @@ export const useSearchStore = create<SearchState>((set, get) => ({
             });
 
             if (response.data) {
-                const dataKey = 
-                    type === 1 ? 'artistData' : 
-                    type === 2 ? 'albumData' : 
-                    'trackData';
-                const currentList = get()[dataKey];
+                const targetValue = include ? 1 : 2;
+                const proxyValue = include ? 3 : 4;
+                const state = get();
 
-                if (currentList[index] && currentList[index].spotifyID === itemId) {
-                    const updatedList = [...currentList];
+                const dataKey = type === 1 ? 'artistData' : type === 2 ? 'albumData' : 'trackData';
+                const currentList = [...state[dataKey]];
 
-                    updatedList[index] = { 
-                        ...updatedList[index], 
-                        included: include ? 1 : 2 
-                    };
-
-                    set({ 
-                        [dataKey]: updatedList, 
-                        includeLoading: false, 
-                        error: false 
-                    });
+                if (currentList[index]?.spotifyID === itemId) {
+                    currentList[index] = { ...currentList[index], included: targetValue };
                 } else {
-                    console.warn("Index mismatch, falling back to ID search");
-                    const fallbackList = currentList.map(item => 
-                                                         item.spotifyID === itemId ? { ...item, included: include ? 1 : 2 } : item
-                                                        );
-                                                        set({ [dataKey]: fallbackList, includeLoading: false });
+                    const foundIndex = currentList.findIndex(i => i.spotifyID === itemId);
+                    if (foundIndex !== -1) currentList[foundIndex] = { ...currentList[foundIndex], included: targetValue };
                 }
+
+                const newState: Partial<SearchState> = {
+                    [dataKey]: currentList,
+                    includeLoading: false,
+                    error: false
+                };
+
+                if (type === 1) {
+                    newState.albumData = state.albumData.map(a => itemId == get().currentArtist ? (a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } ) : {...a});
+                    // newState.trackData = state.trackData.map(t => itemId == get().currentArtist ? (t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue } ) : {});
+                } else if (type === 2) {
+                    newState.trackData = state.trackData.map(t => itemId == get().currentAlbum ? (t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue } ) : {...t});
+                }
+
+                set(newState);
             }
         } catch (err) {
             set({ includeLoading: false, error: true });
@@ -165,39 +174,35 @@ export const useSearchStore = create<SearchState>((set, get) => ({
             });
 
             if (response.data) {
-                const dataKey = 
-                    type === 1 ? 'artistData' : 
-                    type === 2 ? 'albumData' : 
-                    'trackData';
+                const targetValue = 0;
+                const state = get();
 
-                const currentList = get()[dataKey];
+                const dataKey = type === 1 ? 'artistData' : type === 2 ? 'albumData' : 'trackData';
+                const currentList = [...state[dataKey]];
 
-                // Safety check for index optimization
-                if (currentList[index] && currentList[index].spotifyID === itemId) {
-                    const updatedList = [...currentList];
-
-                    // FORCE state to 0 (Nothing)
-                    updatedList[index] = { 
-                        ...updatedList[index], 
-                        included: 0 
-                    };
-
-                    set({ 
-                        [dataKey]: updatedList, 
-                        includeLoading: false, 
-                        error: false 
-                    });
+                if (currentList[index]?.spotifyID === itemId) {
+                    currentList[index] = { ...currentList[index], included: targetValue };
                 } else {
-                    // Fallback ID search if index is stale
-                    const fallbackList = currentList.map(item => 
-                                                         item.spotifyID === itemId ? { ...item, included: 0 } : item
-                                                        );
-                                                        set({ [dataKey]: fallbackList, includeLoading: false });
+                    const foundIndex = currentList.findIndex(i => i.spotifyID === itemId);
+                    if (foundIndex !== -1) currentList[foundIndex] = { ...currentList[foundIndex], included: targetValue };
                 }
+
+                const newState: Partial<SearchState> = {
+                    [dataKey]: currentList,
+                    includeLoading: false,
+                    error: false
+                };
+
+                if (type === 1) {
+                    newState.albumData = state.albumData.map(a => itemId == get().currentArtist ? (a.included == 3 || a.included == 4 ? { ...a, included: targetValue } : {...a}) : {...a});
+                    // newState.trackData = state.trackData.map(t => itemId == get().currentArtist ? (t.included == 3 || t.included == 4 ? { ...t, included: targetValue } : {...t}) : {});
+                } else if (type === 2) {
+                    newState.trackData = state.trackData.map(t => itemId == get().currentArtist ? (t.included == 3 || t.included == 4 ? { ...t, included: targetValue } : {...t}) : {...t});
+                }
+
+                set(newState);
             }
         } catch (err) {
-            console.error("Undo failed", err);
             set({ includeLoading: false, error: true });
         }
-    },
-}));
+    },}));

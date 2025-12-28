@@ -18,6 +18,8 @@ const (
 	Nothing InclusionType = iota
 	Included
 	Excluded
+	IncludedByProxy
+	ExcludedByProxy
 )
 
 var itemType = map[ItemType]string{
@@ -31,6 +33,8 @@ var inclusionType = map[InclusionType]string{
 	Nothing: 	"nothing",
 	Included: 	"included",
 	Excluded: 	"excluded",
+	IncludedByProxy: "includedbyproxy",
+	ExcludedByProxy: "excludedbyproxy",
 }
 
 type IdItem struct {
@@ -75,4 +79,10 @@ type ItemResponse struct {
 type InclusionResponse struct {
 	SpotifyID spotify.ID `json:"spotifyID"`
 	Included 	InclusionType `json:"included"`
+}
+
+func (iInc InclusionType) IsIncluded(iExc InclusionType) bool {
+	if (iInc == 0) {return false}
+	if (iExc == 0) {return iInc > 0}
+	return (iInc + iExc) < 0
 }

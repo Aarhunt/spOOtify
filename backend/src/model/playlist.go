@@ -17,6 +17,10 @@ type PlaylistCreateRequest struct {
 	Name string `json:"name" binding:"required" example:"My Playlist"`
 }
 
+type PlaylistPublishRequest struct {
+	SpotifyID         spotify.ID `json:"spotifyID"`
+}
+
 type PlaylistResponse struct {
 	Name              string `json:"name"`
 	SpotifyID         spotify.ID `json:"spotifyID"`
@@ -39,62 +43,3 @@ func (p Playlist) ToResponse() *PlaylistResponse {
 	}
 }
 
-// func (p Playlist) getTracks(ctx context.Context, client spotify.Client) []IdItem {
-// 	var excludeTracks []IdItem
-// 	var resultTracks []IdItem
-//
-// 	for _, p1 := range p.IncludedPlaylists {
-// 		playlistTracks := p1.getTracks(ctx, client)
-// 		resultTracks = append(resultTracks, playlistTracks...)
-// 	}
-//
-// 	for _, v := range p.Exclusions {
-// 		switch v.ItemType {
-// 		case Artist:
-// 			tracks := getTracksFromArtist(ctx, client, v)
-// 			excludeTracks = append(excludeTracks, tracks...)
-// 		case Album:
-// 			tracks := getTracksFromAlbum(ctx, client, v)
-// 			excludeTracks = append(excludeTracks, tracks...)
-// 		case Track:
-// 			excludeTracks = append(excludeTracks, v)
-// 		}
-// 	}
-//
-// 	for _, v := range p.Inclusions {
-// 		switch v.ItemType {
-// 		case Artist:
-// 			tracks := getTracksFromArtist(ctx, client, v)
-// 			for _, track := range tracks {
-// 				if !slices.Contains(excludeTracks, track) {
-// 					resultTracks = append(tracks, track)
-// 				}
-// 			}
-// 		case Album:
-// 			tracks := getTracksFromAlbum(ctx, client, v)
-// 			for _, track := range tracks {
-// 				if !slices.Contains(excludeTracks, track) {
-// 					resultTracks = append(tracks, track)
-// 				}
-// 			}
-// 		case Track:
-// 			if !slices.Contains(excludeTracks, v) {
-// 				resultTracks = append(resultTracks, v)
-// 			}
-// 		}
-// 	}
-//
-// 	return resultTracks
-// }
-
-// func GetFullPlaylist(id string) (Playlist, error) {
-//     var p Playlist
-//     db := src.GetDbConn().Db
-//     
-//     err := db.Preload("Inclusions").
-//               Preload("Exclusions").
-//               Preload("IncludedPlaylists").
-//               First(&p, "spotify_id = ?", id).Error
-//               
-//     return p, err
-// }

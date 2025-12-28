@@ -41,11 +41,11 @@ func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionRespons
 		if *req.Include {
 			tx.Model(&playlist).Association("Exclusions").Delete(&newItem)
 			err = tx.Model(&playlist).Association("Inclusions").Append(&newItem)
-			returnItem.Included = 1;
+			returnItem.Included = model.Included;
 		} else {
 			tx.Model(&playlist).Association("Inclusions").Delete(&newItem)
 			err = tx.Model(&playlist).Association("Exclusions").Append(&newItem)
-			returnItem.Included = 2;
+			returnItem.Included = model.Excluded;
 		}
 		if err != nil {
 			return err
@@ -122,7 +122,7 @@ func GetTracksFromAlbum(req model.ItemRequest) ([]model.ItemResponse, error) {
 
 	var tracks = results.Tracks
 
-	return trackToResponse(tracks, playlist, req.ParentID), err
+	return singleAlbumTrackToResponse(tracks, playlist, req.ParentID), err
 }
 
 func artistToResponse(artists []spotify.FullArtist, playlist *model.Playlist) []model.ItemResponse {
@@ -164,9 +164,9 @@ func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []m
 		} else if excMap[a.ID] {
 			included = model.Excluded
 		} else if incMap[a.Artists[0].ID] {
-			included = model.Included
+			included = model.IncludedByProxy
 		} else if excMap[a.Artists[0].ID] {
-			included = model.Excluded
+			included = model.ExcludedByProxy
 		}
 
 		return model.ItemResponse{
@@ -180,8 +180,7 @@ func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []m
 	})
 }
 
-
-func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist, album spotify.ID) []model.ItemResponse {
+func singleAlbumTrackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist, album spotify.ID) []model.ItemResponse {
 	trackIDs := utils.Map(tracks, func(a spotify.SimpleTrack) spotify.ID { return a.ID })
 
 	incMap := GetInclusionMap(playlist.SpotifyID, append(trackIDs, album))
@@ -195,9 +194,40 @@ func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist, alb
 		} else if excMap[a.ID] {
 			included = model.Excluded
 		} else if incMap[album] {
-			included = model.Included
+			included = model.IncludedByProxy
 		} else if excMap[album] {
+			included = model.ExcludedByProxy
+		}
+
+		return model.ItemResponse{
+			SpotifyID: a.ID,
+			Name:      a.Name,
+			Icon:      a.Album.Images,
+			ItemType:  model.Track,
+			Included:  included,
+			SortData:  int(a.TrackNumber),
+		}
+	})
+}
+
+func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []model.ItemResponse {
+	trackIDs := utils.Map(tracks, func(a spotify.SimpleTrack) spotify.ID { return a.ID })
+	albumIDs := utils.Map(tracks, func(a spotify.SimpleTrack) spotify.ID { return a.Album.ID })
+
+	incMap := GetInclusionMap(playlist.SpotifyID, append(trackIDs, albumIDs...))
+	excMap := GetExclusionMap(playlist.SpotifyID, append(trackIDs, albumIDs...))
+
+	return utils.Map(tracks, func(a spotify.SimpleTrack) model.ItemResponse {
+
+		var included model.InclusionType = model.Nothing;
+		if incMap[a.ID] {
+			included = model.Included
+		} else if excMap[a.ID] {
 			included = model.Excluded
+		} else if incMap[a.Album.ID] {
+			included = model.IncludedByProxy
+		} else if excMap[a.Album.ID] {
+			included = model.ExcludedByProxy
 		}
 
 		return model.ItemResponse{
