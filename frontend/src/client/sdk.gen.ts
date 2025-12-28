@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistIncludeData, PostPlaylistIncludeErrors, PostPlaylistIncludeResponses, PostPlaylistItemData, PostPlaylistItemErrors, PostPlaylistItemResponses, PostPlaylistItemUndoData, PostPlaylistItemUndoErrors, PostPlaylistItemUndoResponses, PostPlaylistPublishData, PostPlaylistPublishErrors, PostPlaylistPublishResponses, PostPlaylistResponses, PostSearchData, PostSearchErrors, PostSearchResponses, PostSpotifyAlbumTracksData, PostSpotifyAlbumTracksErrors, PostSpotifyAlbumTracksResponses, PostSpotifyArtistAlbumsData, PostSpotifyArtistAlbumsErrors, PostSpotifyArtistAlbumsResponses } from './types.gen';
+import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetPlaylistByIdExclusionsData, GetPlaylistByIdExclusionsErrors, GetPlaylistByIdExclusionsResponses, GetPlaylistByIdInclusionsData, GetPlaylistByIdInclusionsErrors, GetPlaylistByIdInclusionsResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistIncludeData, PostPlaylistIncludeErrors, PostPlaylistIncludeResponses, PostPlaylistItemData, PostPlaylistItemErrors, PostPlaylistItemResponses, PostPlaylistItemUndoData, PostPlaylistItemUndoErrors, PostPlaylistItemUndoResponses, PostPlaylistPublishData, PostPlaylistPublishErrors, PostPlaylistPublishResponses, PostPlaylistResponses, PostSearchData, PostSearchErrors, PostSearchResponses, PostSpotifyAlbumTracksData, PostSpotifyAlbumTracksErrors, PostSpotifyAlbumTracksResponses, PostSpotifyArtistAlbumsData, PostSpotifyArtistAlbumsErrors, PostSpotifyArtistAlbumsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -108,6 +108,20 @@ export const postPlaylistPublish = <ThrowOnError extends boolean = false>(option
  * Delete a specific playlist by its ID
  */
 export const deletePlaylistById = <ThrowOnError extends boolean = false>(options: Options<DeletePlaylistByIdData, ThrowOnError>) => (options.client ?? client).delete<DeletePlaylistByIdResponses, DeletePlaylistByIdErrors, ThrowOnError>({ url: '/playlist/{id}', ...options });
+
+/**
+ * Get all excluded items for a playlist
+ *
+ * Fetches the list of all Artists, Albums, and Tracks manually excluded in a specific playlist.
+ */
+export const getPlaylistByIdExclusions = <ThrowOnError extends boolean = false>(options: Options<GetPlaylistByIdExclusionsData, ThrowOnError>) => (options.client ?? client).get<GetPlaylistByIdExclusionsResponses, GetPlaylistByIdExclusionsErrors, ThrowOnError>({ url: '/playlist/{id}/exclusions', ...options });
+
+/**
+ * Get all included items for a playlist
+ *
+ * Fetches the list of all Artists, Albums, and Tracks manually included in a specific playlist.
+ */
+export const getPlaylistByIdInclusions = <ThrowOnError extends boolean = false>(options: Options<GetPlaylistByIdInclusionsData, ThrowOnError>) => (options.client ?? client).get<GetPlaylistByIdInclusionsResponses, GetPlaylistByIdInclusionsErrors, ThrowOnError>({ url: '/playlist/{id}/inclusions', ...options });
 
 /**
  * Unified Spotify Search

@@ -41,6 +41,7 @@ import {
   ItemTitle,
 } from "@/components/ui/item"
 import { Spinner } from "@/components/ui/spinner"
+import { useSummaryStore } from "../stores/summary.store"
 
 export default function Playlist() {
     const fetchPlaylists = usePlaylistStore((state) => state.fetch);
@@ -132,6 +133,7 @@ export function PlaylistSearch() {
     
     const { data, loading, current, setCurrentId } = usePlaylistStore();
     const { setPlaylistId } = useSearchStore();
+    const { setPlaylistIdSummary } = useSummaryStore();
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -163,6 +165,7 @@ export function PlaylistSearch() {
                                             const isSelected = current === p.name;
                                             setCurrentId(isSelected ? "" : (p.spotifyID as string), (p.name as string));
                                             setPlaylistId(isSelected ? "" : (p.spotifyID as string));
+                                            setPlaylistIdSummary(isSelected ? "" : (p.spotifyID as string));
                                             setOpen(false);
                                         }}
                                     >

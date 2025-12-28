@@ -149,6 +149,63 @@ func artistToResponse(artists []spotify.FullArtist, playlist *model.Playlist) []
 	})
 }
 
+func IncludedItemsToResponse(items []model.IdItem, included model.InclusionType) []model.ItemResponse {
+	results := make([]model.ItemResponse, len(items))
+
+	artists := []model.IdItem{}
+	albums := []model.IdItem{}
+	tracks := []model.IdItem{}
+
+	for _, item := range items {
+		switch item.ItemType {
+		case model.Artist:
+			artists = append(artists, item)	
+		case model.Album:
+			albums = append(albums, item)
+		case model.Track:
+			tracks = append(tracks, item)
+		}
+	}
+
+	fullArtists := getArtists(artists)
+	fullAlbums := getAlbums(albums)
+	fullTracks := getTracks(tracks)
+
+	results = append(results, utils.Map(fullArtists, func(a *spotify.FullArtist) model.ItemResponse {
+		return model.ItemResponse{
+			SpotifyID: a.ID,
+			Name:      a.Name,
+			Icon:      a.Images,
+			ItemType:  model.Artist,
+			Included:  included,
+		}
+	})...)
+
+	results = append(results, utils.Map(fullAlbums, func(a *spotify.FullAlbum) model.ItemResponse {
+		return model.ItemResponse{
+			SpotifyID: a.ID,
+			Name:      a.Name,
+			Icon:      a.Images,
+			ItemType:  model.Album,
+			Included:  included,
+			SortData:  a.ReleaseDateTime().Year(),
+		}
+	})...)
+	
+	results = append(results, utils.Map(fullTracks, func(a *spotify.FullTrack) model.ItemResponse {
+		return model.ItemResponse{
+			SpotifyID: a.ID,
+			Name:      a.Name,
+			Icon:      a.Album.Images,
+			ItemType:  model.Track,
+			Included:  included,
+			SortData:  int(a.TrackNumber),
+		}
+	})...)
+
+	return results
+}
+
 func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []model.ItemResponse {
 	albumIDs := utils.Map(albums, func(a spotify.SimpleAlbum) spotify.ID { return a.ID })
 	artistIDs := utils.Map(albums, func(a spotify.SimpleAlbum) spotify.ID { return a.Artists[0].ID })
@@ -246,10 +303,10 @@ func getInclusionsExclusions(playlist *model.Playlist, itemIDs []spotify.ID) ([]
     excSet := make(map[spotify.ID]bool)
 
     processPlaylist := func(p *model.Playlist) {
-        for _, id := range GetIncludedItemsFromPlaylist(p, itemIDs) {
+        for _, id := range GetIncludedIDsFromPlaylist(p, itemIDs) {
             incSet[id] = true
         }
-        for _, id := range GetExcludedItemsFromPlaylist(p, itemIDs) {
+        for _, id := range GetExcludedIDsFromPlaylist(p, itemIDs) {
             excSet[id] = true
         }
     }

@@ -340,6 +340,82 @@ export type DeletePlaylistByIdResponses = {
     204: unknown;
 };
 
+export type GetPlaylistByIdExclusionsData = {
+    body?: never;
+    path: {
+        /**
+         * Spotify Playlist ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/playlist/{id}/exclusions';
+};
+
+export type GetPlaylistByIdExclusionsErrors = {
+    /**
+     * error: Invalid ID
+     */
+    400: {
+        [key: string]: string;
+    };
+    /**
+     * error: Database error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type GetPlaylistByIdExclusionsError = GetPlaylistByIdExclusionsErrors[keyof GetPlaylistByIdExclusionsErrors];
+
+export type GetPlaylistByIdExclusionsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ModelItemResponse>;
+};
+
+export type GetPlaylistByIdExclusionsResponse = GetPlaylistByIdExclusionsResponses[keyof GetPlaylistByIdExclusionsResponses];
+
+export type GetPlaylistByIdInclusionsData = {
+    body?: never;
+    path: {
+        /**
+         * Spotify Playlist ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/playlist/{id}/inclusions';
+};
+
+export type GetPlaylistByIdInclusionsErrors = {
+    /**
+     * error: Invalid ID
+     */
+    400: {
+        [key: string]: string;
+    };
+    /**
+     * error: Database error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type GetPlaylistByIdInclusionsError = GetPlaylistByIdInclusionsErrors[keyof GetPlaylistByIdInclusionsErrors];
+
+export type GetPlaylistByIdInclusionsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ModelItemResponse>;
+};
+
+export type GetPlaylistByIdInclusionsResponse = GetPlaylistByIdInclusionsResponses[keyof GetPlaylistByIdInclusionsResponses];
+
 export type PostSearchData = {
     /**
      * Search Query and Item Type

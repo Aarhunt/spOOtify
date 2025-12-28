@@ -329,6 +329,112 @@
                 }
             }
         },
+        "/playlist/{id}/exclusions": {
+            "get": {
+                "description": "Fetches the list of all Artists, Albums, and Tracks manually excluded in a specific playlist.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Get all excluded items for a playlist",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Spotify Playlist ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ItemResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error: Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error: Database error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/playlist/{id}/inclusions": {
+            "get": {
+                "description": "Fetches the list of all Artists, Albums, and Tracks manually included in a specific playlist.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Get all included items for a playlist",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Spotify Playlist ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ItemResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error: Invalid ID",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error: Database error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/search": {
             "post": {
                 "description": "Search Spotify for Artists, Albums, or Tracks based on the provided ItemType.",

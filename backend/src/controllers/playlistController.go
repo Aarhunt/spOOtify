@@ -99,7 +99,7 @@ func ClearPlaylists(c *gin.Context) {
     c.IndentedJSON(http.StatusOK, result)
 }
 
-// PublishPlaylistController handles the synchronization of the local playlist state to Spotify.
+// PublishPlaylist handles the synchronization of the local playlist state to Spotify.
 // @Summary      Publish a playlist to Spotify
 // @Description  Calculates the current tracklist based on inclusions/exclusions and replaces the Spotify playlist content.
 // @Tags         playlists
@@ -136,4 +136,64 @@ func PublishPlaylist(c *gin.Context) {
         "message":    "Playlist successfully synchronized",
         "playlistId": req.SpotifyID,
     })
+}
+
+// GetPlaylistInclusions godoc
+// @Summary      Get all included items for a playlist
+// @Description  Fetches the list of all Artists, Albums, and Tracks manually included in a specific playlist.
+// @Tags         playlists
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Spotify Playlist ID"
+// @Success      200  {array}   model.ItemResponse
+// @Failure      400  {object}  map[string]string "error: Invalid ID"
+// @Failure      500  {object}  map[string]string "error: Database error"
+// @Router       /playlist/{id}/inclusions [get]
+func GetPlaylistInclusions(c *gin.Context) {
+    playlistID := c.Param("id")
+    
+    if playlistID == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Playlist ID is required"})
+        return
+    }
+
+    inclusions := services.GetAllInclusions(spotify.ID(playlistID))
+
+    if inclusions == nil {
+        inclusions = []model.IdItem{}
+    }
+
+	inclusionResponses := services.IncludedItemsToResponse(inclusions, model.Included)
+
+    c.JSON(http.StatusOK, inclusionResponses)
+}
+
+// GetPlaylistExclusions godoc
+// @Summary      Get all excluded items for a playlist
+// @Description  Fetches the list of all Artists, Albums, and Tracks manually excluded in a specific playlist.
+// @Tags         playlists
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "Spotify Playlist ID"
+// @Success      200  {array}   model.ItemResponse
+// @Failure      400  {object}  map[string]string "error: Invalid ID"
+// @Failure      500  {object}  map[string]string "error: Database error"
+// @Router       /playlist/{id}/exclusions [get]
+func GetPlaylistExclusions(c *gin.Context) {
+    playlistID := c.Param("id")
+    
+    if playlistID == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Playlist ID is required"})
+        return
+    }
+
+    inclusions := services.GetAllInclusions(spotify.ID(playlistID))
+
+    if inclusions == nil {
+        inclusions = []model.IdItem{}
+    }
+
+	exclusionResponses := services.IncludedItemsToResponse(inclusions, model.Excluded)
+
+    c.JSON(http.StatusOK, exclusionResponses)
 }

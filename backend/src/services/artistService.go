@@ -5,8 +5,17 @@ import (
 
 	"github.com/aarhunt/autistify/src"
 	"github.com/aarhunt/autistify/src/model"
+	"github.com/aarhunt/autistify/src/utils"
 	"github.com/zmb3/spotify/v2"
 )
+
+func getArtists(items []model.IdItem) []*spotify.FullArtist {
+	spotiConn := src.GetSpotifyConn()
+	ctx, client := spotiConn.Ctx, spotiConn.Client
+
+	artists, _ := client.GetArtists(ctx, utils.Map(items, func(i model.IdItem) spotify.ID { return i.SpotifyID })...)
+	return artists
+}
 
 func GetAlbumsFromArtist(idItem model.IdItem) []model.IdItem{
 	spotiConn := src.GetSpotifyConn()

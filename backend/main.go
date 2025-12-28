@@ -75,6 +75,8 @@ func main() {
 			play.POST("/item/undo", controllers.UndoIncludeExcludeItem)
 			play.POST("/include", controllers.IncludePlaylist)
 			play.POST("/publish", controllers.PublishPlaylist)
+			play.GET("/:id/inclusions", controllers.GetPlaylistInclusions)
+			play.GET("/:id/exclusions", controllers.GetPlaylistExclusions)
 		}
 
 		{
