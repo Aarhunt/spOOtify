@@ -6,20 +6,25 @@ import type { ModelPlaylistResponse } from "@/client/types.gen"
 interface PlaylistState {
     data: ModelPlaylistResponse[];
     current: string;
+    currentId: string;
     loading: boolean;
+    publishLoading: boolean;
     error: boolean;
     fetch: () => Promise<void>;
-    setCurrent: (name: string) => void;
+    setCurrentId: (id: string, name: string) => void;
     createPlaylist: (name: string) => Promise<void>;
+    publishPlaylist: () => Promise<void>;
 }
 
-export const usePlaylistStore = create<PlaylistState>((set) => ({
+export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     data: [],
     current: "",
+    currentId: "",
     loading: false,
+    publishLoading: false,
     error: false,
 
-    setCurrent: (name) => set({ current: name }),
+    setCurrentId: (id, name) => set({ currentId: id, current: name}),
 
     fetch: async () => {
         set({ loading: true });
@@ -50,9 +55,10 @@ export const usePlaylistStore = create<PlaylistState>((set) => ({
         }
     },
 
-    publishPlaylist: async (id: string) => {
-        set({ loading: true });
+    publishPlaylist: async () => {
+        set({ publishLoading: true });
         try {
+            const id = get().currentId
             const response = await postPlaylistPublish({
                 body: { spotifyID: id } // Hey API structure
             });
@@ -60,12 +66,12 @@ export const usePlaylistStore = create<PlaylistState>((set) => ({
             if (response.data) {
                 set((state) => ({
                     data: [...state.data, response.data],
-                    loading: false
+                    publishLoading: false
                 }));
             }
         } catch (err) {
             console.error("Creation failed", err);
-            set({ loading: false, error: true });
+            set({ publishLoading: false, error: true });
         }
     },
 

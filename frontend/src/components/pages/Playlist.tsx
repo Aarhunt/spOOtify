@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CheckIcon, ChevronsUpDownIcon, Plus } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, Plus, ListMusic } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -34,6 +34,14 @@ import { Label } from "@/components/ui/label"
 import { usePlaylistStore } from "@/components/stores/playlist.store"
 import { useSearchStore } from "@/components/stores/search.store"
 
+import {
+  Item,
+  ItemContent,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
+import { Spinner } from "@/components/ui/spinner"
+
 export default function Playlist() {
     const fetchPlaylists = usePlaylistStore((state) => state.fetch);
 
@@ -45,7 +53,22 @@ export default function Playlist() {
         <div className="flex items-center gap-2">
         <PlaylistSearch />
         <DialogCloseButton />
+        <PublishButton />
         </div>
+    )
+}
+
+export function PublishButton() {
+    const publishPlaylist = usePlaylistStore((state) => state.publishPlaylist);
+
+    const { publishLoading } = usePlaylistStore()
+
+    const handlePublish = async () => {
+        await publishPlaylist();
+    };
+
+    return (
+        <Button variant="green" onClick={handlePublish} >{ publishLoading ? <Spinner /> : <ListMusic /> } Publish Playlist</Button>
     )
 }
 
@@ -61,6 +84,7 @@ export function DialogCloseButton() {
         // Optional: Reset field after creation
         setPlaylistName("My Playlist");
     };
+
 
     return (
         <Dialog>
@@ -106,7 +130,7 @@ export function DialogCloseButton() {
 export function PlaylistSearch() {
     const [open, setOpen] = React.useState(false)
     
-    const { data, loading, current, setCurrent } = usePlaylistStore();
+    const { data, loading, current, setCurrentId } = usePlaylistStore();
     const { setPlaylistId } = useSearchStore();
 
     return (
@@ -137,7 +161,7 @@ export function PlaylistSearch() {
                                         value={p.spotifyID}
                                         onSelect={() => {
                                             const isSelected = current === p.name;
-                                            setCurrent(isSelected ? "" : (p.name as string));
+                                            setCurrentId(isSelected ? "" : (p.spotifyID as string), (p.name as string));
                                             setPlaylistId(isSelected ? "" : (p.spotifyID as string));
                                             setOpen(false);
                                         }}
