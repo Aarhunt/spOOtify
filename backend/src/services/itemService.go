@@ -143,9 +143,10 @@ func IncludedItemsToResponse(items []model.IdItem, included model.InclusionType)
 		}
 	}
 
-	fullArtists := getArtists(artists)
-	fullAlbums := getAlbums(albums)
-	fullTracks := getTracks(tracks)
+	toId := func(i model.IdItem) spotify.ID {return i.SpotifyID}
+	fullArtists := getArtists(utils.Map(artists, toId))
+	fullAlbums := getAlbums(utils.Map(albums, toId))
+	fullTracks := getTracks(utils.Map(tracks, toId))
 
 	results = append(results, utils.Map(fullArtists, func(a *spotify.FullArtist) model.ItemResponse {
 		return model.ItemResponse{

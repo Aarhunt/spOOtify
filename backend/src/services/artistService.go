@@ -5,15 +5,14 @@ import (
 
 	"github.com/aarhunt/autistify/src"
 	"github.com/aarhunt/autistify/src/model"
-	"github.com/aarhunt/autistify/src/utils"
 	"github.com/zmb3/spotify/v2"
 )
 
-func getArtists(items []model.IdItem) []*spotify.FullArtist {
+func getArtists(ids []spotify.ID) []*spotify.FullArtist {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	artists, _ := client.GetArtists(ctx, utils.Map(items, func(i model.IdItem) spotify.ID { return i.SpotifyID })...)
+	artists, _ := client.GetArtists(ctx, ids...)
 	return artists
 }
 
@@ -44,7 +43,7 @@ func getTracksFromArtist(id spotify.ID) []model.IdItem{
 	// handle album results
 	if albums != nil {
 		for _, album := range albums {
-			tracks := getTracksFromAlbum(album)
+			tracks := getTracksFromAlbum(album.SpotifyID)
 			result = append(result, tracks...)
 		}
 	}

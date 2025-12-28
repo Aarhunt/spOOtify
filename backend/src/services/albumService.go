@@ -5,24 +5,23 @@ import (
 
 	"github.com/aarhunt/autistify/src"
 	"github.com/aarhunt/autistify/src/model"
-	"github.com/aarhunt/autistify/src/utils"
 	"github.com/zmb3/spotify/v2"
 )
 
-func getAlbums(items []model.IdItem) []*spotify.FullAlbum {
+func getAlbums(ids []spotify.ID) []*spotify.FullAlbum {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	albums, _ := client.GetAlbums(ctx, utils.Map(items, func(i model.IdItem) spotify.ID { return i.SpotifyID }))
+	albums, _ := client.GetAlbums(ctx, ids)
 	return albums
 }
 
 
-func getTracksFromAlbum(idItem model.IdItem) []model.IdItem{
+func getTracksFromAlbum(id spotify.ID) []model.IdItem{
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	results, err := client.GetAlbumTracks(ctx, idItem.SpotifyID)
+	results, err := client.GetAlbumTracks(ctx, id)
 	var result []model.IdItem = []model.IdItem{}
 
 	if err != nil {

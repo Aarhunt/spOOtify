@@ -39,9 +39,7 @@ func GetPlaylists(c *gin.Context) {
 func GetPlaylistsResponse(c *gin.Context) {
     id := c.Param("id")
 
-	req := model.PlaylistRequest{SpotifyID: spotify.ID(id)}
-
-	playlists := services.GetPlaylistsResponse(req)
+	playlists := services.GetPlaylistsResponse(spotify.ID(id))
 
 	c.IndentedJSON(http.StatusOK, playlists)
 }
@@ -57,9 +55,7 @@ func GetPlaylistsResponse(c *gin.Context) {
 func DeletePlaylist(c *gin.Context) {
     id := c.Param("id")
 
-	req := model.PlaylistRequest{SpotifyID: spotify.ID(id)}
-
-    result := services.DeletePlaylist(req)
+    result := services.DeletePlaylist(spotify.ID(id))
     
     if result.Error != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
@@ -132,7 +128,7 @@ func ClearPlaylists(c *gin.Context) {
 // @Failure      500      {object}  map[string]string "error: Internal Server Error"
 // @Router       /playlist/publish [post]
 func PublishPlaylist(c *gin.Context) {
-    var req model.PlaylistRequest
+    var req model.PlaylistPublishRequest
 
     if err := c.ShouldBindJSON(&req); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
@@ -178,17 +174,9 @@ func GetPlaylistInclusions(c *gin.Context) {
         return
     }
 
-	req := model.PlaylistRequest{SpotifyID: spotify.ID(id)}
+    inclusions := services.GetAllInclusions(spotify.ID(id))
 
-    inclusions := services.GetAllInclusions(req)
-
-    if inclusions == nil {
-        inclusions = []model.IdItem{}
-    }
-
-	inclusionResponses := services.IncludedItemsToResponse(inclusions, model.Included)
-
-    c.JSON(http.StatusOK, inclusionResponses)
+    c.JSON(http.StatusOK, inclusions)
 }
 
 // GetPlaylistExclusions godoc
@@ -210,15 +198,7 @@ func GetPlaylistExclusions(c *gin.Context) {
         return
     }
 
-	req := model.PlaylistRequest{SpotifyID: spotify.ID(id)}
+    exclusions := services.GetAllExclusions(spotify.ID(id))
 
-    exclusions := services.GetAllExclusions(req)
-
-    if exclusions == nil {
-        exclusions = []model.IdItem{}
-    }
-
-	exclusionResponses := services.IncludedItemsToResponse(exclusions, model.Excluded)
-
-    c.JSON(http.StatusOK, exclusionResponses)
+    c.JSON(http.StatusOK, exclusions)
 }

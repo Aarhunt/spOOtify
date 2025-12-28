@@ -18,7 +18,7 @@ type PlaylistCreateRequest struct {
 	Name string `json:"name" binding:"required" example:"My Playlist"`
 }
 
-type PlaylistRequest struct {
+type PlaylistPublishRequest struct {
 	SpotifyID         spotify.ID `json:"spotifyID"`
 }
 

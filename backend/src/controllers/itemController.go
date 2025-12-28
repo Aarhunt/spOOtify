@@ -163,7 +163,7 @@ func Search(c *gin.Context) {
     // Route to the specific service based on ItemType
     switch req.ItemType {
 	case model.PlaylistItem:
-		results, _ = services.GetPlaylists()
+		results = services.GetPlaylistsResponse(req.PlaylistID)
     case model.Artist:
         results = services.SearchArtist(req)
     case model.Album:
