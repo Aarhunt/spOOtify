@@ -17,11 +17,11 @@ func getArtists(items []model.IdItem) []*spotify.FullArtist {
 	return artists
 }
 
-func GetAlbumsFromArtist(idItem model.IdItem) []model.IdItem{
+func GetAlbumsFromArtist(id spotify.ID) []model.IdItem{
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	albums, err := client.GetArtistAlbums(ctx, idItem.SpotifyID, []spotify.AlbumType{spotify.AlbumTypeAlbum, spotify.AlbumTypeSingle})
+	albums, err := client.GetArtistAlbums(ctx, id, []spotify.AlbumType{spotify.AlbumTypeAlbum, spotify.AlbumTypeSingle})
 	var result []model.IdItem = []model.IdItem{}
 
 	if err != nil {
@@ -37,8 +37,8 @@ func GetAlbumsFromArtist(idItem model.IdItem) []model.IdItem{
 	return result
 }
 
-func getTracksFromArtist(idItem model.IdItem) []model.IdItem{
-	albums := GetAlbumsFromArtist(idItem)
+func getTracksFromArtist(id spotify.ID) []model.IdItem{
+	albums := GetAlbumsFromArtist(id)
 	var result []model.IdItem = []model.IdItem{}
 
 	// handle album results

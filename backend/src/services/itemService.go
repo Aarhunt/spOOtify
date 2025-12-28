@@ -125,30 +125,6 @@ func GetTracksFromAlbum(req model.ItemRequest) ([]model.ItemResponse, error) {
 	return singleAlbumTrackToResponse(tracks, playlist, req.ParentID), err
 }
 
-func artistToResponse(artists []spotify.FullArtist, playlist *model.Playlist) []model.ItemResponse {
-	artistIDs := utils.Map(artists, func(a spotify.FullArtist) spotify.ID {
-		return a.ID
-	})
-
-	includedArtists, excludedArtists := getInclusionsExclusions(playlist, artistIDs)
-
-	return utils.Map(artists, func(a spotify.FullArtist) model.ItemResponse {
-		included := model.Nothing
-		if slices.Contains(includedArtists, a.ID) {
-			included = model.Included
-		} else if slices.Contains(excludedArtists, a.ID) {
-			included = model.Excluded
-		}
-		return model.ItemResponse{
-			SpotifyID: a.ID,
-			Name:      a.Name,
-			Icon:      a.Images,
-			ItemType:  model.Artist,
-			Included:  included,
-		}
-	})
-}
-
 func IncludedItemsToResponse(items []model.IdItem, included model.InclusionType) []model.ItemResponse {
 	results := make([]model.ItemResponse, len(items))
 
@@ -204,6 +180,30 @@ func IncludedItemsToResponse(items []model.IdItem, included model.InclusionType)
 	})...)
 
 	return results
+}
+
+func artistToResponse(artists []spotify.FullArtist, playlist *model.Playlist) []model.ItemResponse {
+	artistIDs := utils.Map(artists, func(a spotify.FullArtist) spotify.ID {
+		return a.ID
+	})
+
+	includedArtists, excludedArtists := getInclusionsExclusions(playlist, artistIDs)
+
+	return utils.Map(artists, func(a spotify.FullArtist) model.ItemResponse {
+		included := model.Nothing
+		if slices.Contains(includedArtists, a.ID) {
+			included = model.Included
+		} else if slices.Contains(excludedArtists, a.ID) {
+			included = model.Excluded
+		}
+		return model.ItemResponse{
+			SpotifyID: a.ID,
+			Name:      a.Name,
+			Icon:      a.Images,
+			ItemType:  model.Artist,
+			Included:  included,
+		}
+	})
 }
 
 func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []model.ItemResponse {

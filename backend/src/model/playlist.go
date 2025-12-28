@@ -11,13 +11,14 @@ type Playlist struct {
 	IncludedPlaylists []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// IncludedIn 		  []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Exclusions        []IdItem   `gorm:"many2many:playlist_exclusions;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Images 			  []spotify.Image `json:"images"`	
 }
 
 type PlaylistCreateRequest struct {
 	Name string `json:"name" binding:"required" example:"My Playlist"`
 }
 
-type PlaylistPublishRequest struct {
+type PlaylistRequest struct {
 	SpotifyID         spotify.ID `json:"spotifyID"`
 }
 
@@ -27,10 +28,6 @@ type PlaylistResponse struct {
 	Inclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	IncludedPlaylists []*Playlist `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Exclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-}
-
-func (p Playlist) getSpotifyID() spotify.ID {
-	return p.SpotifyID
 }
 
 func (p Playlist) ToResponse() *PlaylistResponse {

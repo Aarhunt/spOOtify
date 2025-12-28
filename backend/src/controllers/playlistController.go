@@ -27,6 +27,25 @@ func GetPlaylists(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, playlists)
 }
 
+// GetPlaylistsResponse godoc
+// @Summary      Get all playlists as itemresponse items
+// @Description  Responds with the list of all playlists as JSON.
+// @Tags         playlists
+// @Param        id   path      string  true  "Playlist ID"
+// @Produce      json
+// @Success      200  {array}   model.ItemResponse
+// @Failure      500  {object}  map[string]string
+// @Router       /playlist/{id}/playlists [get]
+func GetPlaylistsResponse(c *gin.Context) {
+    id := c.Param("id")
+
+	req := model.PlaylistRequest{SpotifyID: spotify.ID(id)}
+
+	playlists := services.GetPlaylistsResponse(req)
+
+	c.IndentedJSON(http.StatusOK, playlists)
+}
+
 // DeletePlaylist godoc
 // @Summary      Delete a playlist
 // @Description  Delete a specific playlist by its ID
@@ -38,7 +57,9 @@ func GetPlaylists(c *gin.Context) {
 func DeletePlaylist(c *gin.Context) {
     id := c.Param("id")
 
-    result := services.DeletePlaylist(spotify.ID(id))
+	req := model.PlaylistRequest{SpotifyID: spotify.ID(id)}
+
+    result := services.DeletePlaylist(req)
     
     if result.Error != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
@@ -111,7 +132,7 @@ func ClearPlaylists(c *gin.Context) {
 // @Failure      500      {object}  map[string]string "error: Internal Server Error"
 // @Router       /playlist/publish [post]
 func PublishPlaylist(c *gin.Context) {
-    var req model.PlaylistPublishRequest
+    var req model.PlaylistRequest
 
     if err := c.ShouldBindJSON(&req); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
@@ -150,14 +171,16 @@ func PublishPlaylist(c *gin.Context) {
 // @Failure      500  {object}  map[string]string "error: Database error"
 // @Router       /playlist/{id}/inclusions [get]
 func GetPlaylistInclusions(c *gin.Context) {
-    playlistID := c.Param("id")
+    id := c.Param("id")
     
-    if playlistID == "" {
+    if id == "" {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Playlist ID is required"})
         return
     }
 
-    inclusions := services.GetAllInclusions(spotify.ID(playlistID))
+	req := model.PlaylistRequest{SpotifyID: spotify.ID(id)}
+
+    inclusions := services.GetAllInclusions(req)
 
     if inclusions == nil {
         inclusions = []model.IdItem{}
@@ -180,20 +203,22 @@ func GetPlaylistInclusions(c *gin.Context) {
 // @Failure      500  {object}  map[string]string "error: Database error"
 // @Router       /playlist/{id}/exclusions [get]
 func GetPlaylistExclusions(c *gin.Context) {
-    playlistID := c.Param("id")
+    id := c.Param("id")
     
-    if playlistID == "" {
+    if id == "" {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Playlist ID is required"})
         return
     }
 
-    inclusions := services.GetAllInclusions(spotify.ID(playlistID))
+	req := model.PlaylistRequest{SpotifyID: spotify.ID(id)}
 
-    if inclusions == nil {
-        inclusions = []model.IdItem{}
+    exclusions := services.GetAllExclusions(req)
+
+    if exclusions == nil {
+        exclusions = []model.IdItem{}
     }
 
-	exclusionResponses := services.IncludedItemsToResponse(inclusions, model.Excluded)
+	exclusionResponses := services.IncludedItemsToResponse(exclusions, model.Excluded)
 
     c.JSON(http.StatusOK, exclusionResponses)
 }

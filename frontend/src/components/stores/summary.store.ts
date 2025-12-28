@@ -4,6 +4,7 @@ import type { ModelItemResponse, ModelItemType } from "@/client/types.gen"
 
 
 interface SummaryState {
+    mainPlaylistData: ModelItemResponse[];
     mainArtistData: ModelItemResponse[];
     mainAlbumData: ModelItemResponse[];
     mainTrackData: ModelItemResponse[];
@@ -20,7 +21,7 @@ interface SummaryState {
     error: boolean;
     summaryType: ModelItemType;
     setPlaylistIdSummary: (val: string) => void;
-    summary: (query: string) => Promise<void>;
+    summary: () => Promise<void>;
     getAlbumsFromArtist: (artistId: string) => Promise<void>;
     getTracksFromAlbum: (artistId: string) => Promise<void>;
     setSummaryType: (val: ModelItemType) => void;
@@ -31,6 +32,7 @@ interface SummaryState {
 }
 
 export const useSummaryStore = create<SummaryState>((set, get) => ({
+    mainPlaylistData: [],
     mainArtistData: [],
     mainAlbumData: [],
     mainTrackData: [],

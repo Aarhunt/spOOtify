@@ -81,7 +81,7 @@ type InclusionResponse struct {
 	Included 	InclusionType `json:"included"`
 }
 
-func (iInc InclusionType) IsIncluded(iExc InclusionType) bool {
+func IsIncluded(iInc int, iExc int) bool {
 	if (iInc == 0) {return false}
 	if (iExc == 0) {return iInc > 0}
 	return (iInc + iExc) < 0

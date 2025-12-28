@@ -36,7 +36,7 @@ export function SelectType() {
        <Select onValueChange={(v) => 
            {setSummaryType(parseInt(v) as ModelItemType)
            summary()}
-       }>
+       } defaultValue="1">
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Type" />
           </SelectTrigger>

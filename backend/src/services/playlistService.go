@@ -11,14 +11,32 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetPlaylists() ([]model.PlaylistResponse, error) {
+func GetPlaylists() ([]model.Playlist, error) {
 	var playlists []model.Playlist
 	db := src.GetDbConn().Db
 
 	err := db.Find(&playlists)
-	return utils.Map(playlists, func(p model.Playlist) model.PlaylistResponse {
-		return *p.ToResponse()
-	}), err.Error
+	return playlists, err.Error
+}
+
+func GetPlaylistsResponse(req model.PlaylistRequest) []model.ItemResponse {
+	p, _ := getPlaylist(req.SpotifyID)
+	playlists, _ := GetPlaylists()
+	ids := getPlaylistsRecursive(*p, make(map[spotify.ID]bool), 1);
+
+	return utils.Map(playlists, func(p model.Playlist) model.ItemResponse {
+		included := model.Nothing
+		if (ids[p.SpotifyID] > 0) {
+			included = model.Included
+		}
+		return model.ItemResponse{
+			SpotifyID: p.SpotifyID,
+			Name:      p.Name,
+			Icon:      p.Images,
+			ItemType:  model.PlaylistItem,
+			Included:  included,
+		}
+	})
 }
 
 func getPlaylist(id spotify.ID) (*model.Playlist, error) {
@@ -29,10 +47,10 @@ func getPlaylist(id spotify.ID) (*model.Playlist, error) {
 	return &playlist, err
 }
 
-func DeletePlaylist(id spotify.ID) *gorm.DB {
+func DeletePlaylist(req model.PlaylistRequest) *gorm.DB {
 	db := src.GetDbConn().Db
 
-	return db.Delete(&model.Playlist{}, id)
+	return db.Delete(&model.Playlist{}, req.SpotifyID)
 }
 
 func PostPlaylist(req model.PlaylistCreateRequest) (*model.PlaylistResponse, error) {
@@ -52,6 +70,7 @@ func PostPlaylist(req model.PlaylistCreateRequest) (*model.PlaylistResponse, err
 		Inclusions:        []model.IdItem{},
 		IncludedPlaylists: []*model.Playlist{},
 		Exclusions:        []model.IdItem{},
+		Images: 		   spotPlaylist.Images,
 	}
 
 	err = gorm.G[model.Playlist](db).Create(ctx, &localPlaylist)
@@ -119,21 +138,25 @@ func GetInclusionMap(playlistID spotify.ID, ids []spotify.ID) map[spotify.ID]boo
 	return m
 }
 
-func GetAllInclusions(playlistID spotify.ID) []model.IdItem {
+func GetAllInclusions(req model.PlaylistRequest) []model.ItemResponse {
     var items []model.IdItem
+	var playlists = GetPlaylistsResponse(req)
+
 
     err := src.GetDbConn().Db.
         Table("id_items").
         Joins("JOIN playlist_inclusions ON playlist_inclusions.id_item_spotify_id = id_items.spotify_id").
-        Where("playlist_inclusions.playlist_spotify_id = ?", playlistID).
+        Where("playlist_inclusions.playlist_spotify_id = ?", req.SpotifyID).
         Find(&items).Error
 
     if err != nil {
         fmt.Printf("Error fetching inclusions: %v\n", err)
-        return []model.IdItem{}
+        return []model.ItemResponse{}
     }
 
-    return items
+	itemResponses := IncludedItemsToResponse(items, model.Included)
+
+    return append(playlists, itemResponses...)
 }
 
 func GetExclusionMap(playlistID spotify.ID, ids []spotify.ID) map[spotify.ID]bool {
@@ -148,13 +171,13 @@ func GetExclusionMap(playlistID spotify.ID, ids []spotify.ID) map[spotify.ID]boo
 	return m
 }
 
-func GetAllExclusions(playlistID spotify.ID) []model.IdItem {
+func GetAllExclusions(req model.PlaylistRequest) []model.IdItem {
     var items []model.IdItem
 
     err := src.GetDbConn().Db.
         Table("id_items").
         Joins("JOIN playlist_exclusions ON playlist_exclusions.id_item_spotify_id = id_items.spotify_id").
-        Where("playlist_exclusions.playlist_spotify_id = ?", playlistID).
+        Where("playlist_exclusions.playlist_spotify_id = ?", req.SpotifyID).
         Find(&items).Error
 
     if err != nil {
@@ -175,28 +198,67 @@ func GetIncludedPlaylistsFromPlaylist(p *model.Playlist) ([]model.Playlist) {
 	return includedPlaylists
 }
 
-func getTracksFromPlaylist(p model.Playlist) []spotify.ID {
-    return getTracksRecursive(p, make(map[spotify.ID]bool))
-}
-
-func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool) []spotify.ID {
+func getPlaylistsRecursive(p model.Playlist, visited map[spotify.ID]bool, i int) map[spotify.ID]int {
     if visited[p.SpotifyID] {
         return nil
     }
+
     visited[p.SpotifyID] = true
 
-    excludedMap := make(map[spotify.ID]model.InclusionType)
-	includedMap := make(map[spotify.ID]model.InclusionType)
-    resultMap := make(map[spotify.ID]spotify.ID)
+    includedPlaylists := make(map[spotify.ID]int)
 
-    for _, nested := range GetIncludedPlaylistsFromPlaylist(&p) {
-        nestedTracks := getTracksRecursive(nested, visited)
-        for _, t := range nestedTracks {
-            resultMap[t] = t 
+	// Get all the playlists that are included in p
+	for _, nested := range GetIncludedPlaylistsFromPlaylist(&p) {
+		nestedPlaylists := getPlaylistsRecursive(nested, visited, i + 1)
+		for id, _ := range nestedPlaylists {
+			includedPlaylists[id] = i
 		}
+	}
+
+	return includedPlaylists
+}
+
+func getTracksFromPlaylist(p model.Playlist) []spotify.ID {
+	inclusions, exclusions := getTracksRecursive(p, make(map[spotify.ID]bool), 0)
+
+    finalTracks := make([]spotify.ID, 0, len(inclusions))
+    for id, inc := range inclusions {
+		exc := exclusions[id]
+		if model.IsIncluded(inc, exc) {finalTracks = append(finalTracks, id)}
     }
 
-	inclusions, exclusions := GetAllInclusions(p.SpotifyID), GetAllExclusions(p.SpotifyID)
+	return finalTracks
+}
+
+func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool, i int) (map[spotify.ID]int, map[spotify.ID]int) {
+    if visited[p.SpotifyID] {
+        return nil, nil
+    }
+    visited[p.SpotifyID] = true
+
+    excludedMap := make(map[spotify.ID]int)
+	includedMap := make(map[spotify.ID]int)
+
+	for _, nested := range GetIncludedPlaylistsFromPlaylist(&p) {
+		nestedInclusions, nestedExclusions := getTracksRecursive(nested, visited, i + 1)
+		for id, val := range nestedInclusions {
+			if val != 0 {
+				includedMap[id]	= val + 3 * i
+			} else {
+				includedMap[id] = val
+			}
+		}
+		for id, val := range nestedExclusions {
+			if val != 0 {
+				excludedMap[id]	= val + 3 * i
+			} else {
+				excludedMap[id] = val
+			}
+		}
+	}
+
+	req := model.PlaylistRequest{SpotifyID: p.SpotifyID}
+	inclusions, exclusions := GetAllInclusions(req), GetAllExclusions(req)
 
     for _, v := range exclusions {
         switch v.ItemType {
@@ -236,16 +298,10 @@ func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool) []spotify
 		}
     }
 
-    finalTracks := make([]spotify.ID, 0, len(resultMap))
-    for id, inc := range includedMap {
-		exc := excludedMap[id]
-		if inc.IsIncluded(exc) {finalTracks = append(finalTracks, id)}
-    }
-
-    return finalTracks
+    return includedMap, excludedMap
 }
 
-func PublishPlaylist(req model.PlaylistPublishRequest) error {
+func PublishPlaylist(req model.PlaylistRequest) error {
     spotiConn := src.GetSpotifyConn()
     ctx, client := spotiConn.Ctx, spotiConn.Client
 
