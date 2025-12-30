@@ -11,7 +11,8 @@ type Playlist struct {
 	IncludedPlaylists []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// IncludedIn 		  []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Exclusions        []IdItem   `gorm:"many2many:playlist_exclusions;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Images 			  []spotify.Image `json:"images"`	
+	Image 			  string `json:"image"`	
+	ImageSize		  int `json:"imageSize"`
 }
 
 type PlaylistCreateRequest struct {

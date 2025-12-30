@@ -60,6 +60,7 @@ export const useSummaryStore = create<SummaryState>((set, get) => ({
             });
 
             if (response.data) {
+                const playlists: ModelItemResponse[] = [];
                 const artists: ModelItemResponse[] = [];
                 const albums: ModelItemResponse[] = [];
                 const tracks: ModelItemResponse[] = [];
@@ -67,6 +68,8 @@ export const useSummaryStore = create<SummaryState>((set, get) => ({
                 response.data.forEach((item) => {
 
                     switch (item.itemType) {
+                        case 0: // PlaylistItem
+                            playlists.push(item);
                         case 1: // Artist
                             artists.push(item);
                             break;
@@ -76,10 +79,13 @@ export const useSummaryStore = create<SummaryState>((set, get) => ({
                         case 3: // Track
                             tracks.push(item);
                             break;
+                        default:
+                            break;
                     }
                 });
 
                 set({ 
+                    mainPlaylistData: playlists,
                     mainArtistData: artists, 
                     mainAlbumData: albums, 
                     mainTrackData: tracks, 

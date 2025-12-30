@@ -56,6 +56,7 @@ export type ModelPlaylist = {
      */
     exclusions?: Array<ModelIdItem>;
     id?: string;
+    images?: Array<SpotifyImage>;
     includedPlaylists?: Array<ModelPlaylist>;
     inclusions?: Array<ModelIdItem>;
     name?: string;
@@ -415,6 +416,38 @@ export type GetPlaylistByIdInclusionsResponses = {
 };
 
 export type GetPlaylistByIdInclusionsResponse = GetPlaylistByIdInclusionsResponses[keyof GetPlaylistByIdInclusionsResponses];
+
+export type GetPlaylistByIdPlaylistsData = {
+    body?: never;
+    path: {
+        /**
+         * Playlist ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/playlist/{id}/playlists';
+};
+
+export type GetPlaylistByIdPlaylistsErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type GetPlaylistByIdPlaylistsError = GetPlaylistByIdPlaylistsErrors[keyof GetPlaylistByIdPlaylistsErrors];
+
+export type GetPlaylistByIdPlaylistsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ModelItemResponse>;
+};
+
+export type GetPlaylistByIdPlaylistsResponse = GetPlaylistByIdPlaylistsResponses[keyof GetPlaylistByIdPlaylistsResponses];
 
 export type PostSearchData = {
     /**

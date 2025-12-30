@@ -390,7 +390,7 @@ const docTemplate = `{
         },
         "/playlist/{id}/inclusions": {
             "get": {
-                "description": "Fetches the list of all Artists, Albums, and Tracks manually included in a specific playlist.",
+                "description": "Fetches the list of all Playlists, Artists, Albums, and Tracks manually included in a specific playlist.",
                 "consumes": [
                     "application/json"
                 ],
@@ -431,6 +431,47 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "error: Database error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/playlist/{id}/playlists": {
+            "get": {
+                "description": "Responds with the list of all playlists as JSON.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Get all playlists as itemresponse items",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Playlist ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ItemResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -742,6 +783,12 @@ const docTemplate = `{
                 "id": {
                     "type": "string",
                     "example": "37i9dQZF1DXcBWIGoYBM3M"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/spotify.Image"
+                    }
                 },
                 "includedPlaylists": {
                     "type": "array",

@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// Include or exclude an item from a playlist
 func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionResponse, error) {
 	dbConn := src.GetDbConn()
 	db := dbConn.Db
@@ -57,6 +58,7 @@ func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionRespons
 	return &returnItem, err
 }
 
+// Undo the inclusion or exclusion of an item from a playlist
 func UndoIncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionResponse, error) {
     dbConn := src.GetDbConn()
     db := dbConn.Db
@@ -90,6 +92,7 @@ func UndoIncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionRes
 
 
 
+// Include a playlist into a playlist
 func IncludePlaylist(req model.ItemPlaylistRequest) (*model.PlaylistResponse, error) {
 	dbConn := src.GetDbConn()
 	ctx, db := dbConn.Ctx, dbConn.Db
@@ -101,6 +104,7 @@ func IncludePlaylist(req model.ItemPlaylistRequest) (*model.PlaylistResponse, er
 	return parentPlaylist.ToResponse(), err
 }
 
+// Get a specific album from an artist
 func GetAlbumFromArtist(req model.ItemRequest) ([]model.ItemResponse, error) {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
@@ -144,8 +148,8 @@ func IncludedItemsToResponse(items []model.IdItem, included model.InclusionType)
 	}
 
 	toId := func(i model.IdItem) spotify.ID {return i.SpotifyID}
-	fullArtists := getArtists(utils.Map(artists, toId))
-	fullAlbums := getAlbums(utils.Map(albums, toId))
+	fullArtists := getArtistsByIds(utils.Map(artists, toId))
+	fullAlbums := getAlbumsByIds(utils.Map(albums, toId))
 	fullTracks := getTracks(utils.Map(tracks, toId))
 
 	results = append(results, utils.Map(fullArtists, func(a *spotify.FullArtist) model.ItemResponse {

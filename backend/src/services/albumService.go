@@ -8,7 +8,7 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
-func getAlbums(ids []spotify.ID) []*spotify.FullAlbum {
+func getAlbumsByIds(ids []spotify.ID) []*spotify.FullAlbum {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
@@ -17,7 +17,7 @@ func getAlbums(ids []spotify.ID) []*spotify.FullAlbum {
 }
 
 
-func getTracksFromAlbum(id spotify.ID) []model.IdItem{
+func getTracksFromAlbumById(id spotify.ID) []model.IdItem{
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 

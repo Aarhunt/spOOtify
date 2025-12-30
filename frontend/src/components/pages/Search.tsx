@@ -194,10 +194,17 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
 }
 
 function ResultBox() {
-  const { artistData, searchLoading, albumData, trackData, albumLoading, trackLoading, searchType, includeItem, undoIncludeItem, getAlbumsFromArtist, getTracksFromAlbum, setCurrentArtist, setCurrentAlbum } = useSearchStore();
+  const { playlistData, artistData, searchLoading, albumData, trackData, albumLoading, trackLoading, searchType, includeItem, undoIncludeItem, getAlbumsFromArtist, getTracksFromAlbum, setCurrentArtist, setCurrentAlbum, includePlaylist, undoIncludePlaylist } = useSearchStore();
   // You'll need an action in a store to handle the actual DB update
   const handleInclusion = (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => { 
-    undo ? undoIncludeItem(id, include, type, index) : includeItem(id, include, type, index)
+    type == 0 ? 
+        undo ? 
+            undoIncludePlaylist(id, index) : 
+            includePlaylist(id, index) 
+    :
+        undo ? 
+            undoIncludeItem(id, include, type, index) : 
+            includeItem(id, include, type, index)
   };
 
   const handleExpand = (id: string, type: ModelItemType) => {
@@ -218,6 +225,29 @@ function ResultBox() {
   return (
     <ResizablePanelGroup direction="horizontal" className="min-h-[400px] rounded-lg border">
     {
+        searchType == 0 ? <>
+          <ResizablePanel defaultSize={playlistData.length > 0 ? 50 : 50}>
+            <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+              {searchLoading ? (
+                <p>Loading results...</p>
+              ) : playlistData.length > 0 ? (
+                playlistData.map((item, index) => (
+                  <SearchResultItem 
+                    key={item.spotifyID} 
+                    item={item} 
+                    index={index}
+                    onAction={handleInclusion} 
+                    onExpand={() => {}}
+                  />
+                ))
+              ) : (
+                <p className="text-muted-foreground text-center py-10">No results found.</p>
+              )}
+            </div>
+          </ResizablePanel>
+        </> : null
+    }
+    {
         searchType == 1 ? 
         <>
       <ResizablePanel defaultSize={albumData.length > 0 ? 50 : 50}>
@@ -229,7 +259,7 @@ function ResultBox() {
               <SearchResultItem 
                 key={item.spotifyID} 
                 item={item} 
-                index = {index}
+                index={index}
                 onAction={handleInclusion} 
                 onExpand={handleExpand}
               />

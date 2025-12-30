@@ -36,10 +36,10 @@ func GetPlaylists(c *gin.Context) {
 // @Success      200  {array}   model.ItemResponse
 // @Failure      500  {object}  map[string]string
 // @Router       /playlist/{id}/playlists [get]
-func GetPlaylistsResponse(c *gin.Context) {
+func GetPlaylistsById(c *gin.Context) {
     id := c.Param("id")
 
-	playlists := services.GetPlaylistsResponse(spotify.ID(id))
+	playlists := services.SearchPlaylist(model.SearchRequest{Query: "", PlaylistID: spotify.ID(id), ItemType: model.PlaylistItem})
 
 	c.IndentedJSON(http.StatusOK, playlists)
 }
@@ -157,7 +157,7 @@ func PublishPlaylist(c *gin.Context) {
 
 // GetPlaylistInclusions godoc
 // @Summary      Get all included items for a playlist
-// @Description  Fetches the list of all Artists, Albums, and Tracks manually included in a specific playlist.
+// @Description  Fetches the list of all Playlists, Artists, Albums, and Tracks manually included in a specific playlist.
 // @Tags         playlists
 // @Accept       json
 // @Produce      json

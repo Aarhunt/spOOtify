@@ -8,7 +8,7 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
-func getArtists(ids []spotify.ID) []*spotify.FullArtist {
+func getArtistsByIds(ids []spotify.ID) []*spotify.FullArtist {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
@@ -16,7 +16,7 @@ func getArtists(ids []spotify.ID) []*spotify.FullArtist {
 	return artists
 }
 
-func GetAlbumsFromArtist(id spotify.ID) []model.IdItem{
+func GetAlbumsFromArtistById(id spotify.ID) []model.IdItem{
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
@@ -36,14 +36,14 @@ func GetAlbumsFromArtist(id spotify.ID) []model.IdItem{
 	return result
 }
 
-func getTracksFromArtist(id spotify.ID) []model.IdItem{
-	albums := GetAlbumsFromArtist(id)
+func getTracksFromArtistById(id spotify.ID) []model.IdItem{
+	albums := GetAlbumsFromArtistById(id)
 	var result []model.IdItem = []model.IdItem{}
 
 	// handle album results
 	if albums != nil {
 		for _, album := range albums {
-			tracks := getTracksFromAlbum(album.SpotifyID)
+			tracks := getTracksFromAlbumById(album.SpotifyID)
 			result = append(result, tracks...)
 		}
 	}

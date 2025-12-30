@@ -77,7 +77,7 @@ func main() {
 			play.POST("/publish", controllers.PublishPlaylist)
 			play.GET("/:id/inclusions", controllers.GetPlaylistInclusions)
 			play.GET("/:id/exclusions", controllers.GetPlaylistExclusions)
-			play.GET("/:id/playlists", controllers.GetPlaylistsResponse)
+			play.GET("/:id/playlists", controllers.GetPlaylistsById)
 		}
 
 		{

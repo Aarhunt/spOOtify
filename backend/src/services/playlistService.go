@@ -3,6 +3,8 @@ package services
 import (
 	"fmt"
 	"log"
+	"regexp"
+	"slices"
 
 	"github.com/aarhunt/autistify/src"
 	"github.com/aarhunt/autistify/src/model"
@@ -19,20 +21,30 @@ func GetPlaylists() ([]model.Playlist, error) {
 	return playlists, err.Error
 }
 
-func GetPlaylistsResponse(id spotify.ID) []model.ItemResponse {
-	p, _ := getPlaylist(id)
+func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
+	p, _ := getPlaylist(req.PlaylistID)
 	playlists, _ := GetPlaylists()
 	ids := getPlaylistsRecursive(*p, make(map[spotify.ID]bool), 1);
+
+	if (req.Query != "") {
+		matchedPlaylist := []model.Playlist{}
+		for _, playlist := range playlists {
+			match, _ := regexp.Match(req.Query, []byte(p.Name))
+			if match {matchedPlaylist = append(matchedPlaylist, playlist)}
+		}
+		playlists = matchedPlaylist
+	}
 
 	return utils.Map(playlists, func(p model.Playlist) model.ItemResponse {
 		included := model.Nothing
 		if (ids[p.SpotifyID] > 0) {
 			included = model.Included
 		}
+
 		return model.ItemResponse{
 			SpotifyID: p.SpotifyID,
 			Name:      p.Name,
-			Icon:      p.Images,
+			Icon:      []spotify.Image{spotify.Image{URL: p.Image, Width: spotify.Numeric(p.ImageSize), Height: spotify.Numeric(p.ImageSize)}}, 
 			ItemType:  model.PlaylistItem,
 			Included:  included,
 		}
@@ -70,7 +82,8 @@ func PostPlaylist(req model.PlaylistCreateRequest) (*model.PlaylistResponse, err
 		Inclusions:        []model.IdItem{},
 		IncludedPlaylists: []*model.Playlist{},
 		Exclusions:        []model.IdItem{},
-		Images: 		   spotPlaylist.Images,
+		Image: 		   	   spotPlaylist.Images[0].URL,
+		ImageSize: 		   int(spotPlaylist.Images[0].Height),
 	}
 
 	err = gorm.G[model.Playlist](db).Create(ctx, &localPlaylist)
@@ -140,7 +153,7 @@ func GetInclusionMap(playlistID spotify.ID, ids []spotify.ID) map[spotify.ID]boo
 
 func GetAllInclusions(id spotify.ID) []model.ItemResponse {
     var items []model.IdItem
-	var playlists = GetPlaylistsResponse(id)
+	var playlists = SearchPlaylist(model.SearchRequest{Query: "", PlaylistID: id, ItemType: model.PlaylistItem})
 
 
     err := src.GetDbConn().Db.
@@ -264,13 +277,13 @@ func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool, i int) (m
     for _, v := range exclusions {
         switch v.ItemType {
         case model.Artist:
-            for _, t := range getTracksFromArtist(v.SpotifyID) {
+            for _, t := range getTracksFromArtistById(v.SpotifyID) {
 				if excludedMap[t.SpotifyID] == 0 {
 					excludedMap[t.SpotifyID] = -3 
 				}
             }
         case model.Album:
-            for _, t := range getTracksFromAlbum(v.SpotifyID) {
+            for _, t := range getTracksFromAlbumById(v.SpotifyID) {
 				if excludedMap[t.SpotifyID] == 0 || excludedMap[t.SpotifyID] == -3 {
 					excludedMap[t.SpotifyID] = -2
 				}
@@ -283,13 +296,13 @@ func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool, i int) (m
     for _, v := range inclusions {
         switch v.ItemType {
         case model.Artist:
-            for _, t := range getTracksFromArtist(v.SpotifyID) {
+            for _, t := range getTracksFromArtistById(v.SpotifyID) {
 				if includedMap[t.SpotifyID] == 0 {
 					includedMap[t.SpotifyID] = 3 
 				}
             }
         case model.Album:
-            for _, t := range getTracksFromAlbum(v.SpotifyID) {
+            for _, t := range getTracksFromAlbumById(v.SpotifyID) {
 				if includedMap[t.SpotifyID] == 0 || excludedMap[t.SpotifyID] == 3 {
 					includedMap[t.SpotifyID] = 2
 				}
@@ -313,25 +326,18 @@ func PublishPlaylist(req model.PlaylistPublishRequest) error {
 
     trackIDs := getTracksFromPlaylist(*playlist)
 
-    initialBatch := trackIDs[:min(len(trackIDs), 100)]
-    err = client.ReplacePlaylistTracks(ctx, req.SpotifyID, initialBatch...)
+	chunks := slices.Chunk(trackIDs, 100)
+
+	err = client.ReplacePlaylistTracks(ctx, req.SpotifyID)
     if err != nil {
         return err
     }
 
-	log.Print(len(trackIDs))
-
-    if len(trackIDs) > 100 {
-        for i := 100; i < len(trackIDs); i += 100 {
-            end := min(i + 100, len(trackIDs))
-            
-            chunk := trackIDs[i:end]
-			_, err := client.AddTracksToPlaylist(ctx, req.SpotifyID, chunk...)
-            if err != nil {
-                return err
-            }
-        }
-    }
-
+	for chunk := range chunks {
+		_, err := client.AddTracksToPlaylist(ctx, req.SpotifyID, chunk...)
+		if err != nil {
+			return err
+		}
+	}
     return nil
 }

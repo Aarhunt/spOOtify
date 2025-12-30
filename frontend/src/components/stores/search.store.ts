@@ -1,9 +1,10 @@
 import { create } from 'zustand'
-import { postSearch, postSpotifyAlbumTracks, postSpotifyArtistAlbums, postPlaylistItem, postPlaylistItemUndo } from '@/client';
+import { postSearch, postSpotifyAlbumTracks, postSpotifyArtistAlbums, postPlaylistItem, postPlaylistItemUndo, postPlaylistInclude } from '@/client';
 import type { ModelItemResponse, ModelItemType } from "@/client/types.gen"
 
 
 interface SearchState {
+    playlistData: ModelItemResponse[];
     artistData: ModelItemResponse[];
     albumData: ModelItemResponse[];
     trackData: ModelItemResponse[];
@@ -18,16 +19,20 @@ interface SearchState {
     searchType: ModelItemType;
     setPlaylistId: (val: string) => void;
     search: (query: string) => Promise<void>;
+    clearData: () => void;
     getAlbumsFromArtist: (artistId: string) => Promise<void>;
     getTracksFromAlbum: (artistId: string) => Promise<void>;
     setSearchType: (val: ModelItemType) => void;
     setCurrentArtist: (val: string) => void;
     setCurrentAlbum: (val: string) => void;
     includeItem: (itemId: string, include: boolean, type: ModelItemType, index: number) => Promise<void>;
+    includePlaylist: (itemId: string, index: number) => Promise<void>;
     undoIncludeItem: (itemId: string, include: boolean, type: ModelItemType, index: number) => Promise<void>;
+    undoIncludePlaylist: (itemId: string, index: number) => Promise<void>;
 }
 
 export const useSearchStore = create<SearchState>((set, get) => ({
+    playlistData: [],
     artistData: [],
     albumData: [],
     trackData: [],
@@ -41,8 +46,11 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     error: false,
     searchType: 1,
 
+    clearData: () => { set({ playlistData: [], artistData: [], albumData: [], trackData: [] })},
+
     search: async (query: string) => {
-        set({ searchLoading: true, artistData: [], albumData: [], trackData: [] });
+        set({ searchLoading: true});
+        get().clearData();
 
         const currentPlaylistId = get().playlistId;
         const searchType = get().searchType;
@@ -62,6 +70,8 @@ export const useSearchStore = create<SearchState>((set, get) => ({
                 set({ albumData: response.data });
             } else if (searchType == 3) {
                 set({ trackData: response.data });
+            } else if (searchType == 0) {
+                set({ playlistData: response.data })
             }
             set({ searchLoading: false, error: false })
         } else {
@@ -69,7 +79,10 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         }
     },
 
-    setSearchType: (val: ModelItemType) => set({ searchType: val, artistData: [], albumData: [], trackData: []}),
+    setSearchType: (val: ModelItemType) => {
+        set({ searchType: val });
+        get().clearData();
+    },
     setCurrentArtist: (val: string) => set({ currentArtist: val }),
     setCurrentAlbum: (val: string) => set({ currentAlbum: val }),
 
@@ -160,6 +173,35 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     },
 
 
+    includePlaylist: async (itemId: string, index: number) => {
+        set({ includeLoading: true });
+
+        try {
+            const response = await postPlaylistInclude({
+                body: {
+                    pspotid: get().playlistId,
+                    cspotid: itemId,
+                }
+            });
+
+            if (response.data) {
+                const currentList = get().playlistData;
+                const targetValue = 1;
+
+                if (currentList[index]?.spotifyID === itemId) {
+                    currentList[index] = { ...currentList[index], included: targetValue };
+                } else {
+                    const foundIndex = currentList.findIndex(i => i.spotifyID === itemId);
+                    if (foundIndex !== -1) currentList[foundIndex] = { ...currentList[foundIndex], included: targetValue };
+                }
+                set({ includeLoading: false, playlistData: currentList });
+            }
+        } catch (err) {
+            set({ includeLoading: false, error: true });
+        }
+    },
+
+
     undoIncludeItem: async (itemId: string, include: boolean, type: ModelItemType, index: number) => {
         set({ includeLoading: true });
 
@@ -205,4 +247,34 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         } catch (err) {
             set({ includeLoading: false, error: true });
         }
-    },}));
+    },
+
+
+    undoIncludePlaylist: async (itemId: string, index: number) => {
+        set({ includeLoading: true });
+
+        try {
+            const response = await postPlaylistInclude({
+                body: {
+                    pspotid: get().playlistId,
+                    cspotid: itemId,
+                }
+            });
+
+            if (response.data) {
+                const currentList = get().playlistData;
+                const targetValue = 0;
+
+                if (currentList[index]?.spotifyID === itemId) {
+                    currentList[index] = { ...currentList[index], included: targetValue };
+                } else {
+                    const foundIndex = currentList.findIndex(i => i.spotifyID === itemId);
+                    if (foundIndex !== -1) currentList[foundIndex] = { ...currentList[foundIndex], included: targetValue };
+                }
+                set({ includeLoading: false, playlistData: currentList });
+            }
+        } catch (err) {
+            set({ includeLoading: false, error: true });
+        }
+    },
+}));

@@ -40,11 +40,7 @@ func GetDbConn() *dbConn {
 		if dbConnInstance == nil {
 			fmt.Println("Creating single instance now.")
 			dbConnInstance = createDbConn() 
-		} else {
-			fmt.Println("Single instance already created.")
 		}
-	} else {
-		fmt.Println("Single instance already created.")
 	}
 
 	return dbConnInstance
