@@ -42,6 +42,66 @@ export default function Search() {
     )
 }
 
+interface PlaylistResultItemProps {
+  item: ModelItemResponse;
+  index: number;
+  onAction: (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => void;
+  onExpand: (id: string, type: ModelItemType) => void;
+}
+
+export function PlaylistResultItem({ item, index, onAction, onExpand }: PlaylistResultItemProps) {
+  const imageUrl = item.icon && item.icon.length > 0 ? item.icon[0].url : "";
+  
+  const getInclusionBadge = () => {
+    switch (item.included) {
+      case 1: 
+        return <Badge className="bg-green-500 hover:bg-green-600">Included</Badge>;
+      case 3: 
+        return <Badge className="bg-blue-500 hover:bg-blue-600">Included</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between p-3 transition-colors hover:bg-muted/50 rounded-lg border" onClick={() => item.spotifyID && item.itemType && onExpand(item.spotifyID, item.itemType)}>
+      <div className="flex items-center gap-4">
+        <Avatar className="h-12 w-12 rounded-md">
+          <AvatarImage src={imageUrl} alt={item.name} />
+          <AvatarFallback className="rounded-md">
+            {item.name?.substring(0, 2).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-sm leading-none">{item.name}</span>
+            {getInclusionBadge()}
+          </div>
+          <div className="flex items-start gap-2">
+              <span className="text-xs text-muted-foreground capitalize">
+                {item.itemType == 2 ? item.sortdata : ""}
+              </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        {/* Toggle Inclusion Button */}
+        <Button 
+          size="icon" 
+          variant={item.included === 1 ? "default" : "outline"} 
+          className="h-8 w-8"
+          onClick={(e) => {
+            e.stopPropagation();
+              item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, index, item.included === 1);}}
+        >
+          {item.included === 1 ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 interface SearchResultItemProps {
   item: ModelItemResponse;
@@ -269,12 +329,12 @@ function ResultBox() {
           )}
         </div>
       </ResizablePanel>
+      <ResizableHandle withHandle />
       </> : null
     }
       {
         searchType == 1 || searchType == 2 ?  
         <> 
-          <ResizableHandle withHandle />
           <ResizablePanel defaultSize={albumData.length > 0 ? 50 : 25}>
             <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
               {albumLoading ? (
@@ -294,12 +354,12 @@ function ResultBox() {
               )}
             </div>
           </ResizablePanel>
+          <ResizableHandle withHandle />
         </> : null
       }
       {
         searchType == 1 || searchType == 2 ? 
         <>
-      <ResizableHandle withHandle />
       <ResizablePanel defaultSize={trackData.length > 0 ? 50 : 25}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
           {trackLoading ? (
@@ -323,7 +383,6 @@ function ResultBox() {
       {
         searchType == 3 ? 
         <>
-      <ResizableHandle withHandle />
       <ResizablePanel defaultSize={trackData.length > 0 ? 50 : 25}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
           {trackLoading ? (

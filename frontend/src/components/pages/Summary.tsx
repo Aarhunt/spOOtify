@@ -250,12 +250,12 @@ function ResultBox() {
           )}
         </div>
       </ResizablePanel>
+      <ResizableHandle withHandle />
       </> : null
     }
       {
         summaryType == 1 || summaryType == 2 ?  
         <> 
-          <ResizableHandle withHandle />
           <ResizablePanel defaultSize={albumData.length > 0 ? 50 : 25}>
             <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
               {albumLoading ? (
@@ -275,12 +275,12 @@ function ResultBox() {
               )}
             </div>
           </ResizablePanel>
+          <ResizableHandle withHandle />
         </> : null
       }
       {
         summaryType == 1 || summaryType == 2 ? 
         <>
-      <ResizableHandle withHandle />
       <ResizablePanel defaultSize={trackData.length > 0 ? 50 : 25}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
           {trackLoading ? (
@@ -304,7 +304,6 @@ function ResultBox() {
       {
         summaryType == 3 ? 
         <>
-      <ResizableHandle withHandle />
       <ResizablePanel defaultSize={trackData.length > 0 ? 50 : 25}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
           {trackLoading ? (

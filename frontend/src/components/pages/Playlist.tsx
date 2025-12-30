@@ -62,14 +62,14 @@ export default function Playlist() {
 export function PublishButton() {
     const publishPlaylist = usePlaylistStore((state) => state.publishPlaylist);
 
-    const { publishLoading } = usePlaylistStore()
+    const { publishLoading, currentId } = usePlaylistStore()
 
     const handlePublish = async () => {
         await publishPlaylist();
     };
 
     return (
-        <Button variant="green" onClick={handlePublish} >{ publishLoading ? <Spinner /> : <ListMusic /> } Publish Playlist</Button>
+        <Button disabled={currentId == ""} variant="green" onClick={handlePublish} >{ publishLoading ? <Spinner /> : <ListMusic /> } Publish Playlist</Button>
     )
 }
 
