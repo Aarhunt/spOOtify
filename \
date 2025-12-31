@@ -27,7 +27,7 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      http://localhost:8080
+// @host      localhost:8080
 // @BasePath  /api/v1
 
 // @securityDefinitions.basic  BasicAuth
@@ -42,11 +42,13 @@ func main() {
 
 	_ = src.GetSpotifyConn;
 
+	// programmatically set swagger info
 	docs.SwaggerInfo.Title = "Swagger Example API"
 	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "http://localhost:8080"
+	docs.SwaggerInfo.Host = "localhost:8080"
 	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	router := gin.Default()
 
@@ -72,7 +74,7 @@ func main() {
 			play.POST("/item", controllers.IncludeExcludeItem)
 			play.POST("/item/undo", controllers.UndoIncludeExcludeItem)
 			play.POST("/include", controllers.IncludePlaylist)
-			play.POST("/include/undo", controllers.UndoIncludePlaylist)
+			play.POST("/include/undo", controllers.IncludePlaylist)
 			play.POST("/publish", controllers.PublishPlaylist)
 			play.GET("/:id/inclusions", controllers.GetPlaylistInclusions)
 			play.GET("/:id/exclusions", controllers.GetPlaylistExclusions)

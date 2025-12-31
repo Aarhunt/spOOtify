@@ -104,6 +104,19 @@ func IncludePlaylist(req model.ItemPlaylistRequest) (*model.PlaylistResponse, er
 	return parentPlaylist.ToResponse(), err
 }
 
+
+// Include a playlist into a playlist
+func UndoIncludePlaylist(req model.ItemPlaylistRequest) (*model.PlaylistResponse, error) {
+	dbConn := src.GetDbConn()
+	ctx, db := dbConn.Ctx, dbConn.Db
+
+	parentPlaylist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", req.ParentSpotifyID).First(ctx)
+	childPlaylist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", req.ChildSpotifyID).First(ctx)
+
+	err = db.Model(&parentPlaylist).Association("IncludedPlaylists").Delete(&childPlaylist)
+	return parentPlaylist.ToResponse(), err
+}
+
 // Get a specific album from an artist
 func GetAlbumFromArtist(req model.ItemRequest) ([]model.ItemResponse, error) {
 	conn := src.GetSpotifyConn()

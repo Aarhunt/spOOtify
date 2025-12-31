@@ -25,20 +25,17 @@ func GetPlaylists() ([]model.PlaylistResponse, error) {
 func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
 	playlist, _ := getPlaylist(req.PlaylistID)
 	playlists, _ := GetPlaylists()
-	ids := getPlaylistsRecursive(*playlist, make(map[spotify.ID]bool), 1);
+	ids := getPlaylistsRecursive(*playlist, make(map[spotify.ID]bool));
 
-	if (req.Query != "") {
-		matchedPlaylist := []model.PlaylistResponse{}
-		for _, p := range playlists {
-			match, _ := regexp.Match(strings.ToLower(req.Query), []byte(strings.ToLower(p.Name)))
-			if match {matchedPlaylist = append(matchedPlaylist, p)}
-		}
-		playlists = matchedPlaylist
-	}
+	playlists = slices.DeleteFunc(playlists, func(p model.PlaylistResponse) bool {
+		match, _ := regexp.Match(strings.ToLower(req.Query), []byte(strings.ToLower(p.Name)))
+		return p.SpotifyID == playlist.SpotifyID || !match })
 
 	return utils.Map(playlists, func(p model.PlaylistResponse) model.ItemResponse {
 		included := model.Nothing
-		if (ids[p.SpotifyID] > 0) {
+		if (ids[p.SpotifyID] >= 2) {
+			included = model.IncludedByProxy
+		} else if (ids[p.SpotifyID] == 1) {
 			included = model.Included
 		}
 
@@ -203,16 +200,18 @@ func GetAllExclusions(id spotify.ID) []model.ItemResponse {
 }
 
 func GetIncludedPlaylistsFromPlaylist(p *model.Playlist) ([]model.Playlist) {
-	dbConn := src.GetDbConn()
-	ctx, db := dbConn.Ctx, dbConn.Db
-
 	var includedPlaylists = []model.Playlist{}
-	db.Model(&p).Association("IncludedPlaylists").Find(ctx, &includedPlaylists)
+
+    _ = src.GetDbConn().Db.
+        Table("playlists").
+        Joins("JOIN playlist_nested_playlists ON playlist_nested_playlists.included_playlist_spotify_id = playlists.spotify_id").
+        Where("playlist_nested_playlists.playlist_spotify_id = ?", p.SpotifyID).
+        Find(&includedPlaylists).Error
 
 	return includedPlaylists
 }
 
-func getPlaylistsRecursive(p model.Playlist, visited map[spotify.ID]bool, i int) map[spotify.ID]int {
+func getPlaylistsRecursive(p model.Playlist, visited map[spotify.ID]bool) map[spotify.ID]int {
     if visited[p.SpotifyID] {
         return nil
     }
@@ -221,19 +220,24 @@ func getPlaylistsRecursive(p model.Playlist, visited map[spotify.ID]bool, i int)
 
     includedPlaylists := make(map[spotify.ID]int)
 
-	// Get all the playlists that are included in p
-	for _, nested := range GetIncludedPlaylistsFromPlaylist(&p) {
-		nestedPlaylists := getPlaylistsRecursive(nested, visited, i + 1)
-		for id, _ := range nestedPlaylists {
-			includedPlaylists[id] = i
+	nestedPlaylists := GetIncludedPlaylistsFromPlaylist(&p)
+
+	for _, nested := range nestedPlaylists {
+		nestedPlaylistsMap := getPlaylistsRecursive(nested, visited) 
+		for key, val := range nestedPlaylistsMap {
+			includedPlaylists[key] = val + 1
 		}
+	}
+
+	for _, nested := range nestedPlaylists {
+		includedPlaylists[nested.SpotifyID] = 1
 	}
 
 	return includedPlaylists
 }
 
 func getTracksFromPlaylist(p model.Playlist) []spotify.ID {
-	inclusions, exclusions := getTracksRecursive(p, make(map[spotify.ID]bool), 0)
+	inclusions, exclusions := getTracksRecursive(p, make(map[spotify.ID]bool))
 
     finalTracks := make([]spotify.ID, 0, len(inclusions))
     for id, inc := range inclusions {
@@ -244,7 +248,7 @@ func getTracksFromPlaylist(p model.Playlist) []spotify.ID {
 	return finalTracks
 }
 
-func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool, i int) (map[spotify.ID]int, map[spotify.ID]int) {
+func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool) (map[spotify.ID]int, map[spotify.ID]int) {
     if visited[p.SpotifyID] {
         return nil, nil
     }
@@ -254,17 +258,17 @@ func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool, i int) (m
 	includedMap := make(map[spotify.ID]int)
 
 	for _, nested := range GetIncludedPlaylistsFromPlaylist(&p) {
-		nestedInclusions, nestedExclusions := getTracksRecursive(nested, visited, i + 1)
+		nestedInclusions, nestedExclusions := getTracksRecursive(nested, visited)
 		for id, val := range nestedInclusions {
 			if val != 0 {
-				includedMap[id]	= val + 3 * i
+				includedMap[id]	= val + 3
 			} else {
 				includedMap[id] = val
 			}
 		}
 		for id, val := range nestedExclusions {
 			if val != 0 {
-				excludedMap[id]	= val + 3 * i
+				excludedMap[id]	= val + 3
 			} else {
 				excludedMap[id] = val
 			}

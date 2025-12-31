@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { postSearch, postSpotifyAlbumTracks, postSpotifyArtistAlbums, postPlaylistItem, postPlaylistItemUndo, postPlaylistInclude } from '@/client';
+import { postSearch, postSpotifyAlbumTracks, postSpotifyArtistAlbums, postPlaylistItem, postPlaylistItemUndo, postPlaylistInclude, postPlaylistIncludeUndo } from '@/client';
 import type { ModelItemResponse, ModelItemType } from "@/client/types.gen"
 
 
@@ -254,7 +254,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         set({ includeLoading: true });
 
         try {
-            const response = await postPlaylistInclude({
+            const response = await postPlaylistIncludeUndo({
                 body: {
                     pspotid: get().playlistId,
                     cspotid: itemId,

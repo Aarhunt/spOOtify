@@ -56,10 +56,10 @@ export function PlaylistResultItem({ item, index, onAction, onExpand }: Playlist
     switch (item.included) {
       case 1: 
         return <Badge className="bg-green-500 hover:bg-green-600">Included</Badge>;
-      case 3: 
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Included</Badge>;
+      case 0: 
+        return null
       default:
-        return null;
+        return <Badge className="bg-blue-500 hover:bg-blue-600">Included By Proxy</Badge>;
     }
   };
 
@@ -94,7 +94,7 @@ export function PlaylistResultItem({ item, index, onAction, onExpand }: Playlist
           className="h-8 w-8"
           onClick={(e) => {
             e.stopPropagation();
-              item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, index, item.included === 1);}}
+              item.spotifyID && onAction(item.spotifyID, true, item.itemType!, index, item.included === 1);}}
         >
           {item.included === 1 ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>

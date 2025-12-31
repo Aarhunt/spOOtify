@@ -3,18 +3,6 @@ definitions:
   gin.H:
     additionalProperties: {}
     type: object
-  model.IdItem:
-    properties:
-      id:
-        example: 37i9dQZF1DXcBWIGoYBM3M
-        type: string
-      included_in:
-        items:
-          $ref: '#/definitions/model.Playlist'
-        type: array
-      itemType:
-        $ref: '#/definitions/model.ItemType'
-    type: object
   model.InclusionResponse:
     properties:
       included:
@@ -104,31 +92,6 @@ definitions:
     - Artist
     - Album
     - Track
-  model.Playlist:
-    properties:
-      exclusions:
-        description: "IncludedIn \t\t  []*Playlist `gorm:\"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE\"`"
-        items:
-          $ref: '#/definitions/model.IdItem'
-        type: array
-      id:
-        example: 37i9dQZF1DXcBWIGoYBM3M
-        type: string
-      images:
-        items:
-          $ref: '#/definitions/spotify.Image'
-        type: array
-      includedPlaylists:
-        items:
-          $ref: '#/definitions/model.Playlist'
-        type: array
-      inclusions:
-        items:
-          $ref: '#/definitions/model.IdItem'
-        type: array
-      name:
-        type: string
-    type: object
   model.PlaylistCreateRequest:
     properties:
       name:
@@ -144,18 +107,6 @@ definitions:
     type: object
   model.PlaylistResponse:
     properties:
-      exclusions:
-        items:
-          $ref: '#/definitions/model.IdItem'
-        type: array
-      includedPlaylists:
-        items:
-          $ref: '#/definitions/model.Playlist'
-        type: array
-      inclusions:
-        items:
-          $ref: '#/definitions/model.IdItem'
-        type: array
       name:
         type: string
       spotifyID:
@@ -171,8 +122,6 @@ definitions:
         $ref: '#/definitions/model.ItemType'
     required:
     - playlistid
-    - query
-    - type
     type: object
   spotify.Image:
     properties:
@@ -189,7 +138,7 @@ definitions:
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
-host: localhost:8080
+host: http://localhost:8080
 info:
   contact:
     email: support@swagger.io
@@ -412,6 +361,34 @@ paths:
               type: string
             type: object
       summary: Nest a Playlist
+      tags:
+      - playlists
+  /playlist/include/undo:
+    post:
+      consumes:
+      - application/json
+      description: Undoes inclusion of one playlist inside another parent playlist
+      parameters:
+      - description: Playlist Linking Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ItemPlaylistRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PlaylistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Undo a nested Playlist
       tags:
       - playlists
   /playlist/item:

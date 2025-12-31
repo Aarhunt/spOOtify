@@ -15,7 +15,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "http://localhost:8080",
     "basePath": "/api/v1",
     "paths": {
         "/playlist": {
@@ -126,6 +126,49 @@
                     "playlists"
                 ],
                 "summary": "Nest a Playlist",
+                "parameters": [
+                    {
+                        "description": "Playlist Linking Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ItemPlaylistRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.PlaylistResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/playlist/include/undo": {
+            "post": {
+                "description": "Undoes inclusion of one playlist inside another parent playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Undo a nested Playlist",
                 "parameters": [
                     {
                         "description": "Playlist Linking Details",
@@ -620,24 +663,6 @@
             "type": "object",
             "additionalProperties": {}
         },
-        "model.IdItem": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "37i9dQZF1DXcBWIGoYBM3M"
-                },
-                "included_in": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Playlist"
-                    }
-                },
-                "itemType": {
-                    "$ref": "#/definitions/model.ItemType"
-                }
-            }
-        },
         "model.InclusionResponse": {
             "type": "object",
             "properties": {
@@ -764,43 +789,6 @@
                 "Track"
             ]
         },
-        "model.Playlist": {
-            "type": "object",
-            "properties": {
-                "exclusions": {
-                    "description": "IncludedIn \t\t  []*Playlist `gorm:\"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE\"`",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.IdItem"
-                    }
-                },
-                "id": {
-                    "type": "string",
-                    "example": "37i9dQZF1DXcBWIGoYBM3M"
-                },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/spotify.Image"
-                    }
-                },
-                "includedPlaylists": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Playlist"
-                    }
-                },
-                "inclusions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.IdItem"
-                    }
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "model.PlaylistCreateRequest": {
             "type": "object",
             "required": [
@@ -824,24 +812,6 @@
         "model.PlaylistResponse": {
             "type": "object",
             "properties": {
-                "exclusions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.IdItem"
-                    }
-                },
-                "includedPlaylists": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Playlist"
-                    }
-                },
-                "inclusions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.IdItem"
-                    }
-                },
                 "name": {
                     "type": "string"
                 },
@@ -853,9 +823,7 @@
         "model.SearchRequest": {
             "type": "object",
             "required": [
-                "playlistid",
-                "query",
-                "type"
+                "playlistid"
             ],
             "properties": {
                 "playlistid": {

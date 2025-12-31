@@ -61,58 +61,6 @@ func UndoIncludeExcludeItem(c *gin.Context) {
     c.JSON(http.StatusOK, res)
 }
 
-// IncludePlaylist godoc
-// @Summary      Nest a Playlist
-// @Description  Includes one playlist inside another parent playlist
-// @Tags         playlists
-// @Accept       json
-// @Produce      json
-// @Param        request  body      model.ItemPlaylistRequest  true  "Playlist Linking Details"
-// @Success      200      {object}  model.PlaylistResponse
-// @Failure      500      {object}  map[string]string
-// @Router       /playlist/include [post]
-func IncludePlaylist(c *gin.Context) {
-	var req model.ItemPlaylistRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	res, err := services.IncludePlaylist(req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, res)
-}
-
-// IncludePlaylist godoc
-// @Summary      Nest a Playlist
-// @Description  Includes one playlist inside another parent playlist
-// @Tags         playlists
-// @Accept       json
-// @Produce      json
-// @Param        request  body      model.ItemPlaylistRequest  true  "Playlist Linking Details"
-// @Success      200      {object}  model.PlaylistResponse
-// @Failure      500      {object}  map[string]string
-// @Router       /playlist/include [post]
-func UndoIncludePlaylist(c *gin.Context) { //TODO
-	var req model.ItemPlaylistRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	res, err := services.IncludePlaylist(req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, res)
-}
-
 // GetAlbumFromArtist godoc
 // @Summary      Get Albums by Artist
 // @Description  Fetches albums and singles from Spotify for a specific artist

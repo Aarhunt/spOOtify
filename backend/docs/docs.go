@@ -162,6 +162,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/playlist/include/undo": {
+            "post": {
+                "description": "Undoes inclusion of one playlist inside another parent playlist",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlists"
+                ],
+                "summary": "Undo a nested Playlist",
+                "parameters": [
+                    {
+                        "description": "Playlist Linking Details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.ItemPlaylistRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.PlaylistResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/playlist/item": {
             "post": {
                 "description": "Adds an IdItem to either the inclusions or exclusions of a playlist",
@@ -626,24 +669,6 @@ const docTemplate = `{
             "type": "object",
             "additionalProperties": {}
         },
-        "model.IdItem": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "37i9dQZF1DXcBWIGoYBM3M"
-                },
-                "included_in": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Playlist"
-                    }
-                },
-                "itemType": {
-                    "$ref": "#/definitions/model.ItemType"
-                }
-            }
-        },
         "model.InclusionResponse": {
             "type": "object",
             "properties": {
@@ -770,43 +795,6 @@ const docTemplate = `{
                 "Track"
             ]
         },
-        "model.Playlist": {
-            "type": "object",
-            "properties": {
-                "exclusions": {
-                    "description": "IncludedIn \t\t  []*Playlist ` + "`" + `gorm:\"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE\"` + "`" + `",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.IdItem"
-                    }
-                },
-                "id": {
-                    "type": "string",
-                    "example": "37i9dQZF1DXcBWIGoYBM3M"
-                },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/spotify.Image"
-                    }
-                },
-                "includedPlaylists": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Playlist"
-                    }
-                },
-                "inclusions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.IdItem"
-                    }
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "model.PlaylistCreateRequest": {
             "type": "object",
             "required": [
@@ -830,24 +818,6 @@ const docTemplate = `{
         "model.PlaylistResponse": {
             "type": "object",
             "properties": {
-                "exclusions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.IdItem"
-                    }
-                },
-                "includedPlaylists": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Playlist"
-                    }
-                },
-                "inclusions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.IdItem"
-                    }
-                },
                 "name": {
                     "type": "string"
                 },
@@ -859,9 +829,7 @@ const docTemplate = `{
         "model.SearchRequest": {
             "type": "object",
             "required": [
-                "playlistid",
-                "query",
-                "type"
+                "playlistid"
             ],
             "properties": {
                 "playlistid": {
@@ -907,7 +875,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "http://localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Swagger Example API",
