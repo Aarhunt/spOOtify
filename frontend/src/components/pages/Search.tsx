@@ -292,7 +292,7 @@ function ResultBox() {
                 <p>Loading results...</p>
               ) : playlistData.length > 0 ? (
                 playlistData.map((item, index) => (
-                  <SearchResultItem 
+                  <PlaylistResultItem 
                     key={item.spotifyID} 
                     item={item} 
                     index={index}
@@ -412,15 +412,13 @@ function SearchBar() {
     const search = useSearchStore((state) => state.search);
     const { searchType, setSearchType } = useSearchStore();
 
-    // Assuming you have a way to get the actual Playlist Spotify ID
     const [query, setQuery] = React.useState("");
 
     const handleSearch = async () => {
-        if (!query) return;
+        if (searchType != 0 && !query) return;
         await search(query)
     }
 
-    // Helper to handle the string-to-number conversion from the dropdown
     const handleTypeChange = (value: string) => {
         setSearchType(parseInt(value) as ModelItemType);
     };

@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/aarhunt/autistify/src"
 	"github.com/aarhunt/autistify/src/model"
@@ -22,15 +23,15 @@ func GetPlaylists() ([]model.PlaylistResponse, error) {
 }
 
 func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
-	p, _ := getPlaylist(req.PlaylistID)
+	playlist, _ := getPlaylist(req.PlaylistID)
 	playlists, _ := GetPlaylists()
-	ids := getPlaylistsRecursive(*p, make(map[spotify.ID]bool), 1);
+	ids := getPlaylistsRecursive(*playlist, make(map[spotify.ID]bool), 1);
 
 	if (req.Query != "") {
 		matchedPlaylist := []model.PlaylistResponse{}
-		for _, playlist := range playlists {
-			match, _ := regexp.Match(req.Query, []byte(p.Name))
-			if match {matchedPlaylist = append(matchedPlaylist, playlist)}
+		for _, p := range playlists {
+			match, _ := regexp.Match(strings.ToLower(req.Query), []byte(strings.ToLower(p.Name)))
+			if match {matchedPlaylist = append(matchedPlaylist, p)}
 		}
 		playlists = matchedPlaylist
 	}
