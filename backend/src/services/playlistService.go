@@ -13,12 +13,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetPlaylists() ([]model.Playlist, error) {
+func GetPlaylists() ([]model.PlaylistResponse, error) {
 	var playlists []model.Playlist
 	db := src.GetDbConn().Db
 
 	err := db.Find(&playlists)
-	return playlists, err.Error
+	return utils.Map(playlists, func (p model.Playlist) model.PlaylistResponse { return  *p.ToResponse() }), err.Error
 }
 
 func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
@@ -27,7 +27,7 @@ func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
 	ids := getPlaylistsRecursive(*p, make(map[spotify.ID]bool), 1);
 
 	if (req.Query != "") {
-		matchedPlaylist := []model.Playlist{}
+		matchedPlaylist := []model.PlaylistResponse{}
 		for _, playlist := range playlists {
 			match, _ := regexp.Match(req.Query, []byte(p.Name))
 			if match {matchedPlaylist = append(matchedPlaylist, playlist)}
@@ -35,7 +35,7 @@ func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
 		playlists = matchedPlaylist
 	}
 
-	return utils.Map(playlists, func(p model.Playlist) model.ItemResponse {
+	return utils.Map(playlists, func(p model.PlaylistResponse) model.ItemResponse {
 		included := model.Nothing
 		if (ids[p.SpotifyID] > 0) {
 			included = model.Included
@@ -44,7 +44,7 @@ func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
 		return model.ItemResponse{
 			SpotifyID: p.SpotifyID,
 			Name:      p.Name,
-			Icon:      []spotify.Image{spotify.Image{URL: p.Image, Width: spotify.Numeric(p.ImageSize), Height: spotify.Numeric(p.ImageSize)}}, 
+			Icon:      []spotify.Image{}, 
 			ItemType:  model.PlaylistItem,
 			Included:  included,
 		}
@@ -82,8 +82,6 @@ func PostPlaylist(req model.PlaylistCreateRequest) (*model.PlaylistResponse, err
 		Inclusions:        []model.IdItem{},
 		IncludedPlaylists: []*model.Playlist{},
 		Exclusions:        []model.IdItem{},
-		Image: 		   	   spotPlaylist.Images[0].URL,
-		ImageSize: 		   int(spotPlaylist.Images[0].Height),
 	}
 
 	err = gorm.G[model.Playlist](db).Create(ctx, &localPlaylist)

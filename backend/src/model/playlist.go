@@ -11,8 +11,6 @@ type Playlist struct {
 	IncludedPlaylists []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// IncludedIn 		  []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Exclusions        []IdItem   `gorm:"many2many:playlist_exclusions;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Image 			  string `json:"image"`	
-	ImageSize		  int `json:"imageSize"`
 }
 
 type PlaylistCreateRequest struct {
@@ -26,18 +24,12 @@ type PlaylistPublishRequest struct {
 type PlaylistResponse struct {
 	Name              string `json:"name"`
 	SpotifyID         spotify.ID `json:"spotifyID"`
-	Inclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	IncludedPlaylists []*Playlist `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Exclusions        []IdItem   `gorm:"many2many:playlist_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (p Playlist) ToResponse() *PlaylistResponse {
 	return &PlaylistResponse{
 		Name:              p.Name,
 		SpotifyID:         p.SpotifyID,
-		Inclusions:        p.Inclusions,
-		IncludedPlaylists: p.IncludedPlaylists,
-		Exclusions:        p.Exclusions,
 	}
 }
 
