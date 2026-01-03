@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getPlaylist, postPlaylist, postPlaylistPublish } from '@/client';
+import { getPlaylist, postPlaylist, postPlaylistPublish, putPlaylistByIdRename, deletePlaylistById} from '@/client';
 import type { ModelPlaylistResponse } from "@/client/types.gen"
 
 
@@ -9,11 +9,16 @@ interface PlaylistState {
     currentId: string;
     loading: boolean;
     publishLoading: boolean;
+    deleteLoading: boolean;
+    renameLoading: boolean;
     error: boolean;
     fetch: () => Promise<void>;
     setCurrentId: (id: string, name: string) => void;
     createPlaylist: (name: string) => Promise<void>;
     publishPlaylist: () => Promise<void>;
+    publishPlaylists: () => Promise<void>;
+    deletePlaylist: () => Promise<void>;
+    renamePlaylist: (name: string) => Promise<void>;
 }
 
 export const usePlaylistStore = create<PlaylistState>((set, get) => ({
@@ -22,6 +27,8 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     currentId: "",
     loading: false,
     publishLoading: false,
+    deleteLoading: false,
+    renameLoading: false,
     error: false,
 
     setCurrentId: (id, name) => set({ currentId: id, current: name}),
@@ -40,7 +47,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
         set({ loading: true });
         try {
             const response = await postPlaylist({
-                body: { name } // Hey API structure
+                body: { name } 
             });
 
             if (response.data) {
@@ -60,7 +67,26 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
         try {
             const id = get().currentId
             const response = await postPlaylistPublish({
-                body: { spotifyID: id } // Hey API structure
+                body: { spotifyID: id } 
+            });
+
+            if (response.data) {
+                set(() => ({
+                    publishLoading: false
+                }));
+            }
+        } catch (err) {
+            console.error("Publishing failed", err);
+            set({ publishLoading: false, error: true });
+        }
+    },
+
+    publishPlaylists: async () => {
+        set({ publishLoading: true });
+        try {
+            const id = get().currentId
+            const response = await postPlaylistPublish({
+                body: { spotifyID: id } 
             });
 
             if (response.data) {
@@ -70,10 +96,50 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                 }));
             }
         } catch (err) {
-            console.error("Creation failed", err);
+            console.error("Publishing failed", err);
             set({ publishLoading: false, error: true });
+        }
+    },
+    
+    deletePlaylist: async () => {
+        const id = get().currentId;
+        set({ deleteLoading: true });
+        try {
+            const response = await deletePlaylistById({
+                path: { id: id } 
+            });
+
+            if (response.data) {
+                set((state) => ({
+                    data: state.data.filter((res) => res.spotifyID != id),
+                    deleteLoading: false
+                }))
+            }
+        } catch (err) {
+            console.error("Deletion failed", err);
+            set({ deleteLoading: false, error: true });
         }
     },
 
 
+    renamePlaylist: async (name: string) => {
+        const id = get().currentId;
+        set({ renameLoading: true });
+        try {
+            const response = await putPlaylistByIdRename({
+                path: { id: id },
+                body: { name }
+            });
+
+            if (response.data) {
+                set((state) => ({
+                    data: state.data.map((res) => { return {...res, name: res.spotifyID == id ? name : res.name }} ),
+                    renameLoading: false
+                }));
+            }
+        } catch (err) {
+            console.error("Creation failed", err);
+            set({ renameLoading: false, error: true });
+        }
+    },
 }));

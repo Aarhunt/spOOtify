@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetPlaylistByIdExclusionsData, GetPlaylistByIdExclusionsErrors, GetPlaylistByIdExclusionsResponses, GetPlaylistByIdInclusionsData, GetPlaylistByIdInclusionsErrors, GetPlaylistByIdInclusionsResponses, GetPlaylistByIdPlaylistsData, GetPlaylistByIdPlaylistsErrors, GetPlaylistByIdPlaylistsResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistIncludeData, PostPlaylistIncludeErrors, PostPlaylistIncludeResponses, PostPlaylistIncludeUndoData, PostPlaylistIncludeUndoErrors, PostPlaylistIncludeUndoResponses, PostPlaylistItemData, PostPlaylistItemErrors, PostPlaylistItemResponses, PostPlaylistItemUndoData, PostPlaylistItemUndoErrors, PostPlaylistItemUndoResponses, PostPlaylistPublishData, PostPlaylistPublishErrors, PostPlaylistPublishResponses, PostPlaylistResponses, PostSearchData, PostSearchErrors, PostSearchResponses, PostSpotifyAlbumTracksData, PostSpotifyAlbumTracksErrors, PostSpotifyAlbumTracksResponses, PostSpotifyArtistAlbumsData, PostSpotifyArtistAlbumsErrors, PostSpotifyArtistAlbumsResponses } from './types.gen';
+import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetPlaylistByIdExclusionsData, GetPlaylistByIdExclusionsErrors, GetPlaylistByIdExclusionsResponses, GetPlaylistByIdInclusionsData, GetPlaylistByIdInclusionsErrors, GetPlaylistByIdInclusionsResponses, GetPlaylistByIdPlaylistsData, GetPlaylistByIdPlaylistsErrors, GetPlaylistByIdPlaylistsResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistIncludeData, PostPlaylistIncludeErrors, PostPlaylistIncludeResponses, PostPlaylistIncludeUndoData, PostPlaylistIncludeUndoErrors, PostPlaylistIncludeUndoResponses, PostPlaylistItemData, PostPlaylistItemErrors, PostPlaylistItemResponses, PostPlaylistItemUndoData, PostPlaylistItemUndoErrors, PostPlaylistItemUndoResponses, PostPlaylistPublishData, PostPlaylistPublishErrors, PostPlaylistPublishResponses, PostPlaylistResponses, PostSearchData, PostSearchErrors, PostSearchResponses, PostSpotifyAlbumTracksData, PostSpotifyAlbumTracksErrors, PostSpotifyAlbumTracksResponses, PostSpotifyArtistAlbumsData, PostSpotifyArtistAlbumsErrors, PostSpotifyArtistAlbumsResponses, PutPlaylistByIdRenameData, PutPlaylistByIdRenameErrors, PutPlaylistByIdRenameResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -143,6 +143,20 @@ export const getPlaylistByIdInclusions = <ThrowOnError extends boolean = false>(
  * Responds with the list of all playlists as JSON.
  */
 export const getPlaylistByIdPlaylists = <ThrowOnError extends boolean = false>(options: Options<GetPlaylistByIdPlaylistsData, ThrowOnError>) => (options.client ?? client).get<GetPlaylistByIdPlaylistsResponses, GetPlaylistByIdPlaylistsErrors, ThrowOnError>({ url: '/playlist/{id}/playlists', ...options });
+
+/**
+ * Rename a playlist
+ *
+ * Updates the display name of a playlist in the local database.
+ */
+export const putPlaylistByIdRename = <ThrowOnError extends boolean = false>(options: Options<PutPlaylistByIdRenameData, ThrowOnError>) => (options.client ?? client).put<PutPlaylistByIdRenameResponses, PutPlaylistByIdRenameErrors, ThrowOnError>({
+    url: '/playlist/{id}/rename',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Unified Spotify Search

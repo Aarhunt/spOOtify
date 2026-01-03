@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CheckIcon, ChevronsUpDownIcon, Plus, ListMusic } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, Plus, ListMusic, PenLine, Trash } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -34,12 +34,6 @@ import { Label } from "@/components/ui/label"
 import { usePlaylistStore } from "@/components/stores/playlist.store"
 import { useSearchStore } from "@/components/stores/search.store"
 
-import {
-  Item,
-  ItemContent,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item"
 import { Spinner } from "@/components/ui/spinner"
 import { useSummaryStore } from "../stores/summary.store"
 
@@ -53,8 +47,10 @@ export default function Playlist() {
     return (
         <div className="flex items-center gap-2">
         <PlaylistSearch />
-        <DialogCloseButton />
+        <CreateDialog />
         <PublishButton />
+        <RenameDialog />
+        <DeleteDialog />
         </div>
     )
 }
@@ -73,7 +69,121 @@ export function PublishButton() {
     )
 }
 
-export function DialogCloseButton() {
+export function DeleteDialog() {
+    const deletePlaylist = usePlaylistStore((state) => state.deletePlaylist);
+    
+    const { currentId, current } = usePlaylistStore()
+
+    const [playlistName, setPlaylistName] = React.useState("My Playlist");
+    const inputId = React.useId(); 
+
+    const handleDeletion = async () => {
+        if (current != playlistName) return
+        await deletePlaylist();
+    };
+
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button disabled={currentId == ""} variant="destructive"><Trash />Delete Playlist</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Delete Playlist</DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete this playlist?
+                        Type the name of the playlist to confirm deletion.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center gap-2">
+                    <div className="grid flex-1 gap-2">
+                        <Label htmlFor={inputId} className="sr-only">
+                            Name
+                        </Label>
+                        <Input
+                            id={inputId}
+                            value={playlistName}
+                            onChange={(e) => setPlaylistName(e.target.value)}
+                            placeholder="My Playlist"
+                        />
+                    </div>
+                </div>
+                <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                        <Button 
+                            type="button" 
+                            variant="destructive" 
+                            onClick={handleDeletion}
+                            disabled={current != playlistName}
+                        >
+                            Delete
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+
+export function RenameDialog() {
+    const renamePlaylist = usePlaylistStore((state) => state.renamePlaylist);
+    
+    const { current } = usePlaylistStore()
+
+    const [playlistName, setPlaylistName] = React.useState(current);
+    const inputId = React.useId(); 
+
+    const handleRename = async () => {
+        if (!playlistName.trim()) return;
+        await renamePlaylist(playlistName);
+        setPlaylistName("My Playlist");
+    };
+
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="green"><PenLine />Rename Playlist</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Rename Playlist</DialogTitle>
+                    <DialogDescription>
+                        Fill in the new name of the playlist here.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center gap-2">
+                    <div className="grid flex-1 gap-2">
+                        <Label htmlFor={inputId} className="sr-only">
+                            Name
+                        </Label>
+                        <Input
+                            id={inputId}
+                            value={playlistName}
+                            onChange={(e) => setPlaylistName(e.target.value)}
+                            placeholder="My Playlist"
+                        />
+                    </div>
+                </div>
+                <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                        <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={handleRename}
+                        >
+                            Rename
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+export function CreateDialog() {
     const createPlaylist = usePlaylistStore((state) => state.createPlaylist);
     
     const [playlistName, setPlaylistName] = React.useState("My Playlist");
@@ -132,7 +242,7 @@ export function PlaylistSearch() {
     const [open, setOpen] = React.useState(false)
     
     const { data, loading, current, setCurrentId } = usePlaylistStore();
-    const { setPlaylistId } = useSearchStore();
+    const { setPlaylistId, clearData } = useSearchStore();
     const { setPlaylistIdSummary } = useSummaryStore();
 
     return (
@@ -166,6 +276,7 @@ export function PlaylistSearch() {
                                             setCurrentId(isSelected ? "" : (p.spotifyID as string), (p.name as string));
                                             setPlaylistId(isSelected ? "" : (p.spotifyID as string));
                                             setPlaylistIdSummary(isSelected ? "" : (p.spotifyID as string));
+                                            clearData();
                                             setOpen(false);
                                         }}
                                     >

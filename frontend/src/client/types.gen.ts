@@ -458,6 +458,55 @@ export type GetPlaylistByIdPlaylistsResponses = {
 
 export type GetPlaylistByIdPlaylistsResponse = GetPlaylistByIdPlaylistsResponses[keyof GetPlaylistByIdPlaylistsResponses];
 
+export type PutPlaylistByIdRenameData = {
+    /**
+     * New name for the playlist
+     */
+    body: ModelPlaylistCreateRequest;
+    path: {
+        /**
+         * Spotify Playlist ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/playlist/{id}/rename';
+};
+
+export type PutPlaylistByIdRenameErrors = {
+    /**
+     * error: Invalid input
+     */
+    400: {
+        [key: string]: string;
+    };
+    /**
+     * error: Playlist not found
+     */
+    404: {
+        [key: string]: string;
+    };
+    /**
+     * error: Database error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type PutPlaylistByIdRenameError = PutPlaylistByIdRenameErrors[keyof PutPlaylistByIdRenameErrors];
+
+export type PutPlaylistByIdRenameResponses = {
+    /**
+     * message: Success
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type PutPlaylistByIdRenameResponse = PutPlaylistByIdRenameResponses[keyof PutPlaylistByIdRenameResponses];
+
 export type PostSearchData = {
     /**
      * Search Query and Item Type

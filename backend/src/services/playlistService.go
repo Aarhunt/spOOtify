@@ -63,6 +63,17 @@ func DeletePlaylist(id spotify.ID) *gorm.DB {
 	return db.Delete(&model.Playlist{}, id)
 }
 
+func RenamePlaylist(id spotify.ID, name string) (int, error) {
+	dbConn := src.GetDbConn()
+	ctx, db := dbConn.Ctx, dbConn.Db
+
+	client := src.GetSpotifyConn().Client
+
+	client.ChangePlaylistName(ctx, id, name)
+
+	return gorm.G[model.Playlist](db).Where("spotify_id = ?", id).Update(ctx, "name", name)
+}
+
 func PostPlaylist(req model.PlaylistCreateRequest) (*model.PlaylistResponse, error) {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client, user := spotiConn.Ctx, spotiConn.Client, spotiConn.UserID

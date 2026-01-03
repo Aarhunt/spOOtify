@@ -70,6 +70,45 @@ func DeletePlaylist(c *gin.Context) {
     c.Status(http.StatusNoContent)
 }
 
+// RenamePlaylistgodoc
+// @Summary      Rename a playlist
+// @Description  Updates the display name of a playlist in the local database.
+// @Tags         playlist
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string         true  "Spotify Playlist ID"
+// @Param        body  body      model.PlaylistCreateRequest  true  "New name for the playlist"
+// @Success      200   {object}  map[string]interface{} "message: Success"
+// @Failure      400   {object}  map[string]string "error: Invalid input"
+// @Failure      404   {object}  map[string]string "error: Playlist not found"
+// @Failure      500   {object}  map[string]string "error: Database error"
+// @Router       /playlist/{id}/rename [put]
+func RenamePlaylist(c *gin.Context) {
+    playlistID := c.Param("id")
+	var req model.PlaylistCreateRequest
+
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "New name is required"})
+        return
+    }
+
+    rowsAffected, err := services.RenamePlaylist(spotify.ID(playlistID), req.Name)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update database", "details": err.Error()})
+        return
+    }
+
+    if rowsAffected == 0 {
+        c.JSON(http.StatusNotFound, gin.H{"error": "No playlist found with that ID"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Playlist renamed successfully",
+        "newName": req.Name,
+    })
+}
+
 // PostPlaylist godoc
 // @Summary      Create new playlist
 // @Description  Create a new playlist locally and on Spotify

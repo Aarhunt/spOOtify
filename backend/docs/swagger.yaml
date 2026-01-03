@@ -335,6 +335,52 @@ paths:
       summary: Get all playlists as itemresponse items
       tags:
       - playlists
+  /playlist/{id}/rename:
+    put:
+      consumes:
+      - application/json
+      description: Updates the display name of a playlist in the local database.
+      parameters:
+      - description: Spotify Playlist ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New name for the playlist
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/model.PlaylistCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: Success'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'error: Invalid input'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'error: Playlist not found'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'error: Database error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Rename a playlist
+      tags:
+      - playlist
   /playlist/include:
     post:
       consumes:
