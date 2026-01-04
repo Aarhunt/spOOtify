@@ -320,6 +320,35 @@ export type PostPlaylistPublishResponses = {
 
 export type PostPlaylistPublishResponse = PostPlaylistPublishResponses[keyof PostPlaylistPublishResponses];
 
+export type PostPlaylistPublishallData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/playlist/publishall';
+};
+
+export type PostPlaylistPublishallErrors = {
+    /**
+     * error: Bad Request
+     */
+    400: {
+        [key: string]: string;
+    };
+};
+
+export type PostPlaylistPublishallError = PostPlaylistPublishallErrors[keyof PostPlaylistPublishallErrors];
+
+export type PostPlaylistPublishallResponses = {
+    /**
+     * message: Success
+     */
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type PostPlaylistPublishallResponse = PostPlaylistPublishallResponses[keyof PostPlaylistPublishallResponses];
+
 export type DeletePlaylistByIdData = {
     body?: never;
     path: {

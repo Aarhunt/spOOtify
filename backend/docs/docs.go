@@ -31,7 +31,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Get all playlists",
                 "responses": {
@@ -64,7 +64,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Create new playlist",
                 "parameters": [
@@ -96,7 +96,7 @@ const docTemplate = `{
             "delete": {
                 "description": "Deletes every playlist record in the database",
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Clear all playlists",
                 "responses": {
@@ -129,7 +129,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Nest a Playlist",
                 "parameters": [
@@ -172,7 +172,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Undo a nested Playlist",
                 "parameters": [
@@ -301,7 +301,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Publish a playlist to Spotify",
                 "parameters": [
@@ -346,11 +346,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/playlist/publishall": {
+            "post": {
+                "description": "Calculates the current tracklist based on inclusions/exclusions and replaces the Spotify playlist content.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlist"
+                ],
+                "summary": "Publish all playlists to Spotify",
+                "responses": {
+                    "200": {
+                        "description": "message: Success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error: Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/playlist/{id}": {
             "delete": {
                 "description": "Delete a specific playlist by its ID",
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Delete a playlist",
                 "parameters": [
@@ -388,7 +423,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Get all excluded items for a playlist",
                 "parameters": [
@@ -441,7 +476,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Get all included items for a playlist",
                 "parameters": [
@@ -491,7 +526,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "playlists"
+                    "playlist"
                 ],
                 "summary": "Get all playlists as itemresponse items",
                 "parameters": [

@@ -12,7 +12,7 @@ import (
 // GetPlaylists godoc
 // @Summary      Get all playlists
 // @Description  Responds with the list of all playlists as JSON.
-// @Tags         playlists
+// @Tags         playlist
 // @Produce      json
 // @Success      200  {array}   model.PlaylistResponse
 // @Failure      500  {object}  map[string]string
@@ -30,7 +30,7 @@ func GetPlaylists(c *gin.Context) {
 // GetPlaylistsResponse godoc
 // @Summary      Get all playlists as itemresponse items
 // @Description  Responds with the list of all playlists as JSON.
-// @Tags         playlists
+// @Tags         playlist
 // @Param        id   path      string  true  "Playlist ID"
 // @Produce      json
 // @Success      200  {array}   model.ItemResponse
@@ -47,7 +47,7 @@ func GetPlaylistsById(c *gin.Context) {
 // DeletePlaylist godoc
 // @Summary      Delete a playlist
 // @Description  Delete a specific playlist by its ID
-// @Tags         playlists
+// @Tags         playlist
 // @Param        id   path      string  true  "Playlist ID"
 // @Success      204  {object}  nil
 // @Failure      500  {object}  map[string]string
@@ -112,7 +112,7 @@ func RenamePlaylist(c *gin.Context) {
 // PostPlaylist godoc
 // @Summary      Create new playlist
 // @Description  Create a new playlist locally and on Spotify
-// @Tags         playlists
+// @Tags         playlist
 // @Accept       json
 // @Produce      json
 // @Param        playlist body model.PlaylistCreateRequest true "Playlist name"
@@ -140,7 +140,7 @@ func PostPlaylist(c *gin.Context) {
 // ClearPlaylists godoc
 // @Summary      Clear all playlists
 // @Description  Deletes every playlist record in the database
-// @Tags         playlists
+// @Tags         playlist
 // @Success      200  {object}  map[string]interface{}
 // @Failure      500  {object}  map[string]string
 // @Router       /playlist [delete]
@@ -158,7 +158,7 @@ func ClearPlaylists(c *gin.Context) {
 // PublishPlaylist handles the synchronization of the local playlist state to Spotify.
 // @Summary      Publish a playlist to Spotify
 // @Description  Calculates the current tracklist based on inclusions/exclusions and replaces the Spotify playlist content.
-// @Tags         playlists
+// @Tags         playlist
 // @Accept       json
 // @Produce      json
 // @Param        request  body      model.PlaylistPublishRequest  true  "Playlist Publish Request"
@@ -194,10 +194,42 @@ func PublishPlaylist(c *gin.Context) {
     })
 }
 
+// PublishPlaylist handles the synchronization of the local playlists to Spotify.
+// @Summary      Publish all playlists to Spotify
+// @Description  Calculates the current tracklist based on inclusions/exclusions and replaces the Spotify playlist content.
+// @Tags         playlist
+// @Accept       json
+// @Produce      json
+// @Success      200      {object}  map[string]string "message: Success"
+// @Failure      400      {object}  map[string]string "error: Bad Request"
+// @Router       /playlist/publishall [post]
+func PublishAllPlaylists(c *gin.Context) {
+	playlists, err := services.GetPlaylists()
+
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+    }
+
+	for _, p := range playlists {
+		err := services.PublishPlaylist(model.PlaylistPublishRequest{SpotifyID: p.SpotifyID})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to sync with Spotify",
+				"details": err.Error(),
+			})
+			return
+		}
+	}
+
+    c.JSON(http.StatusOK, gin.H{
+        "message":    "Playlists successfully synchronized",
+    })
+}
+
 // GetPlaylistInclusions godoc
 // @Summary      Get all included items for a playlist
 // @Description  Fetches the list of all Playlists, Artists, Albums, and Tracks manually included in a specific playlist.
-// @Tags         playlists
+// @Tags         playlist
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Spotify Playlist ID"
@@ -221,7 +253,7 @@ func GetPlaylistInclusions(c *gin.Context) {
 // GetPlaylistExclusions godoc
 // @Summary      Get all excluded items for a playlist
 // @Description  Fetches the list of all Artists, Albums, and Tracks manually excluded in a specific playlist.
-// @Tags         playlists
+// @Tags         playlist
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Spotify Playlist ID"
@@ -245,7 +277,7 @@ func GetPlaylistExclusions(c *gin.Context) {
 // IncludePlaylist godoc
 // @Summary      Nest a Playlist
 // @Description  Includes one playlist inside another parent playlist
-// @Tags         playlists
+// @Tags         playlist
 // @Accept       json
 // @Produce      json
 // @Param        request  body      model.ItemPlaylistRequest  true  "Playlist Linking Details"
@@ -276,7 +308,7 @@ func IncludePlaylist(c *gin.Context) {
 // UndoIncludePlaylist godoc
 // @Summary      Undo a nested Playlist
 // @Description  Undoes inclusion of one playlist inside another parent playlist
-// @Tags         playlists
+// @Tags         playlist
 // @Accept       json
 // @Produce      json
 // @Param        request  body      model.ItemPlaylistRequest  true  "Playlist Linking Details"

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getPlaylist, postPlaylist, postPlaylistPublish, putPlaylistByIdRename, deletePlaylistById} from '@/client';
+import { getPlaylist, postPlaylist, postPlaylistPublish, putPlaylistByIdRename, deletePlaylistById, postPlaylistPublishall} from '@/client';
 import type { ModelPlaylistResponse } from "@/client/types.gen"
 
 
@@ -9,6 +9,7 @@ interface PlaylistState {
     currentId: string;
     loading: boolean;
     publishLoading: boolean;
+    publishAllLoading: boolean;
     deleteLoading: boolean;
     renameLoading: boolean;
     error: boolean;
@@ -27,6 +28,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     currentId: "",
     loading: false,
     publishLoading: false,
+    publishAllLoading: false,
     deleteLoading: false,
     renameLoading: false,
     error: false,
@@ -82,22 +84,19 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     },
 
     publishPlaylists: async () => {
-        set({ publishLoading: true });
+        set({ publishAllLoading: true });
         try {
-            const id = get().currentId
-            const response = await postPlaylistPublish({
-                body: { spotifyID: id } 
+            const response = await postPlaylistPublishall({
             });
 
             if (response.data) {
-                set((state) => ({
-                    data: [...state.data, response.data],
-                    publishLoading: false
+                set(() => ({
+                    publishAllLoading: false
                 }));
             }
         } catch (err) {
             console.error("Publishing failed", err);
-            set({ publishLoading: false, error: true });
+            set({ publishAllLoading: false, error: true });
         }
     },
     

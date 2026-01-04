@@ -169,7 +169,7 @@ paths:
             type: object
       summary: Clear all playlists
       tags:
-      - playlists
+      - playlist
     get:
       description: Responds with the list of all playlists as JSON.
       produces:
@@ -189,7 +189,7 @@ paths:
             type: object
       summary: Get all playlists
       tags:
-      - playlists
+      - playlist
     post:
       consumes:
       - application/json
@@ -214,7 +214,7 @@ paths:
             $ref: '#/definitions/gin.H'
       summary: Create new playlist
       tags:
-      - playlists
+      - playlist
   /playlist/{id}:
     delete:
       description: Delete a specific playlist by its ID
@@ -235,7 +235,7 @@ paths:
             type: object
       summary: Delete a playlist
       tags:
-      - playlists
+      - playlist
   /playlist/{id}/exclusions:
     get:
       consumes:
@@ -271,7 +271,7 @@ paths:
             type: object
       summary: Get all excluded items for a playlist
       tags:
-      - playlists
+      - playlist
   /playlist/{id}/inclusions:
     get:
       consumes:
@@ -307,7 +307,7 @@ paths:
             type: object
       summary: Get all included items for a playlist
       tags:
-      - playlists
+      - playlist
   /playlist/{id}/playlists:
     get:
       description: Responds with the list of all playlists as JSON.
@@ -334,7 +334,7 @@ paths:
             type: object
       summary: Get all playlists as itemresponse items
       tags:
-      - playlists
+      - playlist
   /playlist/{id}/rename:
     put:
       consumes:
@@ -408,7 +408,7 @@ paths:
             type: object
       summary: Nest a Playlist
       tags:
-      - playlists
+      - playlist
   /playlist/include/undo:
     post:
       consumes:
@@ -436,7 +436,7 @@ paths:
             type: object
       summary: Undo a nested Playlist
       tags:
-      - playlists
+      - playlist
   /playlist/item:
     post:
       consumes:
@@ -529,7 +529,31 @@ paths:
             type: object
       summary: Publish a playlist to Spotify
       tags:
-      - playlists
+      - playlist
+  /playlist/publishall:
+    post:
+      consumes:
+      - application/json
+      description: Calculates the current tracklist based on inclusions/exclusions
+        and replaces the Spotify playlist content.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: Success'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'error: Bad Request'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Publish all playlists to Spotify
+      tags:
+      - playlist
   /search:
     post:
       consumes:

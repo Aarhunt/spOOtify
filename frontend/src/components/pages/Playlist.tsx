@@ -49,6 +49,7 @@ export default function Playlist() {
         <PlaylistSearch />
         <CreateDialog />
         <PublishButton />
+        <PublishAllButton />
         <RenameDialog />
         <DeleteDialog />
         </div>
@@ -66,6 +67,20 @@ export function PublishButton() {
 
     return (
         <Button disabled={currentId == ""} variant="green" onClick={handlePublish} >{ publishLoading ? <Spinner /> : <ListMusic /> } Publish Playlist</Button>
+    )
+}
+
+export function PublishAllButton() {
+    const publishPlaylists = usePlaylistStore((state) => state.publishPlaylists);
+
+    const { publishAllLoading } = usePlaylistStore()
+
+    const handlePublish = async () => {
+        await publishPlaylists();
+    };
+
+    return (
+        <Button variant="green" onClick={handlePublish} >{ publishAllLoading ? <Spinner /> : <ListMusic /> } Publish All Playlists</Button>
     )
 }
 
@@ -138,7 +153,7 @@ export function RenameDialog() {
     const handleRename = async () => {
         if (!playlistName.trim()) return;
         await renamePlaylist(playlistName);
-        setPlaylistName("My Playlist");
+        setPlaylistName(current);
     };
 
 
@@ -241,7 +256,7 @@ export function CreateDialog() {
 export function PlaylistSearch() {
     const [open, setOpen] = React.useState(false)
     
-    const { data, loading, current, setCurrentId } = usePlaylistStore();
+    const { data, loading, current, currentId, setCurrentId } = usePlaylistStore();
     const { setPlaylistId, clearData } = useSearchStore();
     const { setPlaylistIdSummary } = useSummaryStore();
 
@@ -256,7 +271,7 @@ export function PlaylistSearch() {
                     disabled={loading} // Disable button while loading
                 >
                     { current
-                        ? data.find((p) => p.name === current)?.name || "Select playlist..."
+                        ? data.find((p) => p.spotifyID === currentId)?.name || "Select playlist..."
                         : "Select playlist..."}
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -272,7 +287,7 @@ export function PlaylistSearch() {
                                         key={p.spotifyID} 
                                         value={p.spotifyID}
                                         onSelect={() => {
-                                            const isSelected = current === p.name;
+                                            const isSelected = currentId === p.spotifyID;
                                             setCurrentId(isSelected ? "" : (p.spotifyID as string), (p.name as string));
                                             setPlaylistId(isSelected ? "" : (p.spotifyID as string));
                                             setPlaylistIdSummary(isSelected ? "" : (p.spotifyID as string));
