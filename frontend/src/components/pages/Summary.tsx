@@ -36,7 +36,7 @@ export function SelectType() {
        <Select onValueChange={(v) => 
            {setSummaryType(parseInt(v) as ModelItemType)
            summary()}
-       } defaultValue="1">
+       } defaultValue="4">
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
@@ -45,6 +45,7 @@ export function SelectType() {
             <SelectItem value="1">Artist</SelectItem>
             <SelectItem value="2">Album</SelectItem>
             <SelectItem value="3">Track</SelectItem>
+            <SelectItem value="4">Summary</SelectItem>
           </SelectContent>
         </Select>
     )
@@ -263,6 +264,90 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
 }
 
 function ResultBox() {
+    const { summaryType } = useSummaryStore();
+
+    return (
+        <>
+        {
+            summaryType == 4 ? <ResultBoxSummary /> : <ResultBoxExpand />
+        }
+        </>
+    )
+}
+
+function ResultBoxSummary() {
+  const { mainPlaylistData, mainArtistData, mainAlbumData, mainTrackData, summaryLoading, albumLoading, trackLoading, includeItem, undoIncludeItem } = useSummaryStore();
+
+  const handleInclusion = (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => { 
+    undo ? undoIncludeItem(id, include, type, index) : includeItem(id, include, type, index)
+  };
+
+  return (
+    <ResizablePanelGroup direction="horizontal" className="min-h-[400px] rounded-lg border">
+      <ResizablePanel defaultSize={50}>
+        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+          {summaryLoading ? (
+            <p>Loading results...</p>
+          ) : mainPlaylistData.length > 0 ? (
+            mainPlaylistData.map((item, index) => (
+              <PlaylistResultItem 
+                key={item.spotifyID} 
+                item={item} 
+                index = {index}
+                onAction={handleInclusion} 
+                onExpand={() => {}}
+              />
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center py-10">No results found.</p>
+          )}
+        </div>
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize={50}>
+        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+          {summaryLoading ? (
+            <p>Loading results...</p>
+          ) : mainArtistData.length > 0 ? (
+            mainArtistData.map((item, index) => (
+              <SearchResultItem 
+                key={item.spotifyID} 
+                item={item} 
+                index = {index}
+                onAction={handleInclusion} 
+                onExpand={() => {}}
+              />
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center py-10">No results found.</p>
+          )}
+        </div>
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize={50}>
+        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+          {trackLoading ? (
+            <p>Loading results...</p>
+          ) : mainTrackData.length > 0 ? (
+            mainTrackData.map((item, index) => (
+            <SearchResultItem
+                key={item.spotifyID} 
+                item={item} 
+                index={index}
+                onAction={handleInclusion} 
+                onExpand={() => void {}}
+              />
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center py-10">No results found.</p>
+          )}
+        </div>
+      </ResizablePanel>
+      </ResizablePanelGroup>
+  )
+}
+
+function ResultBoxExpand() {
   const { mainPlaylistData, mainArtistData, mainAlbumData, mainTrackData, artistData, albumData, summaryLoading, trackData, albumLoading, trackLoading, summaryType, includeItem, undoIncludeItem, getAlbumsFromArtist, getTracksFromAlbum, setCurrentArtist, setCurrentAlbum } = useSummaryStore();
   // You'll need an action in a store to handle the actual DB update
   const handleInclusion = (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => { 

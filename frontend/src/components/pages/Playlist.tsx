@@ -298,7 +298,7 @@ export function PlaylistSearch() {
                                         <CheckIcon
                                             className={cn(
                                                 "mr-2 h-4 w-4",
-                                                current === p.name ? "opacity-100" : "opacity-0"
+                                                currentId === p.spotifyID ? "opacity-100" : "opacity-0"
                                             )}
                                         />
                                         {p.name}

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { postSpotifyAlbumTracks, postSpotifyArtistAlbums, postPlaylistItem, postPlaylistItemUndo, postSearch, getPlaylistByIdInclusions } from '@/client';
+import { postSpotifyAlbumTracks, postSpotifyArtistAlbums, postPlaylistItem, postPlaylistItemUndo, getPlaylistByIdInclusions } from '@/client';
 import type { ModelItemResponse, ModelItemType } from "@/client/types.gen"
 
 

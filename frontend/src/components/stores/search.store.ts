@@ -237,7 +237,6 @@ export const useSearchStore = create<SearchState>((set, get) => ({
 
                 if (type === 1) {
                     newState.albumData = state.albumData.map(a => itemId == get().currentArtist ? (a.included == 3 || a.included == 4 ? { ...a, included: targetValue } : {...a}) : {...a});
-                    // newState.trackData = state.trackData.map(t => itemId == get().currentArtist ? (t.included == 3 || t.included == 4 ? { ...t, included: targetValue } : {...t}) : {});
                 } else if (type === 2) {
                     newState.trackData = state.trackData.map(t => itemId == get().currentArtist ? (t.included == 3 || t.included == 4 ? { ...t, included: targetValue } : {...t}) : {...t});
                 }
