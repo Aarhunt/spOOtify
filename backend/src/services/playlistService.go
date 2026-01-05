@@ -162,6 +162,8 @@ func GetAllInclusions(id spotify.ID) []model.ItemResponse {
     var items []model.IdItem
 	var playlists = SearchPlaylist(model.SearchRequest{Query: "", PlaylistID: id, ItemType: model.PlaylistItem})
 
+	playlists = slices.DeleteFunc(playlists, func(req model.ItemResponse) bool {return !(req.Included == model.Included || req.Included == model.IncludedByProxy)})
+
 
     err := src.GetDbConn().Db.
         Table("id_items").

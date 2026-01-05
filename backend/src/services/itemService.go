@@ -143,7 +143,7 @@ func GetTracksFromAlbum(req model.ItemRequest) ([]model.ItemResponse, error) {
 }
 
 func IncludedItemsToResponse(items []model.IdItem, included model.InclusionType) []model.ItemResponse {
-	results := make([]model.ItemResponse, len(items))
+	results := []model.ItemResponse{}
 
 	artists := []model.IdItem{}
 	albums := []model.IdItem{}
