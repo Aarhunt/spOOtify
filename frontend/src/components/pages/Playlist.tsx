@@ -145,20 +145,19 @@ export function RenameDialog() {
     
     const { currentPlaylistName: current, currentPlaylistId: currentId } = usePlaylistStore()
 
-    const [playlistName, setPlaylistName] = React.useState(current);
+    const [playlistName, setPlaylistName] = React.useState("My Playlist");
     const inputId = React.useId(); 
 
     const handleRename = async () => {
         if (!playlistName.trim()) return;
         await renamePlaylist(playlistName);
-        setPlaylistName(current);
     };
 
 
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button disabled={currentId == ""} variant="green"><PenLine />Rename Playlist</Button>
+                <Button disabled={currentId == ""} variant="green" onClick={() => setPlaylistName(current)}><PenLine />Rename Playlist</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>

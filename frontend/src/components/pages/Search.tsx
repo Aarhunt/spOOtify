@@ -54,11 +54,11 @@ export function PlaylistResultItem({ item, onAction, onExpand }: PlaylistResultI
   const getInclusionBadge = () => {
     switch (item.included) {
       case 1: 
-        return <Badge className="bg-green-500 hover:bg-green-600">Included</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-435">Included</Badge>;
       case 0: 
         return null
       default:
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Included By Proxy</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-435">Included By Proxy</Badge>;
     }
   };
 
@@ -114,13 +114,13 @@ export function SearchResultItem({ item, onAction, onExpand }: SearchResultItemP
   const getInclusionBadge = () => {
     switch (item.included) {
       case 1: 
-        return <Badge className="bg-green-500 hover:bg-green-600">Included</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-435">Included</Badge>;
       case 2: 
         return <Badge variant="destructive">Excluded</Badge>;
       case 3: 
-        return <Badge className="bg-blue-500 hover:bg-blue-600">Included</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-435">Included</Badge>;
       case 4: 
-        return <Badge className="bg-orange-500 hover:bg-orange-600">Excluded</Badge>;
+        return <Badge className="bg-orange-500 hover:bg-orange-435">Excluded</Badge>;
       default:
         return null;
     }
@@ -221,7 +221,7 @@ export function TrackResultItem({ item, onAction }: TrackResultItemProps) {
           variant="ghost"
           className={cn(
             "h-7 w-7",
-            item.included === 1 && "text-green-500 bg-green-500/10 hover:bg-green-500/20 hover:text-green-600"
+            item.included === 1 && "text-green-500 bg-green-500/10 hover:bg-green-500/20 hover:text-green-435"
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -279,11 +279,11 @@ function ResultBox() {
   }
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="min-h-[400px] rounded-lg border">
+    <ResizablePanelGroup direction="horizontal" className="min-h-[435px] rounded-lg border">
     {
         searchType == 0 ? <>
           <ResizablePanel defaultSize={playlistSearchData.length > 0 ? 50 : 50}>
-            <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+            <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[435px]">
               {searchLoading ? (
                 <p>Loading playlists...</p>
               ) : playlistSearchData.length > 0 ? (
@@ -306,7 +306,7 @@ function ResultBox() {
         searchType == 1 ? 
         <>
       <ResizablePanel defaultSize={albumSearchData.length > 0 ? 50 : 50}>
-        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[435px]">
           {searchLoading ? (
             <p>Loading artists...</p>
           ) : artistSearchData.length > 0 ? (
@@ -330,7 +330,7 @@ function ResultBox() {
         searchType == 1 || searchType == 2 ?  
         <> 
           <ResizablePanel defaultSize={albumSearchData.length > 0 ? 50 : 25}>
-            <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+            <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[435px]">
               {albumSearchLoading ? (
                 <p>Loading albums...</p>
               ) : albumSearchData.length > 0 ? (
@@ -354,7 +354,7 @@ function ResultBox() {
         searchType == 1 || searchType == 2 ? 
         <>
       <ResizablePanel defaultSize={trackSearchData.length > 0 ? 50 : 25}>
-        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[435px]">
           {trackSearchLoading ? (
             <p>Loading tracks...</p>
           ) : trackSearchData.length > 0 ? (
@@ -376,7 +376,7 @@ function ResultBox() {
         searchType == 3 ? 
         <>
       <ResizablePanel defaultSize={trackSearchData.length > 0 ? 50 : 25}>
-        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[435px]">
           {trackSearchLoading ? (
             <p>Loading tracks...</p>
           ) : trackSearchData.length > 0 ? (
