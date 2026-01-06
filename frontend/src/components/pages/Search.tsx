@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { useSearchStore } from "@/components/stores/search.store"
 import React from "react";
 import type { ModelItemResponse, ModelItemType } from "@/client/types.gen";
 
@@ -32,6 +31,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import { usePlaylistStore } from "../stores/playlist.store";
 
 export default function Search() {
     return (
@@ -44,12 +44,11 @@ export default function Search() {
 
 interface PlaylistResultItemProps {
   item: ModelItemResponse;
-  index: number;
-  onAction: (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => void;
+  onAction: (id: string, include: boolean, type: ModelItemType, undo: boolean) => void;
   onExpand: (id: string, type: ModelItemType) => void;
 }
 
-export function PlaylistResultItem({ item, index, onAction, onExpand }: PlaylistResultItemProps) {
+export function PlaylistResultItem({ item, onAction, onExpand }: PlaylistResultItemProps) {
   const imageUrl = item.icon && item.icon.length > 0 ? item.icon[0].url : "";
   
   const getInclusionBadge = () => {
@@ -94,7 +93,7 @@ export function PlaylistResultItem({ item, index, onAction, onExpand }: Playlist
           className="h-8 w-8"
           onClick={(e) => {
             e.stopPropagation();
-              item.spotifyID && onAction(item.spotifyID, true, item.itemType!, index, item.included === 1);}}
+              item.spotifyID && onAction(item.spotifyID, true, item.itemType!, item.included === 1);}}
         >
           {item.included === 1 ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
@@ -105,12 +104,11 @@ export function PlaylistResultItem({ item, index, onAction, onExpand }: Playlist
 
 interface SearchResultItemProps {
   item: ModelItemResponse;
-  index: number;
-  onAction: (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => void;
+  onAction: (id: string, include: boolean, type: ModelItemType, undo: boolean) => void;
   onExpand: (id: string, type: ModelItemType) => void;
 }
 
-export function SearchResultItem({ item, index, onAction, onExpand }: SearchResultItemProps) {
+export function SearchResultItem({ item, onAction, onExpand }: SearchResultItemProps) {
   const imageUrl = item.icon && item.icon.length > 0 ? item.icon[0].url : "";
   
   const getInclusionBadge = () => {
@@ -159,7 +157,7 @@ export function SearchResultItem({ item, index, onAction, onExpand }: SearchResu
           className="h-8 w-8"
           onClick={(e) => {
             e.stopPropagation();
-              item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, index, item.included === 1);}}
+              item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, item.included === 1);}}
         >
           {item.included === 1 ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
@@ -171,7 +169,7 @@ export function SearchResultItem({ item, index, onAction, onExpand }: SearchResu
           className="h-8 w-8"
           onClick={(e) => {
                 e.stopPropagation();
-              item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, index, item.included === 2);}}
+              item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, item.included === 2);}}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -182,11 +180,10 @@ export function SearchResultItem({ item, index, onAction, onExpand }: SearchResu
 
 interface TrackResultItemProps {
   item: ModelItemResponse;
-  index: number;
-  onAction: (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => void;
+  onAction: (id: string, include: boolean, type: ModelItemType, undo: boolean) => void;
 }
 
-export function TrackResultItem({ item, index, onAction }: TrackResultItemProps) {
+export function TrackResultItem({ item, onAction }: TrackResultItemProps) {
   
   const getInclusionBadge = () => {
     switch (item.included) {
@@ -228,7 +225,7 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
           )}
           onClick={(e) => {
             e.stopPropagation();
-            item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, index, item.included === 1);
+            item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, item.included === 1);
           }}
         >
           {item.included === 1 ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
@@ -243,7 +240,7 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
           )}
           onClick={(e) => {
             e.stopPropagation();
-            item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, index, item.included === 2);
+            item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, item.included === 2);
           }}
         >
           <X className="h-3.5 w-3.5" />
@@ -254,28 +251,27 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
 }
 
 function ResultBox() {
-  const { playlistData, artistData, searchLoading, albumData, trackData, albumLoading, trackLoading, searchType, includeItem, undoIncludeItem, getAlbumsFromArtist, getTracksFromAlbum, setCurrentArtist, setCurrentAlbum, includePlaylist, undoIncludePlaylist } = useSearchStore();
-  // You'll need an action in a store to handle the actual DB update
-  const handleInclusion = (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => { 
+  const { playlistSearchData, artistSearchData, searchLoading, albumSearchData, trackSearchData, albumSearchLoading, trackSearchLoading, searchType, includeItem, undoIncludeItem, getSearchAlbumsFromArtist, getSearchTracksFromAlbum, setCurrentSearchArtist, setCurrentSearchAlbum, includePlaylist, undoIncludePlaylist } = usePlaylistStore();
+  const handleInclusion = (id: string, include: boolean, type: ModelItemType, undo: boolean) => { 
     type == 0 ? 
         undo ? 
-            undoIncludePlaylist(id, index) : 
-            includePlaylist(id, index) 
+            undoIncludePlaylist(id) : 
+            includePlaylist(id) 
     :
         undo ? 
-            undoIncludeItem(id, include, type, index) : 
-            includeItem(id, include, type, index)
+            undoIncludeItem(id, include, type) : 
+            includeItem(id, include, type)
   };
 
   const handleExpand = (id: string, type: ModelItemType) => {
     switch (type) {
         case 1:
-            getAlbumsFromArtist(id) 
-            setCurrentArtist(id) 
+            getSearchAlbumsFromArtist(id) 
+            setCurrentSearchArtist(id) 
             break;
         case 2:
-            getTracksFromAlbum(id)
-            setCurrentAlbum(id)
+            getSearchTracksFromAlbum(id)
+            setCurrentSearchAlbum(id)
             break;
         default:
             break;
@@ -286,22 +282,21 @@ function ResultBox() {
     <ResizablePanelGroup direction="horizontal" className="min-h-[400px] rounded-lg border">
     {
         searchType == 0 ? <>
-          <ResizablePanel defaultSize={playlistData.length > 0 ? 50 : 50}>
+          <ResizablePanel defaultSize={playlistSearchData.length > 0 ? 50 : 50}>
             <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
               {searchLoading ? (
-                <p>Loading results...</p>
-              ) : playlistData.length > 0 ? (
-                playlistData.map((item, index) => (
+                <p>Loading playlists...</p>
+              ) : playlistSearchData.length > 0 ? (
+                playlistSearchData.map((item) => (
                   <PlaylistResultItem 
                     key={item.spotifyID} 
                     item={item} 
-                    index={index}
                     onAction={handleInclusion} 
                     onExpand={() => {}}
                   />
                 ))
               ) : (
-                <p className="text-muted-foreground text-center py-10">No results found.</p>
+                <p className="text-muted-foreground text-center py-10">No playlists found.</p>
               )}
             </div>
           </ResizablePanel>
@@ -310,22 +305,21 @@ function ResultBox() {
     {
         searchType == 1 ? 
         <>
-      <ResizablePanel defaultSize={albumData.length > 0 ? 50 : 50}>
+      <ResizablePanel defaultSize={albumSearchData.length > 0 ? 50 : 50}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
           {searchLoading ? (
-            <p>Loading results...</p>
-          ) : artistData.length > 0 ? (
-            artistData.map((item, index) => (
+            <p>Loading artists...</p>
+          ) : artistSearchData.length > 0 ? (
+            artistSearchData.map((item) => (
               <SearchResultItem 
                 key={item.spotifyID} 
                 item={item} 
-                index={index}
                 onAction={handleInclusion} 
                 onExpand={handleExpand}
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No artists found.</p>
           )}
         </div>
       </ResizablePanel>
@@ -335,22 +329,21 @@ function ResultBox() {
       {
         searchType == 1 || searchType == 2 ?  
         <> 
-          <ResizablePanel defaultSize={albumData.length > 0 ? 50 : 25}>
+          <ResizablePanel defaultSize={albumSearchData.length > 0 ? 50 : 25}>
             <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-              {albumLoading ? (
-                <p>Loading results...</p>
-              ) : albumData.length > 0 ? (
-                albumData.map((item, index) => (
+              {albumSearchLoading ? (
+                <p>Loading albums...</p>
+              ) : albumSearchData.length > 0 ? (
+                albumSearchData.map((item) => (
                   <SearchResultItem 
                     key={item.spotifyID} 
                     item={item} 
-                    index = {index}
                     onAction={handleInclusion} 
                     onExpand={handleExpand}
                   />
                 ))
               ) : (
-                <p className="text-muted-foreground text-center py-10">No results found.</p>
+                <p className="text-muted-foreground text-center py-10">No albums found.</p>
               )}
             </div>
           </ResizablePanel>
@@ -360,21 +353,20 @@ function ResultBox() {
       {
         searchType == 1 || searchType == 2 ? 
         <>
-      <ResizablePanel defaultSize={trackData.length > 0 ? 50 : 25}>
+      <ResizablePanel defaultSize={trackSearchData.length > 0 ? 50 : 25}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-          {trackLoading ? (
-            <p>Loading results...</p>
-          ) : trackData.length > 0 ? (
-            trackData.map((item, index) => (
+          {trackSearchLoading ? (
+            <p>Loading tracks...</p>
+          ) : trackSearchData.length > 0 ? (
+            trackSearchData.map((item) => (
             <TrackResultItem
                 key={item.spotifyID} 
                 item={item} 
-                index={index}
                 onAction={handleInclusion} 
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No tracks found.</p>
           )}
         </div>
       </ResizablePanel>
@@ -383,22 +375,21 @@ function ResultBox() {
       {
         searchType == 3 ? 
         <>
-      <ResizablePanel defaultSize={trackData.length > 0 ? 50 : 25}>
+      <ResizablePanel defaultSize={trackSearchData.length > 0 ? 50 : 25}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-          {trackLoading ? (
-            <p>Loading results...</p>
-          ) : trackData.length > 0 ? (
-            trackData.map((item, index) => (
+          {trackSearchLoading ? (
+            <p>Loading tracks...</p>
+          ) : trackSearchData.length > 0 ? (
+            trackSearchData.map((item) => (
             <SearchResultItem
                 key={item.spotifyID} 
                 item={item} 
-                index={index}
                 onAction={handleInclusion} 
                 onExpand={() => void {}}
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No tracks found.</p>
           )}
         </div>
       </ResizablePanel>
@@ -409,8 +400,7 @@ function ResultBox() {
 }
 
 function SearchBar() {
-    const search = useSearchStore((state) => state.search);
-    const { searchType, setSearchType } = useSearchStore();
+    const { searchType, setSearchType, search } = usePlaylistStore();
 
     const [query, setQuery] = React.useState("");
 

@@ -1,6 +1,5 @@
 "use client"
 
-import { useSummaryStore } from "@/components/stores/summary.store"
 import type { ModelItemResponse, ModelItemType } from "@/client/types.gen";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,6 +19,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import { usePlaylistStore } from "../stores/playlist.store";
 
 export default function Summary() {
     return (
@@ -31,7 +31,7 @@ export default function Summary() {
 }
 
 export function SelectType() {
-    const { setSummaryType, summary} = useSummaryStore()
+    const { setSummaryType, summary} = usePlaylistStore()
    return (
        <Select onValueChange={(v) => 
            {setSummaryType(parseInt(v) as ModelItemType)
@@ -54,12 +54,11 @@ export function SelectType() {
 
 interface PlaylistResultItemProps {
   item: ModelItemResponse;
-  index: number;
-  onAction: (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => void;
+  onAction: (id: string, include: boolean, type: ModelItemType, undo: boolean) => void;
   onExpand: (id: string, type: ModelItemType) => void;
 }
 
-export function PlaylistResultItem({ item, index, onAction, onExpand }: PlaylistResultItemProps) {
+export function PlaylistResultItem({ item, onAction, onExpand }: PlaylistResultItemProps) {
   const imageUrl = item.icon && item.icon.length > 0 ? item.icon[0].url : "";
   
   const getInclusionBadge = () => {
@@ -104,7 +103,7 @@ export function PlaylistResultItem({ item, index, onAction, onExpand }: Playlist
           className="h-8 w-8"
           onClick={(e) => {
             e.stopPropagation();
-              item.spotifyID && onAction(item.spotifyID, true, item.itemType!, index, item.included === 1);}}
+              item.spotifyID && onAction(item.spotifyID, true, item.itemType!, item.included === 1);}}
         >
           {item.included === 1 ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
@@ -115,12 +114,11 @@ export function PlaylistResultItem({ item, index, onAction, onExpand }: Playlist
 
 interface SearchResultItemProps {
   item: ModelItemResponse;
-  index: number;
-  onAction: (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => void;
+  onAction: (id: string, include: boolean, type: ModelItemType, undo: boolean) => void;
   onExpand: (id: string, type: ModelItemType) => void;
 }
 
-export function SearchResultItem({ item, index, onAction, onExpand }: SearchResultItemProps) {
+export function SearchResultItem({ item, onAction, onExpand }: SearchResultItemProps) {
   const imageUrl = item.icon && item.icon.length > 0 ? item.icon[0].url : "";
   
   const getInclusionBadge = () => {
@@ -162,26 +160,24 @@ export function SearchResultItem({ item, index, onAction, onExpand }: SearchResu
       </div>
 
       <div className="flex gap-2">
-        {/* Toggle Inclusion Button */}
         <Button 
           size="icon" 
           variant={item.included === 1 ? "default" : "outline"} 
           className="h-8 w-8"
           onClick={(e) => {
             e.stopPropagation();
-              item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, index, item.included === 1);}}
+              item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, item.included === 1);}}
         >
           {item.included === 1 ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
 
-        {/* Toggle Exclusion Button */}
         <Button 
           size="icon" 
           variant={item.included === 2 ? "destructive" : "outline"} 
           className="h-8 w-8"
           onClick={(e) => {
                 e.stopPropagation();
-              item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, index, item.included === 2);}}
+              item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, item.included === 2);}}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -192,11 +188,10 @@ export function SearchResultItem({ item, index, onAction, onExpand }: SearchResu
 
 interface TrackResultItemProps {
   item: ModelItemResponse;
-  index: number;
-  onAction: (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => void;
+  onAction: (id: string, include: boolean, type: ModelItemType, undo: boolean) => void;
 }
 
-export function TrackResultItem({ item, index, onAction }: TrackResultItemProps) {
+export function TrackResultItem({ item, onAction }: TrackResultItemProps) {
   
   const getInclusionBadge = () => {
     switch (item.included) {
@@ -238,7 +233,7 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
           )}
           onClick={(e) => {
             e.stopPropagation();
-            item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, index, item.included === 1);
+            item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, item.included === 1);
           }}
         >
           {item.included === 1 ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
@@ -253,7 +248,7 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
           )}
           onClick={(e) => {
             e.stopPropagation();
-            item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, index, item.included === 2);
+            item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, item.included === 2);
           }}
         >
           <X className="h-3.5 w-3.5" />
@@ -264,82 +259,101 @@ export function TrackResultItem({ item, index, onAction }: TrackResultItemProps)
 }
 
 function ResultBox() {
-    const { summaryType } = useSummaryStore();
+    const { summaryType } = usePlaylistStore();
 
     return (
-        <>
-        {
-            summaryType == 4 ? <ResultBoxSummary /> : <ResultBoxExpand />
-        }
-        </>
+        <> { summaryType == 4 ? <ResultBoxSummary /> : <ResultBoxExpand /> } </>
     )
 }
 
 function ResultBoxSummary() {
-  const { mainPlaylistData, mainArtistData, mainAlbumData, mainTrackData, summaryLoading, albumLoading, trackLoading, includeItem, undoIncludeItem } = useSummaryStore();
+  const { playlistSummaryData, artistSummaryData, albumSummaryData, trackSummaryData, summaryPlaylistsLoading, summaryArtistsLoading, summaryAlbumsLoading, summaryTracksLoading, includeItem, undoIncludeItem, undoIncludePlaylist, includePlaylist} = usePlaylistStore();
 
-  const handleInclusion = (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => { 
-    undo ? undoIncludeItem(id, include, type, index) : includeItem(id, include, type, index)
+  const handleInclusion = (id: string, include: boolean, type: ModelItemType, undo: boolean) => { 
+    type == 0 ? 
+        undo ? 
+            undoIncludePlaylist(id) : 
+            includePlaylist(id) 
+    :
+        undo ? 
+            undoIncludeItem(id, include, type) : 
+            includeItem(id, include, type)
   };
 
   return (
     <ResizablePanelGroup direction="horizontal" className="min-h-[400px] rounded-lg border">
       <ResizablePanel defaultSize={50}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-          {summaryLoading ? (
-            <p>Loading results...</p>
-          ) : mainPlaylistData.length > 0 ? (
-            mainPlaylistData.map((item, index) => (
+          {summaryPlaylistsLoading ? (
+            <p>Loading playlists...</p>
+          ) : playlistSummaryData.length > 0 ? (
+            playlistSummaryData.map((item) => (
               <PlaylistResultItem 
                 key={item.spotifyID} 
                 item={item} 
-                index = {index}
                 onAction={handleInclusion} 
                 onExpand={() => {}}
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No playlists found.</p>
           )}
         </div>
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={50}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-          {summaryLoading ? (
-            <p>Loading results...</p>
-          ) : mainArtistData.length > 0 ? (
-            mainArtistData.map((item, index) => (
+          {summaryArtistsLoading ? (
+            <p>Loading artists...</p>
+          ) : artistSummaryData.length > 0 ? (
+            artistSummaryData.map((item) => (
               <SearchResultItem 
                 key={item.spotifyID} 
                 item={item} 
-                index = {index}
                 onAction={handleInclusion} 
                 onExpand={() => {}}
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No artists found.</p>
           )}
         </div>
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={50}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-          {trackLoading ? (
-            <p>Loading results...</p>
-          ) : mainTrackData.length > 0 ? (
-            mainTrackData.map((item, index) => (
+          {summaryAlbumsLoading ? (
+            <p>Loading albums...</p>
+          ) : albumSummaryData.length > 0 ? (
+            albumSummaryData.map((item) => (
+              <SearchResultItem 
+                key={item.spotifyID} 
+                item={item} 
+                onAction={handleInclusion} 
+                onExpand={() => {}}
+              />
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center py-10">No albums found.</p>
+          )}
+        </div>
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize={50}>
+        <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
+          {summaryTracksLoading ? (
+            <p>Loading tracks...</p>
+          ) : trackSummaryData.length > 0 ? (
+            trackSummaryData.map((item) => (
             <SearchResultItem
                 key={item.spotifyID} 
                 item={item} 
-                index={index}
                 onAction={handleInclusion} 
                 onExpand={() => void {}}
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No tracks found.</p>
           )}
         </div>
       </ResizablePanel>
@@ -348,77 +362,80 @@ function ResultBoxSummary() {
 }
 
 function ResultBoxExpand() {
-  const { mainPlaylistData, mainArtistData, mainAlbumData, mainTrackData, artistData, albumData, summaryLoading, trackData, albumLoading, trackLoading, summaryType, includeItem, undoIncludeItem, getAlbumsFromArtist, getTracksFromAlbum, setCurrentArtist, setCurrentAlbum } = useSummaryStore();
-  // You'll need an action in a store to handle the actual DB update
-  const handleInclusion = (id: string, include: boolean, type: ModelItemType, index: number, undo: boolean) => { 
-    undo ? undoIncludeItem(id, include, type, index) : includeItem(id, include, type, index)
+  const { playlistSummaryData, artistSummaryData, albumSummaryData, trackSummaryData, artistSummaryExpandData, albumSummaryExpandData, summaryPlaylistsLoading, summaryArtistsLoading, summaryAlbumsLoading, summaryTracksLoading, trackSummaryExpandData, summaryType, includeItem, undoIncludeItem, getSummaryAlbumsFromArtist, getSummaryTracksFromAlbum, setCurrentSummaryArtist, setCurrentSummaryAlbum, undoIncludePlaylist, includePlaylist } = usePlaylistStore();
+  const handleInclusion = (id: string, include: boolean, type: ModelItemType, undo: boolean) => { 
+    type == 0 ? 
+        undo ? 
+            undoIncludePlaylist(id) : 
+            includePlaylist(id) 
+    :
+        undo ? 
+            undoIncludeItem(id, include, type) : 
+            includeItem(id, include, type)
   };
 
   const handleExpand = (id: string, type: ModelItemType) => {
     switch (type) {
         case 1:
-            getAlbumsFromArtist(id) 
-            setCurrentArtist(id) 
+            getSummaryAlbumsFromArtist(id) 
+            setCurrentSummaryArtist(id) 
             break;
         case 2:
-            getTracksFromAlbum(id)
-            setCurrentAlbum(id)
+            getSummaryTracksFromAlbum(id)
+            setCurrentSummaryAlbum(id)
             break;
         default:
             break;
     } 
   }
 
-    const artists = summaryType == 1 ? mainArtistData : artistData
-    const albums = summaryType == 2 ? mainAlbumData : albumData
-    const tracks = summaryType == 3 ? mainTrackData : trackData
+    const artists = summaryType == 1 ? artistSummaryData : artistSummaryExpandData
+    const albums = summaryType == 2 ? albumSummaryData : albumSummaryExpandData
+    const tracks = summaryType == 3 ? trackSummaryData : trackSummaryExpandData
 
   return (
     <ResizablePanelGroup direction="horizontal" className="min-h-[400px] rounded-lg border">
     {
         summaryType == 0 ? 
         <>
-      <ResizablePanel defaultSize={mainAlbumData.length > 0 ? 50 : 50}>
+      <ResizablePanel defaultSize={albumSummaryData.length > 0 ? 50 : 50}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-          {summaryLoading ? (
-            <p>Loading results...</p>
-          ) : mainPlaylistData.length > 0 ? (
-            mainPlaylistData.map((item, index) => (
+          {summaryPlaylistsLoading ? (
+            <p>Loading playlists...</p>
+          ) : playlistSummaryData.length > 0 ? (
+            playlistSummaryData.map((item) => (
               <PlaylistResultItem 
                 key={item.spotifyID} 
                 item={item} 
-                index = {index}
                 onAction={handleInclusion} 
                 onExpand={() => {}}
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No tracks found.</p>
           )}
         </div>
       </ResizablePanel>
-      <ResizableHandle withHandle />
       </> : null
     }
     {
         summaryType == 1 ? 
         <>
-      <ResizablePanel defaultSize={mainAlbumData.length > 0 ? 50 : 50}>
+      <ResizablePanel defaultSize={albumSummaryData.length > 0 ? 50 : 50}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-          {summaryLoading ? (
-            <p>Loading results...</p>
+          {summaryArtistsLoading ? (
+            <p>Loading artists...</p>
           ) : artists.length > 0 ? (
-            artists.map((item, index) => (
+            artists.map((item) => (
               <SearchResultItem 
                 key={item.spotifyID} 
                 item={item} 
-                index = {index}
                 onAction={handleInclusion} 
                 onExpand={handleExpand}
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No artists found.</p>
           )}
         </div>
       </ResizablePanel>
@@ -428,22 +445,21 @@ function ResultBoxExpand() {
       {
         summaryType == 1 || summaryType == 2 ?  
         <> 
-          <ResizablePanel defaultSize={albumData.length > 0 ? 50 : 25}>
+          <ResizablePanel defaultSize={albumSummaryExpandData.length > 0 ? 50 : 25}>
             <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-              {albumLoading ? (
-                <p>Loading results...</p>
+              {summaryAlbumsLoading ? (
+                <p>Loading albums...</p>
               ) : albums.length > 0 ? (
-                albums.map((item, index) => (
+                albums.map((item) => (
                   <SearchResultItem 
                     key={item.spotifyID} 
                     item={item} 
-                    index = {index}
                     onAction={handleInclusion} 
                     onExpand={handleExpand}
                   />
                 ))
               ) : (
-                <p className="text-muted-foreground text-center py-10">No results found.</p>
+                <p className="text-muted-foreground text-center py-10">No albums found.</p>
               )}
             </div>
           </ResizablePanel>
@@ -453,21 +469,20 @@ function ResultBoxExpand() {
       {
         summaryType == 1 || summaryType == 2 ? 
         <>
-      <ResizablePanel defaultSize={trackData.length > 0 ? 50 : 25}>
+      <ResizablePanel defaultSize={trackSummaryExpandData.length > 0 ? 50 : 25}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-          {trackLoading ? (
-            <p>Loading results...</p>
+          {summaryTracksLoading ? (
+            <p>Loading tracks...</p>
           ) : tracks.length > 0 ? (
-            tracks.map((item, index) => (
+            tracks.map((item) => (
             <TrackResultItem
                 key={item.spotifyID} 
                 item={item} 
-                index={index}
                 onAction={handleInclusion} 
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No tracks found.</p>
           )}
         </div>
       </ResizablePanel>
@@ -476,22 +491,21 @@ function ResultBoxExpand() {
       {
         summaryType == 3 ? 
         <>
-      <ResizablePanel defaultSize={trackData.length > 0 ? 50 : 25}>
+      <ResizablePanel defaultSize={trackSummaryExpandData.length > 0 ? 50 : 25}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[600px]">
-          {trackLoading ? (
-            <p>Loading results...</p>
+          {summaryTracksLoading ? (
+            <p>Loading tracks...</p>
           ) : tracks.length > 0 ? (
-            tracks.map((item, index) => (
+            tracks.map((item) => (
             <SearchResultItem
                 key={item.spotifyID} 
                 item={item} 
-                index={index}
                 onAction={handleInclusion} 
                 onExpand={() => void {}}
               />
             ))
           ) : (
-            <p className="text-muted-foreground text-center py-10">No results found.</p>
+            <p className="text-muted-foreground text-center py-10">No tracks found.</p>
           )}
         </div>
       </ResizablePanel>

@@ -32,13 +32,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import { usePlaylistStore } from "@/components/stores/playlist.store"
-import { useSearchStore } from "@/components/stores/search.store"
 
 import { Spinner } from "@/components/ui/spinner"
-import { useSummaryStore } from "../stores/summary.store"
 
 export default function Playlist() {
-    const fetchPlaylists = usePlaylistStore((state) => state.fetch);
+    const fetchPlaylists = usePlaylistStore((state) => state.fetchSelectionData);
 
     React.useEffect(() => {
         fetchPlaylists();
@@ -59,7 +57,7 @@ export default function Playlist() {
 export function PublishButton() {
     const publishPlaylist = usePlaylistStore((state) => state.publishPlaylist);
 
-    const { publishLoading, currentId } = usePlaylistStore()
+    const { publishLoading, currentPlaylistId: currentId } = usePlaylistStore()
 
     const handlePublish = async () => {
         await publishPlaylist();
@@ -87,7 +85,7 @@ export function PublishAllButton() {
 export function DeleteDialog() {
     const deletePlaylist = usePlaylistStore((state) => state.deletePlaylist);
     
-    const { currentId, current } = usePlaylistStore()
+    const { currentPlaylistId: currentId, currentPlaylistName: current } = usePlaylistStore()
 
     const [playlistName, setPlaylistName] = React.useState("My Playlist");
     const inputId = React.useId(); 
@@ -145,7 +143,7 @@ export function DeleteDialog() {
 export function RenameDialog() {
     const renamePlaylist = usePlaylistStore((state) => state.renamePlaylist);
     
-    const { current } = usePlaylistStore()
+    const { currentPlaylistName: current, currentPlaylistId: currentId } = usePlaylistStore()
 
     const [playlistName, setPlaylistName] = React.useState(current);
     const inputId = React.useId(); 
@@ -160,7 +158,7 @@ export function RenameDialog() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="green"><PenLine />Rename Playlist</Button>
+                <Button disabled={currentId == ""} variant="green"><PenLine />Rename Playlist</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
@@ -256,9 +254,7 @@ export function CreateDialog() {
 export function PlaylistSearch() {
     const [open, setOpen] = React.useState(false)
     
-    const { data, loading, current, currentId, setCurrentId } = usePlaylistStore();
-    const { setPlaylistId, clearData } = useSearchStore();
-    const { setPlaylistIdSummary } = useSummaryStore();
+    const { playlistSelectionData, selectionLoading, currentPlaylistName, currentPlaylistId, setCurrentPlaylist, summary, clearSearchData, clearSummaryData } = usePlaylistStore();
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -268,10 +264,10 @@ export function PlaylistSearch() {
                     role="combobox"
                     aria-expanded={open}
                     className="w-[200px] justify-between"
-                    disabled={loading} // Disable button while loading
+                    disabled={selectionLoading} // Disable button while loading
                 >
-                    { current
-                        ? data.find((p) => p.spotifyID === currentId)?.name || "Select playlist..."
+                    { currentPlaylistName
+                        ? playlistSelectionData.find((p) => p.spotifyID === currentPlaylistId)?.name || "Select playlist..."
                         : "Select playlist..."}
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -282,23 +278,23 @@ export function PlaylistSearch() {
                     <CommandList>
                         <CommandEmpty>No playlist found.</CommandEmpty>
                             <CommandGroup>
-                                {data.map((p) => (
+                                {playlistSelectionData.map((p) => (
                                     <CommandItem
                                         key={p.spotifyID} 
                                         value={p.spotifyID}
                                         onSelect={() => {
-                                            const isSelected = currentId === p.spotifyID;
-                                            setCurrentId(isSelected ? "" : (p.spotifyID as string), (p.name as string));
-                                            setPlaylistId(isSelected ? "" : (p.spotifyID as string));
-                                            setPlaylistIdSummary(isSelected ? "" : (p.spotifyID as string));
-                                            clearData();
+                                            const isSelected = currentPlaylistId === p.spotifyID;
+                                            setCurrentPlaylist(isSelected ? "" : (p.spotifyID as string), (p.name as string));
+                                            clearSummaryData();
+                                            clearSearchData();
+                                            summary();
                                             setOpen(false);
                                         }}
                                     >
                                         <CheckIcon
                                             className={cn(
                                                 "mr-2 h-4 w-4",
-                                                currentId === p.spotifyID ? "opacity-100" : "opacity-0"
+                                                currentPlaylistId === p.spotifyID ? "opacity-100" : "opacity-0"
                                             )}
                                         />
                                         {p.name}
