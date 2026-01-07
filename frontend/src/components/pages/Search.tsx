@@ -279,7 +279,7 @@ function ResultBox() {
   }
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="min-h-[435px] rounded-lg border">
+    <ResizablePanelGroup className="min-h-[435px] rounded-lg border">
     {
         searchType == 0 ? <>
           <ResizablePanel defaultSize={playlistSearchData.length > 0 ? 50 : 50}>

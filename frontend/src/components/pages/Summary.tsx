@@ -64,7 +64,7 @@ export function PlaylistResultItem({ item, onAction, onExpand }: PlaylistResultI
   const getInclusionBadge = () => {
     switch (item.included) {
       case 1: 
-        return <Badge className="bg-green-500 hover:bg-green-435">Included</Badge>;
+        return null;
       case 0: 
         return null
       default:
@@ -96,7 +96,6 @@ export function PlaylistResultItem({ item, onAction, onExpand }: PlaylistResultI
       </div>
 
       <div className="flex gap-2">
-        {/* Toggle Inclusion Button */}
         <Button 
           size="icon" 
           variant={item.included === 1 ? "default" : "outline"} 
@@ -124,13 +123,13 @@ export function SearchResultItem({ item, onAction, onExpand }: SearchResultItemP
   const getInclusionBadge = () => {
     switch (item.included) {
       case 1: 
-        return <Badge className="bg-green-500 hover:bg-green-435">Included</Badge>;
+        return null;
       case 2: 
-        return <Badge variant="destructive">Excluded</Badge>;
+        return null;
       case 3: 
-        return <Badge className="bg-blue-500 hover:bg-blue-435">Included</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-435">Proxy</Badge>;
       case 4: 
-        return <Badge className="bg-orange-500 hover:bg-orange-435">Excluded</Badge>;
+        return <Badge className="bg-orange-500 hover:bg-orange-435">Proxy</Badge>;
       default:
         return null;
     }
@@ -170,17 +169,6 @@ export function SearchResultItem({ item, onAction, onExpand }: SearchResultItemP
         >
           {item.included === 1 ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
-
-        <Button 
-          size="icon" 
-          variant={item.included === 2 ? "destructive" : "outline"} 
-          className="h-8 w-8"
-          onClick={(e) => {
-                e.stopPropagation();
-              item.spotifyID && item.itemType && onAction(item.spotifyID, false, item.itemType, item.included === 2);}}
-        >
-          <X className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   );
@@ -196,13 +184,13 @@ export function TrackResultItem({ item, onAction }: TrackResultItemProps) {
   const getInclusionBadge = () => {
     switch (item.included) {
       case 1:
-        return <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-none h-5 px-1.5 text-[10px]">IN</Badge>;
+        return null;
       case 2:
-        return <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/20 border-none h-5 px-1.5 text-[10px]">EX</Badge>;
+        return null;
       case 3:
-        return <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-none h-5 px-1.5 text-[10px]">IN</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-none h-5 px-1.5 text-[10px]">PR</Badge>;
       case 4:
-        return <Badge className="bg-orange-500-500/10 text-orange-500 hover:bg-orange-500/20 border-none h-5 px-1.5 text-[10px]">EX</Badge>;
+        return <Badge className="bg-orange-500-500/10 text-orange-500 hover:bg-orange-500/20 border-none h-5 px-1.5 text-[10px]">PR</Badge>;
       default:
         return null;
     }
@@ -281,7 +269,7 @@ function ResultBoxSummary() {
   };
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="min-h-[435px] rounded-lg border">
+    <ResizablePanelGroup className="min-h-[435px] rounded-lg border">
       <ResizablePanel defaultSize={50}>
         <div className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[435px]">
           {summaryPlaylistsLoading ? (
@@ -394,7 +382,7 @@ function ResultBoxExpand() {
     const tracks = summaryType == 3 ? trackSummaryData : trackSummaryExpandData
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="min-h-[435px] rounded-lg border">
+    <ResizablePanelGroup className="min-h-[435px] rounded-lg border">
     {
         summaryType == 0 ? 
         <>
