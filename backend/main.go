@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/aarhunt/spootify/docs"
 	"github.com/aarhunt/spootify/src"
@@ -49,7 +51,7 @@ func main() {
 
 	// Apply CORS middleware before your routes
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:8089", "http://desktop-server:8089"}, // Your React URL
+		AllowOrigins:     getOrigins(),
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -92,4 +94,13 @@ func main() {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hello, World!")
+}
+
+func getOrigins() []string {
+    origins := os.Getenv("ALLOWED_ORIGINS")
+    if origins == "" {
+        // Safe default for local development
+        return []string{"http://localhost:3000", "http://localhost:8089"}
+    }
+    return strings.Split(origins, ",")
 }
