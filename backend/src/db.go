@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	// "gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"github.com/aarhunt/spootify/src/model"
