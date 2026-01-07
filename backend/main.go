@@ -8,7 +8,7 @@ import (
 	"github.com/aarhunt/spootify/docs"
 	"github.com/aarhunt/spootify/src"
 	"github.com/aarhunt/spootify/src/controllers"
-	// "github.com/gin-contrib/cors"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
@@ -51,14 +51,14 @@ func main() {
 	router := gin.Default()
 
 
-	// // Apply CORS middleware before your routes
-	// router.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     []string{"*", "http://localhost:3000"}, // Your React URL
-	// 	AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-	// 	AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-	// 	ExposeHeaders:    []string{"Content-Length"},
-	// 	AllowCredentials: true,
-	// }))
+	// Apply CORS middleware before your routes
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"}, // Your React URL
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
 	{
 		v1 := router.Group("/api/v1")
