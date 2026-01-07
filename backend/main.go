@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/aarhunt/spootify/docs"
@@ -35,11 +34,8 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
 
+	_ = godotenv.Load()
 	_ = src.GetSpotifyConn;
 
 	docs.SwaggerInfo.Title = "Spootify API"
