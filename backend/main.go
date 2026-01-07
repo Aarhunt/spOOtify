@@ -49,7 +49,7 @@ func main() {
 
 	// Apply CORS middleware before your routes
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"}, // Your React URL
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:8089"}, // Your React URL
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
