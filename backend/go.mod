@@ -1,4 +1,4 @@
-module github.com/aarhunt/autistify
+module github.com/aarhunt/spootify
 
 go 1.25.5
 

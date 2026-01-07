@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/aarhunt/autistify/src"
+	"github.com/aarhunt/spootify/src"
 	"github.com/zmb3/spotify/v2"
 )
 

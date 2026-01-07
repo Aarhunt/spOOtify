@@ -7,9 +7,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/aarhunt/autistify/src"
-	"github.com/aarhunt/autistify/src/model"
-	"github.com/aarhunt/autistify/src/utils"
+	"github.com/aarhunt/spootify/src"
+	"github.com/aarhunt/spootify/src/model"
+	"github.com/aarhunt/spootify/src/utils"
 	"github.com/zmb3/spotify/v2"
 	"gorm.io/gorm"
 )

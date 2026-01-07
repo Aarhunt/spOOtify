@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/aarhunt/autistify/src/model"
-	"github.com/aarhunt/autistify/src/services"
+	"github.com/aarhunt/spootify/src/model"
+	"github.com/aarhunt/spootify/src/services"
 	"github.com/gin-gonic/gin"
 	"github.com/zmb3/spotify/v2"
 )

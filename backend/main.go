@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aarhunt/autistify/docs"
-	"github.com/aarhunt/autistify/src"
-	"github.com/aarhunt/autistify/src/controllers"
+	"github.com/aarhunt/spootify/docs"
+	"github.com/aarhunt/spootify/src"
+	"github.com/aarhunt/spootify/src/controllers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"

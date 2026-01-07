@@ -3,10 +3,11 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/aarhunt/autistify/src/model"
-	"github.com/aarhunt/autistify/src/services"
+	"github.com/aarhunt/spootify/src/model"
+	"github.com/aarhunt/spootify/src/services"
 	"github.com/gin-gonic/gin"
 )
+
 
 // IncludeExcludeItem godoc
 // @Summary      Include or Exclude an Item
