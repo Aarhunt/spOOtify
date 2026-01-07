@@ -8,7 +8,7 @@ import (
 	"github.com/aarhunt/spootify/docs"
 	"github.com/aarhunt/spootify/src"
 	"github.com/aarhunt/spootify/src/controllers"
-	"github.com/gin-contrib/cors"
+	// "github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
@@ -27,7 +27,7 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      http://localhost:8080
+// @host      localhost:8080
 // @BasePath  /api/v1
 
 // @securityDefinitions.basic  BasicAuth
@@ -42,22 +42,23 @@ func main() {
 
 	_ = src.GetSpotifyConn;
 
-	docs.SwaggerInfo.Title = "Swagger Example API"
-	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
+	docs.SwaggerInfo.Title = "Spootify API"
+	docs.SwaggerInfo.Description = "Spoooootify"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "http://localhost:8080"
+	// docs.SwaggerInfo.Host = "http://localhost:8080"
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	router := gin.Default()
 
-	// Apply CORS middleware before your routes
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:3000"}, // Your React URL
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-	}))
+
+	// // Apply CORS middleware before your routes
+	// router.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     []string{"*", "http://localhost:3000"}, // Your React URL
+	// 	AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+	// 	AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+	// 	ExposeHeaders:    []string{"Content-Length"},
+	// 	AllowCredentials: true,
+	// }))
 
 	{
 		v1 := router.Group("/api/v1")
@@ -90,7 +91,7 @@ func main() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	router.Run("localhost:8080")
+	router.Run("0.0.0.0:8080")
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
