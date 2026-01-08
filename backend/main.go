@@ -28,9 +28,6 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      http://localhost:8080
-// @BasePath  /api/v1
-
 // @securityDefinitions.basic  BasicAuth
 
 // @externalDocs.description  OpenAPI
@@ -40,10 +37,20 @@ func main() {
 	_ = godotenv.Load()
 	_ = src.GetSpotifyConn;
 
+	apiHost := os.Getenv("API_HOST")
+    if apiHost == "" {
+        apiHost = "localhost:8080"
+    }
+    apiScheme := os.Getenv("API_SCHEME")
+    if apiScheme == "" {
+        apiScheme = "http"
+    }
+
 	docs.SwaggerInfo.Title = "Spootify API"
 	docs.SwaggerInfo.Description = "Spoooootify"
 	docs.SwaggerInfo.Version = "1.0"
-	// docs.SwaggerInfo.Host = "http://localhost:8080"
+	docs.SwaggerInfo.Host = apiHost
+	docs.SwaggerInfo.Schemes = []string{apiScheme} // Important for Swagger
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	router := gin.Default()
@@ -105,7 +112,7 @@ func getOrigins() []string {
     origins := os.Getenv("ALLOWED_ORIGINS")
     if origins == "" {
         // Safe default for local development
-        return []string{"http://localhost:3000", "http://localhost:8089"}
+        return []string{"http://localhost:3000", "http://localhost:5173"}
     }
     return strings.Split(origins, ",")
 }

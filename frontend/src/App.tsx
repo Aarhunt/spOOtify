@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getAuthStatus } from '@/client'
 import './App.css'
 import './styles/globals.css'
+import { client } from '@/client/client.gen';
 
 // Page Imports
 import Playlist from './components/pages/Playlist'
@@ -14,12 +15,14 @@ function App() {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
     const [isLoading, setIsLoading] = useState<boolean>(true)
 
+    client.setConfig({
+        baseUrl: import.meta.env.VITE_API_URL,
+    });
+
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                // Call the new backend endpoint
                 const response = await getAuthStatus();
-                // Ensure we handle the response object correctly
                 if (response.data && response.data.authenticated) {
                     setIsAuthenticated(true);
                 }
