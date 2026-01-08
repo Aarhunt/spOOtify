@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetPlaylistByIdExclusionsData, GetPlaylistByIdExclusionsErrors, GetPlaylistByIdExclusionsResponses, GetPlaylistByIdInclusionsData, GetPlaylistByIdInclusionsErrors, GetPlaylistByIdInclusionsResponses, GetPlaylistByIdPlaylistsData, GetPlaylistByIdPlaylistsErrors, GetPlaylistByIdPlaylistsResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistIncludeData, PostPlaylistIncludeErrors, PostPlaylistIncludeResponses, PostPlaylistIncludeUndoData, PostPlaylistIncludeUndoErrors, PostPlaylistIncludeUndoResponses, PostPlaylistItemData, PostPlaylistItemErrors, PostPlaylistItemResponses, PostPlaylistItemUndoData, PostPlaylistItemUndoErrors, PostPlaylistItemUndoResponses, PostPlaylistPublishallData, PostPlaylistPublishallErrors, PostPlaylistPublishallResponses, PostPlaylistPublishData, PostPlaylistPublishErrors, PostPlaylistPublishResponses, PostPlaylistResponses, PostSearchData, PostSearchErrors, PostSearchResponses, PostSpotifyAlbumTracksData, PostSpotifyAlbumTracksErrors, PostSpotifyAlbumTracksResponses, PostSpotifyArtistAlbumsData, PostSpotifyArtistAlbumsErrors, PostSpotifyArtistAlbumsResponses, PutPlaylistByIdRenameData, PutPlaylistByIdRenameErrors, PutPlaylistByIdRenameResponses } from './types.gen';
+import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetAuthStatusData, GetAuthStatusResponses, GetAuthUrlData, GetAuthUrlResponses, GetPlaylistByIdExclusionsData, GetPlaylistByIdExclusionsErrors, GetPlaylistByIdExclusionsResponses, GetPlaylistByIdInclusionsData, GetPlaylistByIdInclusionsErrors, GetPlaylistByIdInclusionsResponses, GetPlaylistByIdPlaylistsData, GetPlaylistByIdPlaylistsErrors, GetPlaylistByIdPlaylistsResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistIncludeData, PostPlaylistIncludeErrors, PostPlaylistIncludeResponses, PostPlaylistIncludeUndoData, PostPlaylistIncludeUndoErrors, PostPlaylistIncludeUndoResponses, PostPlaylistItemData, PostPlaylistItemErrors, PostPlaylistItemResponses, PostPlaylistItemUndoData, PostPlaylistItemUndoErrors, PostPlaylistItemUndoResponses, PostPlaylistPublishallData, PostPlaylistPublishallErrors, PostPlaylistPublishallResponses, PostPlaylistPublishData, PostPlaylistPublishErrors, PostPlaylistPublishResponses, PostPlaylistResponses, PostSearchData, PostSearchErrors, PostSearchResponses, PostSpotifyAlbumTracksData, PostSpotifyAlbumTracksErrors, PostSpotifyAlbumTracksResponses, PostSpotifyArtistAlbumsData, PostSpotifyArtistAlbumsErrors, PostSpotifyArtistAlbumsResponses, PutPlaylistByIdRenameData, PutPlaylistByIdRenameErrors, PutPlaylistByIdRenameResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -17,6 +17,20 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: Record<string, unknown>;
 };
+
+/**
+ * Check authentication status
+ *
+ * Returns true if the backend has a valid Spotify connection.
+ */
+export const getAuthStatus = <ThrowOnError extends boolean = false>(options?: Options<GetAuthStatusData, ThrowOnError>) => (options?.client ?? client).get<GetAuthStatusResponses, unknown, ThrowOnError>({ url: '/auth/status', ...options });
+
+/**
+ * Get Spotify Authorization URL
+ *
+ * Returns the URL the user needs to visit to authorize the app on Spotify.
+ */
+export const getAuthUrl = <ThrowOnError extends boolean = false>(options?: Options<GetAuthUrlData, ThrowOnError>) => (options?.client ?? client).get<GetAuthUrlResponses, unknown, ThrowOnError>({ url: '/auth/url', ...options });
 
 /**
  * Clear all playlists

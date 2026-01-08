@@ -78,6 +78,42 @@ export type SpotifyImage = {
     width?: number;
 };
 
+export type GetAuthStatusData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/status';
+};
+
+export type GetAuthStatusResponses = {
+    /**
+     * authenticated: true
+     */
+    200: {
+        [key: string]: boolean;
+    };
+};
+
+export type GetAuthStatusResponse = GetAuthStatusResponses[keyof GetAuthStatusResponses];
+
+export type GetAuthUrlData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/url';
+};
+
+export type GetAuthUrlResponses = {
+    /**
+     * url: https://accounts.spotify.com/...
+     */
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type GetAuthUrlResponse = GetAuthUrlResponses[keyof GetAuthUrlResponses];
+
 export type DeletePlaylistData = {
     body?: never;
     path?: never;

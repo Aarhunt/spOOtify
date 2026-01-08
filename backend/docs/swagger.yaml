@@ -152,6 +152,37 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /auth/status:
+    get:
+      description: Returns true if the backend has a valid Spotify connection.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'authenticated: true'
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+      summary: Check authentication status
+      tags:
+      - auth
+  /auth/url:
+    get:
+      description: Returns the URL the user needs to visit to authorize the app on
+        Spotify.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'url: https://accounts.spotify.com/...'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Spotify Authorization URL
+      tags:
+      - auth
   /playlist:
     delete:
       description: Deletes every playlist record in the database

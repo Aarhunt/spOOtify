@@ -1,127 +1,109 @@
 package src
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"sync"
+    "context"
+    "log"
+    "net/http"
+    "os"
+    "sync"
 
-	"github.com/zmb3/spotify/v2"
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
+    "github.com/gin-gonic/gin"
+    "github.com/zmb3/spotify/v2"
+    spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
-
-const redirectURI = "http://127.0.0.1:3000/callback"
 
 var (
-	lockSpotifyConn      = &sync.Mutex{}
-	spotifyConnInstance  *SpotifyConn
-	auth                *spotifyauth.Authenticator
-	state               = "abc123" // replace with random per session in prod
-	authClientChan      = make(chan *spotify.Client)
+    lockSpotifyConn     = &sync.Mutex{}
+    spotifyConnInstance *SpotifyConn
+    auth                *spotifyauth.Authenticator
+    state               = "abc123_random_string" 
 )
 
-// SpotifyConn holds an authenticated Spotify client
 type SpotifyConn struct {
-	Ctx    context.Context
-	Client *spotify.Client
-	UserID string
+    Ctx    context.Context
+    Client *spotify.Client
+    UserID string
 }
-
 
 func initSpotifyAuth() {
-	if auth != nil {
-		return
-	}
+    if auth != nil {
+        return
+    }
 
-	if os.Getenv("SPOTIFY_ID") == "" || os.Getenv("SPOTIFY_SECRET") == "" {
-		log.Fatal("SPOTIFY_ID and SPOTIFY_SECRET must be set")
-	}
+    if os.Getenv("SPOTIFY_ID") == "" || os.Getenv("SPOTIFY_SECRET") == "" {
+        log.Fatal("SPOTIFY_ID and SPOTIFY_SECRET must be set")
+    }
 
-	auth = spotifyauth.New(
-		spotifyauth.WithRedirectURL(redirectURI),
-		spotifyauth.WithScopes(
-			spotifyauth.ScopeUserReadPrivate,
-			spotifyauth.ScopePlaylistModifyPublic,
-			spotifyauth.ScopePlaylistModifyPrivate,
-		),
-	)
+    redirectURI := os.Getenv("SPOTIFY_REDIRECT_URL")
+    if redirectURI == "" {
+        redirectURI = "http://127.0.0.1:8080/api/v1/callback"
+    }
+
+    auth = spotifyauth.New(
+        spotifyauth.WithRedirectURL(redirectURI),
+        spotifyauth.WithScopes(
+            spotifyauth.ScopeUserReadPrivate,
+            spotifyauth.ScopePlaylistModifyPublic,
+            spotifyauth.ScopePlaylistModifyPrivate,
+        ),
+    )
 }
-
-
-func startAuthServer() {
-	http.HandleFunc("/callback", completeAuth)
-
-	go func() {
-		log.Println("Starting auth server on :3000")
-		if err := http.ListenAndServe(":3000", nil); err != nil {
-			log.Fatal(err)
-		}
-	}()
-}
-
-
-func authenticateUser() *spotify.Client {
-	initSpotifyAuth()
-	startAuthServer()
-
-	url := auth.AuthURL(state)
-	fmt.Println("Login to Spotify:", url)
-
-	client := <-authClientChan
-	return client
-}
-
-
-func completeAuth(w http.ResponseWriter, r *http.Request) {
-	if r.FormValue("state") != state {
-		http.Error(w, "State mismatch", http.StatusBadRequest)
-		return
-	}
-
-	token, err := auth.Token(r.Context(), state, r)
-	if err != nil {
-		http.Error(w, "Couldn't get token", http.StatusForbidden)
-		log.Println(err)
-		return
-	}
-
-	client := spotify.New(auth.Client(r.Context(), token))
-	fmt.Fprintln(w, "Login successful!")
-
-	authClientChan <- client
-}
-
-
-func createSpotifyConn() *SpotifyConn {
-	ctx := context.Background()
-
-	client := authenticateUser()
-
-	user, err := client.CurrentUser(ctx)
-	if err != nil {
-		log.Fatal("Failed to get user:", err)
-	}
-
-	return &SpotifyConn{
-		Ctx:    ctx,
-		Client: client,
-		UserID: user.ID,
-	}
-}
-
 
 func GetSpotifyConn() *SpotifyConn {
-	if spotifyConnInstance == nil {
-		lockSpotifyConn.Lock()
-		defer lockSpotifyConn.Unlock()
-
-		if spotifyConnInstance == nil {
-			log.Println("Creating Spotify connection")
-			spotifyConnInstance = createSpotifyConn()
-		}
-	}
-
-	return spotifyConnInstance
+    lockSpotifyConn.Lock()
+    defer lockSpotifyConn.Unlock()
+    return spotifyConnInstance
 }
+
+// GetAuthURLController godoc
+// @Summary      Get Spotify Authorization URL
+// @Description  Returns the URL the user needs to visit to authorize the app on Spotify.
+// @Tags         auth
+// @Produce      json
+// @Success      200  {object}  map[string]string "url: https://accounts.spotify.com/..."
+// @Router       /auth/url [get]
+func GetAuthURLController(c *gin.Context) {
+    initSpotifyAuth()
+    url := auth.AuthURL(state)
+    c.JSON(http.StatusOK, gin.H{"url": url})
+}
+
+func CompleteAuthGin(c *gin.Context) {
+    initSpotifyAuth() 
+
+    if c.Query("state") != state {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "State mismatch"})
+        return
+    }
+
+    token, err := auth.Token(c.Request.Context(), state, c.Request)
+    if err != nil {
+        c.JSON(http.StatusForbidden, gin.H{"error": "Couldn't get token", "details": err.Error()})
+        log.Println("Auth Error:", err)
+        return
+    }
+
+    client := spotify.New(auth.Client(c.Request.Context(), token))
+    user, err := client.CurrentUser(c.Request.Context())
+    if err != nil {
+         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user info"})
+         return
+    }
+
+    lockSpotifyConn.Lock()
+    spotifyConnInstance = &SpotifyConn{
+        Ctx:    context.Background(),
+        Client: client,
+        UserID: user.ID,
+    }
+    lockSpotifyConn.Unlock()
+
+    c.Data(http.StatusOK, "text/html", []byte(`
+        <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+            <h1 style="color: #1DB954;">Connected!</h1>
+            <p>You can close this window now.</p>
+            <script>window.close();</script>
+        </div>
+    `))
+}
+

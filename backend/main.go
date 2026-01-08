@@ -28,7 +28,7 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      localhost:8080
+// @host      http://localhost:8080
 // @BasePath  /api/v1
 
 // @securityDefinitions.basic  BasicAuth
@@ -58,9 +58,14 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+
+
 	{
 		v1 := router.Group("/api/v1")
 		v1.POST("/search", controllers.Search)
+		v1.GET("/callback", src.CompleteAuthGin)
+		v1.GET("/auth/url", src.GetAuthURLController)
+		v1.GET("/auth/status", controllers.GetAuthStatus)
 
 		{
 			play := v1.Group("/playlist")

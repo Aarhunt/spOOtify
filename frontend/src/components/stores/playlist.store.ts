@@ -520,7 +520,6 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
     clearSummaryData: async () => {
         set({ albumSummaryExpandData: [], trackSummaryExpandData: [], artistSummaryData: [], albumSummaryData: [], trackSummaryData: []})
-        get().setSummaryLoading(false)
     },
 
     summary: async () => {

@@ -18,6 +18,52 @@
     "host": "http://localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/auth/status": {
+            "get": {
+                "description": "Returns true if the backend has a valid Spotify connection.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Check authentication status",
+                "responses": {
+                    "200": {
+                        "description": "authenticated: true",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/url": {
+            "get": {
+                "description": "Returns the URL the user needs to visit to authorize the app on Spotify.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get Spotify Authorization URL",
+                "responses": {
+                    "200": {
+                        "description": "url: https://accounts.spotify.com/...",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/playlist": {
             "get": {
                 "description": "Responds with the list of all playlists as JSON.",

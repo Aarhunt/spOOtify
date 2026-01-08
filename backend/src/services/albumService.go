@@ -12,7 +12,12 @@ func getAlbumsByIds(ids []spotify.ID) []*spotify.FullAlbum {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	albums, _ := client.GetAlbums(ctx, ids)
+	albums, err := client.GetAlbums(ctx, ids)
+
+	if err != nil {
+		log.Print(err)
+	}
+
 	return albums
 }
 

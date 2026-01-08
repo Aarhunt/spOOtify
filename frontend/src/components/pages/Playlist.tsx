@@ -35,6 +35,9 @@ import { usePlaylistStore } from "@/components/stores/playlist.store"
 
 import { Spinner } from "@/components/ui/spinner"
 
+
+const sidebarActionClass = "w-full justify-start gap-3 px-3 py-6 text-gray-400 hover:text-white hover:bg-white/10 border-none transition-all";
+
 export default function Playlist() {
     const fetchPlaylists = usePlaylistStore((state) => state.fetchSelectionData);
 
@@ -43,42 +46,60 @@ export default function Playlist() {
     }, [fetchPlaylists]);
 
     return (
-        <div className="flex items-center gap-2">
-        <PlaylistSearch />
-        <CreateDialog />
-        <PublishButton />
-        <PublishAllButton />
-        <RenameDialog />
-        <DeleteDialog />
+        <div className="flex flex-col h-full w-full bg-transparent overflow-hidden">
+            
+            <div className="flex-none pb-6">
+                <PlaylistSearch />
+            </div>
+
+            <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
+                <div className="flex flex-col gap-1">
+                    <p className="text-[11px] font-bold text-gray-500 px-3 mb-2 uppercase tracking-wider">
+                        Playlist Management
+                    </p>
+                    <CreateDialog />
+                    <RenameDialog />
+                    <DeleteDialog />
+                </div>
+            </div>
+
+            <div className="flex-none pt-6 mt-4 border-t border-[#282828]">
+                <div className="flex flex-col gap-3">
+                    <PublishButton />
+                    <PublishAllButton />
+                </div>
+            </div>
         </div>
     )
 }
 
 export function PublishButton() {
-    const publishPlaylist = usePlaylistStore((state) => state.publishPlaylist);
-
-    const { publishLoading, currentPlaylistId: currentId } = usePlaylistStore()
-
-    const handlePublish = async () => {
-        await publishPlaylist();
-    };
+    const { publishPlaylist, publishLoading, currentPlaylistId: currentId } = usePlaylistStore();
 
     return (
-        <Button disabled={currentId == ""} variant="green" onClick={handlePublish} >{ publishLoading ? <Spinner /> : <ListMusic /> } Publish Playlist</Button>
+        <Button 
+            disabled={currentId === ""} 
+            onClick={publishPlaylist}
+            className="w-full rounded-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold gap-2 py-6"
+        >
+            { publishLoading ? <Spinner className="text-black" /> : <ListMusic size={18} /> } 
+            Publish Selection
+        </Button>
     )
 }
 
 export function PublishAllButton() {
-    const publishPlaylists = usePlaylistStore((state) => state.publishPlaylists);
-
-    const { publishAllLoading } = usePlaylistStore()
-
-    const handlePublish = async () => {
-        await publishPlaylists();
-    };
+    const { publishPlaylists, publishAllLoading } = usePlaylistStore();
 
     return (
-        <Button variant="green" onClick={handlePublish} >{ publishAllLoading ? <Spinner /> : <ListMusic /> } Publish All Playlists</Button>
+        <Button 
+            variant="outline"
+            onClick={publishPlaylists}
+            className="w-full rounded-full border-gray-700 bg-transparent hover:bg-white/5 text-white font-bold gap-2 py-6"
+        >
+            { publishAllLoading ? <Spinner /> : <ListMusic size={18} /> } 
+            Publish All
+        </Button>
     )
 }
 
@@ -98,43 +119,64 @@ export function DeleteDialog() {
 
     return (
         <Dialog>
-            <DialogTrigger asChild>
-                <Button disabled={currentId == ""} variant="destructive"><Trash />Delete Playlist</Button>
+        <DialogTrigger asChild>
+                <Button disabled={currentId === ""} variant="ghost" className={cn(sidebarActionClass, "hover:text-destructive")}>
+                    <Trash size={18} /> Delete Playlist
+                </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Delete Playlist</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to delete this playlist?
-                        Type the name of the playlist to confirm deletion.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="flex items-center gap-2">
-                    <div className="grid flex-1 gap-2">
-                        <Label htmlFor={inputId} className="sr-only">
-                            Name
-                        </Label>
-                        <Input
-                            id={inputId}
-                            value={playlistName}
-                            onChange={(e) => setPlaylistName(e.target.value)}
-                            placeholder="My Playlist"
-                        />
-                    </div>
-                </div>
-                <DialogFooter className="sm:justify-start">
-                    <DialogClose asChild>
-                        <Button 
-                            type="button" 
-                            variant="destructive" 
-                            onClick={handleDeletion}
-                            disabled={current != playlistName}
-                        >
-                            Delete
-                        </Button>
-                    </DialogClose>
-                </DialogFooter>
-            </DialogContent>
+<DialogContent className="max-w-[700px] sm:max-w-md bg-[#181818] border-[#282828] text-white shadow-2xl">
+  <DialogHeader>
+    <DialogTitle className="text-xl font-bold">Delete Playlist</DialogTitle>
+    <DialogDescription className="text-gray-400 text-sm pt-2">
+      This action cannot be undone. To confirm, please type{" "}
+      <span className="text-white font-semibold">"{current}"</span> below.
+    </DialogDescription>
+  </DialogHeader>
+
+  <div className="flex flex-col gap-4 py-4">
+    <div className="grid gap-2">
+      <Label htmlFor={inputId} className="text-xs font-bold uppercase tracking-wider text-gray-500">
+        Confirm Name
+      </Label>
+      <Input
+        id={inputId}
+        value={playlistName}
+        onChange={(e) => setPlaylistName(e.target.value)}
+        placeholder={current}
+        className="bg-[#242424] border-[#3e3e3e] text-white placeholder:text-gray-600 focus:ring-1 focus:ring-destructive focus:border-destructive transition-all h-11"
+      />
+    </div>
+  </div>
+
+  <DialogFooter className="sm:justify-end gap-2">
+    <DialogClose asChild>
+      <Button 
+        type="button" 
+        variant="ghost" 
+        className="text-gray-400 hover:text-white hover:bg-white/5"
+      >
+        Cancel
+      </Button>
+    </DialogClose>
+    
+    <DialogClose asChild>
+      <Button 
+        type="button" 
+        variant="destructive" 
+        onClick={handleDeletion}
+        disabled={current !== playlistName}
+        className={cn(
+          "font-bold px-8 transition-all",
+          current === playlistName 
+            ? "bg-red-600 hover:bg-red-500 opacity-100" 
+            : "bg-red-900/20 text-red-900 opacity-50 cursor-not-allowed"
+        )}
+      >
+        Delete Forever
+      </Button>
+    </DialogClose>
+  </DialogFooter>
+</DialogContent>
         </Dialog>
     )
 }
@@ -156,41 +198,51 @@ export function RenameDialog() {
 
     return (
         <Dialog>
-            <DialogTrigger asChild>
-                <Button disabled={currentId == ""} variant="green" onClick={() => setPlaylistName(current)}><PenLine />Rename Playlist</Button>
+<DialogTrigger asChild>
+                <Button disabled={currentId === ""} variant="ghost" className={sidebarActionClass} onClick={() => setPlaylistName(current)}><PenLine size={18} /> Rename Playlist</Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Rename Playlist</DialogTitle>
-                    <DialogDescription>
-                        Fill in the new name of the playlist here.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="flex items-center gap-2">
-                    <div className="grid flex-1 gap-2">
-                        <Label htmlFor={inputId} className="sr-only">
-                            Name
-                        </Label>
-                        <Input
-                            id={inputId}
-                            value={playlistName}
-                            onChange={(e) => setPlaylistName(e.target.value)}
-                            placeholder="My Playlist"
-                        />
-                    </div>
-                </div>
-                <DialogFooter className="sm:justify-start">
-                    <DialogClose asChild>
-                        <Button 
-                            type="button" 
-                            variant="outline" 
-                            onClick={handleRename}
-                        >
-                            Rename
-                        </Button>
-                    </DialogClose>
-                </DialogFooter>
-            </DialogContent>
+<DialogContent className="max-w-[700px] sm:max-w-md bg-[#181818] border-[#282828] text-white shadow-2xl">
+  <DialogHeader>
+    <DialogTitle className="text-xl font-bold">Rename Playlist</DialogTitle>
+    <DialogDescription className="text-gray-400 text-sm pt-2">
+      Enter a new name for your playlist. This will be updated across your library.
+    </DialogDescription>
+  </DialogHeader>
+
+  <div className="flex flex-col gap-4 py-4">
+    <div className="grid gap-2">
+      <Label htmlFor={inputId} className="text-xs font-bold uppercase tracking-wider text-gray-500">
+        New Name
+      </Label>
+      <Input
+        id={inputId}
+        value={playlistName}
+        onChange={(e) => setPlaylistName(e.target.value)}
+        placeholder={current}
+        className="bg-[#242424] border-[#3e3e3e] text-white placeholder:text-gray-600 focus:ring-1 focus:ring-[#1DB954] focus:border-[#1DB954] transition-all h-11"
+      />
+    </div>
+  </div>
+
+  <DialogFooter className="sm:justify-end gap-2">
+    <DialogClose asChild>
+      <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5">
+        Cancel
+      </Button>
+    </DialogClose>
+    
+    <DialogClose asChild>
+      <Button 
+        type="button" 
+        onClick={handleRename}
+        disabled={!playlistName.trim() || playlistName === current}
+        className="bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold px-8 rounded-full transition-all disabled:opacity-50 disabled:bg-gray-700 disabled:text-gray-400"
+      >
+        Save Changes
+      </Button>
+    </DialogClose>
+  </DialogFooter>
+</DialogContent>
         </Dialog>
     )
 }
@@ -204,102 +256,108 @@ export function CreateDialog() {
     const handleCreate = async () => {
         if (!playlistName.trim()) return;
         await createPlaylist(playlistName);
-        // Optional: Reset field after creation
         setPlaylistName("My Playlist");
     };
 
 
     return (
         <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="green"><Plus />Create Playlist</Button>
+<DialogTrigger asChild>
+                <Button variant="ghost" className={sidebarActionClass}><Plus size={18} className="text-[#1DB954]" /> Create Playlist</Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Create Playlist</DialogTitle>
-                    <DialogDescription>
-                        Fill in the name of the playlist here.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="flex items-center gap-2">
-                    <div className="grid flex-1 gap-2">
-                        <Label htmlFor={inputId} className="sr-only">
-                            Name
-                        </Label>
-                        <Input
-                            id={inputId}
-                            value={playlistName}
-                            onChange={(e) => setPlaylistName(e.target.value)}
-                            placeholder="My Playlist"
-                        />
-                    </div>
-                </div>
-                <DialogFooter className="sm:justify-start">
-                    <DialogClose asChild>
-                        <Button 
-                            type="button" 
-                            variant="outline" 
-                            onClick={handleCreate}
-                        >
-                            Create
-                        </Button>
-                    </DialogClose>
-                </DialogFooter>
-            </DialogContent>
+<DialogContent className="max-w-[700px] sm:max-w-md bg-[#181818] border-[#282828] text-white shadow-2xl">
+  <DialogHeader>
+    <DialogTitle className="text-xl font-bold flex items-center gap-2">
+      <Plus className="text-[#1DB954] h-5 w-5" /> Create New Playlist
+    </DialogTitle>
+    <DialogDescription className="text-gray-400 text-sm pt-2">
+      Give your new collection a name. You can add tracks to it immediately after.
+    </DialogDescription>
+  </DialogHeader>
+
+  <div className="flex flex-col gap-4 py-4">
+    <div className="grid gap-2">
+      <Label htmlFor={inputId} className="text-xs font-bold uppercase tracking-wider text-gray-500">
+        Playlist Name
+      </Label>
+      <Input
+        id={inputId}
+        value={playlistName}
+        onChange={(e) => setPlaylistName(e.target.value)}
+        placeholder="e.g. Late Night Vibes"
+        className="bg-[#242424] border-[#3e3e3e] text-white placeholder:text-gray-600 focus:ring-1 focus:ring-[#1DB954] focus:border-[#1DB954] transition-all h-11"
+      />
+    </div>
+  </div>
+
+  <DialogFooter className="sm:justify-end gap-2">
+    <DialogClose asChild>
+      <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5">
+        Cancel
+      </Button>
+    </DialogClose>
+    
+    <DialogClose asChild>
+      <Button 
+        type="button" 
+        onClick={handleCreate}
+        disabled={!playlistName.trim()}
+        className="bg-white hover:bg-gray-200 text-black font-bold px-8 rounded-full transition-all disabled:bg-gray-700 disabled:text-gray-400"
+      >
+        Create Playlist
+      </Button>
+    </DialogClose>
+  </DialogFooter>
+</DialogContent>
         </Dialog>
     )
 }
 
 export function PlaylistSearch() {
-    const [open, setOpen] = React.useState(false)
-    
-    const { playlistSelectionData, selectionLoading, currentPlaylistName, currentPlaylistId, setCurrentPlaylist, summary, clearSearchData, clearSummaryData } = usePlaylistStore();
+    const [open, setOpen] = React.useState(false);
+    const { playlistSelectionData, selectionLoading, currentPlaylistId, setCurrentPlaylist, summary, clearSearchData, clearSummaryData } = usePlaylistStore();
+
+    const selectedPlaylist = playlistSelectionData.find((p) => p.spotifyID === currentPlaylistId);
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
-                    variant="outline"
+                    variant="ghost"
                     role="combobox"
-                    aria-expanded={open}
-                    className="w-[200px] justify-between"
-                    disabled={selectionLoading} // Disable button while loading
+                    className="w-full justify-between bg-white/5 hover:bg-white/10 text-white border-none h-12 px-4 rounded-md"
+                    disabled={selectionLoading}
                 >
-                    { currentPlaylistName
-                        ? playlistSelectionData.find((p) => p.spotifyID === currentPlaylistId)?.name || "Select playlist..."
-                        : "Select playlist..."}
+                    <span className="truncate">
+                        {selectedPlaylist ? selectedPlaylist.name : "Select a playlist..."}
+                    </span>
                     <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-                <Command>
-                    <CommandInput placeholder="Search playlists..." />
-                    <CommandList>
-                        <CommandEmpty>No playlist found.</CommandEmpty>
-                            <CommandGroup>
-                                {playlistSelectionData.map((p) => (
-                                    <CommandItem
-                                        key={p.spotifyID} 
-                                        value={p.spotifyID}
-                                        onSelect={() => {
-                                            const isSelected = currentPlaylistId === p.spotifyID;
-                                            setCurrentPlaylist(isSelected ? "" : (p.spotifyID as string), (p.name as string));
-                                            clearSummaryData();
-                                            clearSearchData();
-                                            summary();
-                                            setOpen(false);
-                                        }}
-                                    >
-                                        <CheckIcon
-                                            className={cn(
-                                                "mr-2 h-4 w-4",
-                                                currentPlaylistId === p.spotifyID ? "opacity-100" : "opacity-0"
-                                            )}
-                                        />
-                                        {p.name}
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
+            <PopoverContent className="w-[280px] p-0 bg-[#282828] border-[#3e3e3e] shadow-2xl">
+                <Command className="bg-transparent">
+                    <CommandInput placeholder="Search your library..." className="text-white" />
+                    <CommandList className="max-h-[300px]">
+                        <CommandEmpty className="py-6 text-center text-sm text-gray-400">No playlist found.</CommandEmpty>
+                        <CommandGroup>
+                            {playlistSelectionData.map((p) => (
+                                <CommandItem
+                                    key={p.spotifyID}
+                                    onSelect={() => {
+                                        const isSelected = currentPlaylistId === p.spotifyID;
+                                        setCurrentPlaylist(isSelected ? "" : (p.spotifyID as string), (p.name as string));
+                                        clearSummaryData();
+                                        clearSearchData();
+                                        summary();
+                                        setOpen(false);
+                                    }}
+                                    className="aria-selected:bg-white/10 text-gray-300 hover:text-white"
+                                >
+                                    <CheckIcon className={cn("mr-2 h-4 w-4 text-[#1DB954]", currentPlaylistId === p.spotifyID ? "opacity-100" : "opacity-0")} />
+                                    {p.name}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
                     </CommandList>
                 </Command>
             </PopoverContent>
