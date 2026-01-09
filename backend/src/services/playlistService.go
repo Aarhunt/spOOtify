@@ -59,7 +59,11 @@ func getPlaylist(id spotify.ID) (*model.Playlist, error) {
 }
 
 func DeletePlaylist(id spotify.ID) *gorm.DB {
-    db := src.GetDbConn().Db
+	dbConn := src.GetDbConn()
+	ctx, db := dbConn.Ctx, dbConn.Db
+	client := src.GetSpotifyConn().Client
+
+	client.UnfollowPlaylist(ctx, id)
 
    	playlist, _ := getPlaylist(id)
 
@@ -297,14 +301,14 @@ func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool) (map[spot
         switch v.ItemType {
         case model.Artist:
             for _, t := range getTracksFromArtistById(v.SpotifyID) {
-				if excludedMap[t.SpotifyID] == 0 {
-					excludedMap[t.SpotifyID] = -3 
+				if excludedMap[t.ID] == 0 {
+					excludedMap[t.ID] = -3 
 				}
             }
         case model.Album:
             for _, t := range getTracksFromAlbumById(v.SpotifyID) {
-				if excludedMap[t.SpotifyID] == 0 || excludedMap[t.SpotifyID] == -3 {
-					excludedMap[t.SpotifyID] = -2
+				if excludedMap[t.ID] == 0 || excludedMap[t.ID] == -3 {
+					excludedMap[t.ID] = -2
 				}
             }
         case model.Track:
@@ -316,14 +320,14 @@ func getTracksRecursive(p model.Playlist, visited map[spotify.ID]bool) (map[spot
         switch v.ItemType {
         case model.Artist:
             for _, t := range getTracksFromArtistById(v.SpotifyID) {
-				if includedMap[t.SpotifyID] == 0 {
-					includedMap[t.SpotifyID] = 3 
+				if includedMap[t.ID] == 0 {
+					includedMap[t.ID] = 3 
 				}
             }
         case model.Album:
             for _, t := range getTracksFromAlbumById(v.SpotifyID) {
-				if includedMap[t.SpotifyID] == 0 || excludedMap[t.SpotifyID] == 3 {
-					includedMap[t.SpotifyID] = 2
+				if includedMap[t.ID] == 0 || excludedMap[t.ID] == 3 {
+					includedMap[t.ID] = 2
 				}
             }
         case model.Track:

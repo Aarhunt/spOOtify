@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/aarhunt/spootify/src"
-	"github.com/aarhunt/spootify/src/model"
 	"github.com/zmb3/spotify/v2"
 )
 
@@ -16,34 +15,27 @@ func getArtistsByIds(ids []spotify.ID) []*spotify.FullArtist {
 	return artists
 }
 
-func GetAlbumsFromArtistById(id spotify.ID) []model.IdItem{
+func GetAlbumsFromArtistById(id spotify.ID) []spotify.SimpleAlbum{
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	albums, err := client.GetArtistAlbums(ctx, id, []spotify.AlbumType{spotify.AlbumTypeAlbum, spotify.AlbumTypeSingle})
-	var result []model.IdItem = []model.IdItem{}
+	albums, err := client.GetArtistAlbums(ctx, id, []spotify.AlbumType{spotify.AlbumTypeAlbum}, spotify.Limit(50))
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if albums != nil {
-		for _, album := range albums.Albums {
-			result = append(result, model.IdItem{SpotifyID: album.ID, ItemType: model.Album})
-		}
-	}
-
-	return result
+	return albums.Albums
 }
 
-func getTracksFromArtistById(id spotify.ID) []model.IdItem{
+func getTracksFromArtistById(id spotify.ID) []spotify.SimpleTrack{
 	albums := GetAlbumsFromArtistById(id)
-	var result []model.IdItem = []model.IdItem{}
+	var result []spotify.SimpleTrack = []spotify.SimpleTrack{}
 
 	// handle album results
 	if albums != nil {
 		for _, album := range albums {
-			tracks := getTracksFromAlbumById(album.SpotifyID)
+			tracks := getTracksFromAlbumById(album.ID)
 			result = append(result, tracks...)
 		}
 	}

@@ -26,7 +26,7 @@ func IncludeExcludeItem(c *gin.Context) {
 		return
 	}
 
-	res, err := services.IncludeExcludeItem(req)
+	res, err := services.IncludeExcludeItem(req, true, true)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

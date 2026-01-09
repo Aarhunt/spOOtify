@@ -354,7 +354,7 @@ function ResultBox() {
       )}
         {(searchType === 3) && (
         <>
-          <ResizablePanel defaultSize={50} minSize={20} className="flex flex-col">
+          <ResizablePanel defaultSize={trackSearchData.length > 0 ? 50 : 25} minSize={20} className="flex flex-col">
             <div className="px-4 py-3 bg-[#181818] border-b border-[#282828] flex justify-between items-center">
               <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Tracks</span>
             </div>
@@ -370,7 +370,7 @@ function ResultBox() {
         </>
       )}
         {(searchType === 1 || searchType == 2) && (
-        <ResizablePanel defaultSize={trackSearchData.length > 0 ? 50 : 25} minSize={20} className="flex flex-col">
+        <ResizablePanel defaultSize={50} minSize={20} className="flex flex-col">
           <div className="px-4 py-3 bg-[#181818] border-b border-[#282828]">
             <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Tracks</span>
           </div>

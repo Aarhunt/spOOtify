@@ -3,6 +3,7 @@ package services
 import (
 	"log"
 	"slices"
+	"strings"
 
 	"github.com/aarhunt/spootify/src"
 	"github.com/aarhunt/spootify/src/model"
@@ -13,7 +14,7 @@ import (
 )
 
 // Include or exclude an item from a playlist
-func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionResponse, error) {
+func IncludeExcludeItem(req model.ItemInclusionRequest, recurse bool, override bool) (*model.InclusionResponse, error) {
 	dbConn := src.GetDbConn()
 	db := dbConn.Db
 
@@ -23,6 +24,10 @@ func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionRespons
 		SpotifyID: req.ItemSpotifyID,
 		ItemType:  req.ItemType,
 		Playlists: []model.Playlist{},
+	}
+
+	if *req.Include && recurse {
+		GetAutoExclusions(req, false)
 	}
 
 	returnItem := model.InclusionResponse{
@@ -39,14 +44,36 @@ func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionRespons
 			return err
 		}
 
+		var count int64
+
+		tx.Table("playlist_exclusions").
+			Where("playlist_spotify_id = ? AND id_item_spotify_id = ?", playlist.SpotifyID, newItem.SpotifyID).
+			Count(&count)
+		isExcluded := count > 0
+
+		tx.Table("playlist_inclusions").
+			Where("playlist_spotify_id = ? AND id_item_spotify_id = ?", playlist.SpotifyID, newItem.SpotifyID).
+			Count(&count)
+		isIncluded := count > 0
+
 		if *req.Include {
+			if !override && isExcluded {
+				returnItem.Included = model.Excluded 
+				return nil 
+			}
+
 			tx.Model(&playlist).Association("Exclusions").Delete(&newItem)
 			err = tx.Model(&playlist).Association("Inclusions").Append(&newItem)
-			returnItem.Included = model.Included;
+			returnItem.Included = model.Included
 		} else {
+			if !override && isIncluded {
+				returnItem.Included = model.Included
+				return nil
+			}
+
 			tx.Model(&playlist).Association("Inclusions").Delete(&newItem)
 			err = tx.Model(&playlist).Association("Exclusions").Append(&newItem)
-			returnItem.Included = model.Excluded;
+			returnItem.Included = model.Excluded
 		}
 		if err != nil {
 			return err
@@ -56,6 +83,73 @@ func IncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionRespons
 	})
 
 	return &returnItem, err
+}
+
+func GetAutoExclusions(req model.ItemInclusionRequest, undo bool) {
+	ex := []spotify.ID{}
+	var itemType model.ItemType = model.Track;
+	
+	included := false
+	excluded := false
+
+	switch req.ItemType {
+	case model.Artist:
+		albums := GetAlbumsFromArtistById(req.ItemSpotifyID)
+
+		for i := len(albums)-1; i >= 0; i-- {
+			album := albums[i] 
+
+			if strings.Contains(strings.ToLower(album.Name), "live") { ex = append(ex, album.ID)
+			} else if strings.Contains(strings.ToLower(album.Name), "instrumental") {ex = append(ex, album.ID)
+			} else if strings.Contains(strings.ToLower(album.Name), "acoustic") {ex = append(ex, album.ID)
+			} else {
+				GetAutoExclusions(model.ItemInclusionRequest{
+					ItemSpotifyID: album.ID,
+					ItemType: model.Album,
+					PlaylistID: req.PlaylistID,
+					Include: nil,
+				}, undo)
+			}
+		}
+
+		itemType = model.Album
+	case model.Album:
+		tracks := getTracksFromAlbumById(req.ItemSpotifyID)
+		for i := len(tracks)-1; i >= 0; i-- {
+			track := tracks[i] 
+
+			if strings.Contains(strings.ToLower(track.Name), "- live") { ex = append(ex, track.ID)
+			} else if strings.Contains(strings.ToLower(track.Name), "- instrumental") {ex = append(ex, track.ID)
+			} else if strings.Contains(strings.ToLower(track.Name), "- acoustic") {ex = append(ex, track.ID)
+			} else if strings.Contains(strings.ToLower(track.Name), "- orchestral") {ex = append(ex, track.ID)
+			} else if strings.Contains(strings.ToLower(track.Name), "- single") {ex = append(ex, track.ID)
+			} 
+		}
+
+		itemType = model.Track
+	case model.Track:
+		return
+	}
+
+	if !undo {
+		for _, id := range ex {
+			IncludeExcludeItem(model.ItemInclusionRequest{
+				ItemSpotifyID: id,
+				ItemType: itemType,
+				PlaylistID: req.PlaylistID,
+				Include: &included,
+			}, false, false)
+		}
+	} else {
+		for _, id := range ex {
+			UndoIncludeExcludeItem(model.ItemInclusionRequest{
+				ItemSpotifyID: id,
+				ItemType: itemType,
+				PlaylistID: req.PlaylistID,
+				Include: &excluded,
+			})
+		}
+	}
 }
 
 // Undo the inclusion or exclusion of an item from a playlist
@@ -68,6 +162,10 @@ func UndoIncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionRes
         return nil, err
     }
 
+	if *req.Include {
+		GetAutoExclusions(req, true)
+	}
+
     item := model.IdItem{SpotifyID: req.ItemSpotifyID}
 
     returnItem := model.InclusionResponse{
@@ -76,13 +174,15 @@ func UndoIncludeExcludeItem(req model.ItemInclusionRequest) (*model.InclusionRes
     }
 
     err = db.Transaction(func(tx *gorm.DB) error {
-        if err := tx.Model(&playlist).Association("Inclusions").Delete(&item); err != nil {
-            return err
-        }
-
-        if err := tx.Model(&playlist).Association("Exclusions").Delete(&item); err != nil {
-            return err
-        }
+		if *req.Include {
+			if err := tx.Model(&playlist).Association("Inclusions").Delete(&item); err != nil {
+				return err
+			}
+		} else {
+			if err := tx.Model(&playlist).Association("Exclusions").Delete(&item); err != nil {
+				return err
+			}
+		}
 
         return nil
     })
