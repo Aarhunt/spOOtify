@@ -12,6 +12,7 @@ import (
 	"github.com/aarhunt/spootify/src/utils"
 	"github.com/zmb3/spotify/v2"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func GetPlaylists() ([]model.PlaylistResponse, error) {
@@ -58,9 +59,11 @@ func getPlaylist(id spotify.ID) (*model.Playlist, error) {
 }
 
 func DeletePlaylist(id spotify.ID) *gorm.DB {
-	db := src.GetDbConn().Db
+    db := src.GetDbConn().Db
 
-	return db.Delete(&model.Playlist{}, id)
+   	playlist, _ := getPlaylist(id)
+
+    return db.Select(clause.Associations).Delete(&playlist)
 }
 
 func RenamePlaylist(id spotify.ID, name string) (int, error) {
