@@ -374,17 +374,26 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                     error: false
                 };
 
+                const albumExclusions = ["live", "acoustic", "instrumental"]
+                const trackExclusions = ["- live", "- acoustic", "- instrumental"]
+
                 // Update proxy elements if they exist
                 if (type === 1) {
+                    if (itemId == get().currentSearchSelectedArtist) {
+                        newState.albumSearchData = state.albumSearchData.map(a => a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } );
+                        newState.albumSearchData = newState.albumSearchData.map(a => a.included != 1 && matchSubstrings(a.name!, albumExclusions) ? {...a, included: 2} : {...a});
+                        // Proxy element of summary view
+                        newState.albumSummaryExpandData = state.albumSummaryExpandData.map(a => a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } );
+                    }
                     // Proxy element of search view
-                    newState.albumSearchData = state.albumSearchData.map(a => itemId == get().currentSearchSelectedArtist ? (a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } ) : {...a});
-                    // Proxy element of summary view
-                    newState.albumSummaryExpandData = state.albumSummaryExpandData.map(a => itemId == get().currentSummarySelectedArtist ? (a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } ) : {...a});
                     // Edit summary view 
                     newState.artistSummaryData = include ? [...state.artistSummaryData, newItem] : state.artistSummaryData.filter(a => itemId != a.spotifyID);
                 } else if (type === 2) {
-                    newState.trackSearchData = state.trackSearchData.map(t => itemId == get().currentSearchSelectedAlbum ? (t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue } ) : {...t});
-                    newState.trackSummaryExpandData = state.trackSummaryExpandData.map(t => itemId == get().currentSummarySelectedAlbum ? (t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue } ) : {...t});
+                    if (itemId == get().currentSearchSelectedAlbum) {
+                        newState.trackSearchData = state.trackSearchData.map(t => t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue } );
+                        newState.trackSearchData = newState.trackSearchData.map(t => t.included != 1 && matchSubstrings(t.name!, trackExclusions) ? {...t, included: 2} : {...t});
+                        newState.trackSummaryExpandData = state.trackSummaryExpandData.map(t => t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue });
+                    }
                     newState.albumSummaryData = include ? [...state.albumSummaryData, newItem] : state.albumSummaryData.filter(a => itemId != a.spotifyID);
                 } else if (type === 3) {
                     newState.trackSummaryData = include ? [...state.trackSummaryData, newItem] : state.trackSummaryData.filter(a => itemId != a.spotifyID);
@@ -438,16 +447,25 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                     error: false
                 };
 
+                const albumExclusions = ["live", "acoustic", "instrumental"]
+                const trackExclusions = ["- live", "- acoustic", "- instrumental", "- single"]
+
                 if (type === 1) {
-                    newState.albumSearchData = state.albumSearchData.map(a => itemId == get().currentSearchSelectedArtist ? (a.included == 3 || a.included == 4 ? { ...a, included: targetValue } : {...a}) : {...a});
-                    newState.albumSummaryExpandData = state.albumSummaryExpandData.map(a => itemId == get().currentSummarySelectedArtist ? (a.included == 1 || a.included == 2 ? {...a} : { ...a, included: targetValue } ) : {...a});
+                    if (itemId == get().currentSearchSelectedArtist) {
+                        newState.albumSearchData = state.albumSearchData.map(a => a.included == 3 || a.included == 4 ? { ...a, included: targetValue } : {...a});
+                        newState.albumSearchData = newState.albumSearchData.map(a => a.included == 2 && matchSubstrings(a.name!, albumExclusions) ? {...a, included: targetValue} : {...a})
+                        newState.albumSummaryExpandData = state.albumSummaryExpandData.map(a => a.included == 1 || a.included == 2 ? {...a} : { ...a, included: targetValue });
+                    }
                     newState.artistSummaryData = state.artistSummaryData.filter(a => itemId != a.spotifyID);
                     if (itemId == get().currentSummarySelectedArtist) {newState.albumSummaryExpandData = [], newState.trackSummaryExpandData = []}
                 } else if (type === 2) {
-                    newState.trackSearchData = state.trackSearchData.map(t => itemId == get().currentSearchSelectedAlbum ? (t.included == 3 || t.included == 4 ? { ...t, included: targetValue } : {...t}) : {...t});
-                    newState.trackSummaryExpandData = state.trackSummaryExpandData.map(t => itemId == get().currentSummarySelectedAlbum ? (t.included == 1 || t.included == 2 ? {...t} : { ...t, included: targetValue } ) : {...t});
+                    if (itemId == get().currentSearchSelectedAlbum) {
+                        newState.trackSearchData = state.trackSearchData.map(t => t.included == 3 || t.included == 4 ? { ...t, included: targetValue } : {...t});
+                        newState.trackSearchData = newState.trackSearchData.map(t => t.included == 2 && matchSubstrings(t.name!, trackExclusions) ? {...t, included: targetValue} : {...t})
+                        newState.trackSummaryExpandData = state.trackSummaryExpandData.map(t => t.included == 1 || t.included == 2 ? {...t} : { ...t, included: targetValue });
+                        newState.trackSummaryExpandData = []
+                    }
                     newState.albumSummaryData = state.albumSummaryData.filter(a => itemId != a.spotifyID);
-                    if (itemId == get().currentSummarySelectedAlbum) {newState.trackSummaryExpandData = []}
                 } else if (type === 3) {
                     newState.trackSummaryData = state.trackSummaryData.filter(a => itemId != a.spotifyID);
                 }
@@ -588,3 +606,8 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     setCurrentSummaryAlbum: (val: string) => set({ currentSummarySelectedAlbum: val }),
     setSummaryLoading: (loading: boolean) => set({ summaryPlaylistsLoading: loading, summaryArtistsLoading: loading, summaryAlbumsLoading: loading, summaryTracksLoading: loading})
 }));
+
+function matchSubstrings(s: string, match: string[]): boolean {
+    const lowerStr = s.toLowerCase()
+    return match.some(el => lowerStr.includes(el))
+}

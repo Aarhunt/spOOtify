@@ -342,7 +342,7 @@ function ResultBox() {
             <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Albums</span>
           </div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-            {albumSearchLoading ? <p className="text-xs p-4 animate-pulse">Loading tracks...</p> :
+            {albumSearchLoading ? <p className="text-xs p-4 animate-pulse">Loading albums...</p> :
               albumSearchData.length > 0 ? albumSearchData.map(item => (
                   <SearchResultItem key={item.spotifyID} item={item} onAction={handleInclusion} onExpand={handleExpand} />
               )) : renderEmpty("Albums")
