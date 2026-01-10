@@ -35,11 +35,12 @@ export type ModelItemRequest = {
 
 export type ModelItemResponse = {
     icon?: Array<SpotifyImage>;
-    included?: ModelInclusionType;
+    included: ModelInclusionType;
+    inclusionByProxy?: boolean;
     itemType?: ModelItemType;
-    name?: string;
-    sortdata?: number;
-    spotifyID?: string;
+    name: string;
+    sortdata: number;
+    spotifyID: string;
 };
 
 export type ModelItemType = 0 | 1 | 2 | 3;

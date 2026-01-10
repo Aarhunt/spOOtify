@@ -380,8 +380,8 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                 // Update proxy elements if they exist
                 if (type === 1) {
                     if (itemId == get().currentSearchSelectedArtist) {
-                        newState.albumSearchData = state.albumSearchData.map(a => a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } );
-                        newState.albumSearchData = newState.albumSearchData.map(a => a.included != 1 && matchSubstrings(a.name!, albumExclusions) ? {...a, included: 2} : {...a});
+                        newState.albumSearchData = state.albumSearchData.map(a => a.inclusionByProxy ? a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } : {...a} );
+                        newState.albumSearchData = newState.albumSearchData.map(a => a.inclusionByProxy ? a.included != 1 && matchSubstrings(a.name!, albumExclusions) ? {...a, included: 2} : {...a} : {...a});
                         // Proxy element of summary view
                         newState.albumSummaryExpandData = state.albumSummaryExpandData.map(a => a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } );
                     }

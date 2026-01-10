@@ -906,6 +906,12 @@ const docTemplate = `{
         },
         "model.ItemResponse": {
             "type": "object",
+            "required": [
+                "included",
+                "name",
+                "sortdata",
+                "spotifyID"
+            ],
             "properties": {
                 "icon": {
                     "type": "array",
@@ -915,6 +921,9 @@ const docTemplate = `{
                 },
                 "included": {
                     "$ref": "#/definitions/model.InclusionType"
+                },
+                "inclusionByProxy": {
+                    "type": "boolean"
                 },
                 "itemType": {
                     "$ref": "#/definitions/model.ItemType"
