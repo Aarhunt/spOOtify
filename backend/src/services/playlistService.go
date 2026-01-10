@@ -214,7 +214,7 @@ func GetAllExclusions(id spotify.ID) []model.ItemResponse {
         return []model.ItemResponse{}
     }
 
-	itemResponses := IncludedItemsToResponse(items, model.Included)
+	itemResponses := IncludedItemsToResponse(items, model.Excluded)
 
     return itemResponses
 }
@@ -259,7 +259,7 @@ func getPlaylistsRecursive(p model.Playlist, visited map[spotify.ID]bool) map[sp
 func getTracksFromPlaylist(p model.Playlist) []spotify.ID {
 	inclusions, exclusions := getTracksRecursive(p, make(map[spotify.ID]bool))
 
-    finalTracks := make([]spotify.ID, 0, len(inclusions))
+    finalTracks := []spotify.ID{}
     for id, inc := range inclusions {
 		exc := exclusions[id]
 		if model.IsIncluded(inc, exc) {finalTracks = append(finalTracks, id)}

@@ -223,7 +223,7 @@ func GetAlbumFromArtist(req model.ItemRequest) ([]model.ItemResponse, error) {
 	ctx, client := conn.Ctx, conn.Client
 
 	playlist, err := getPlaylist(req.PlaylistID)
-	results, err := client.GetArtistAlbums(ctx, req.ParentID, []spotify.AlbumType{spotify.AlbumTypeAlbum}, spotify.Limit(50))
+	results, err := client.GetArtistAlbums(ctx, req.ParentID, []spotify.AlbumType{spotify.AlbumTypeAlbum, spotify.AlbumTypeSingle}, spotify.Limit(50))
 
 	var albums = results.Albums
 
@@ -339,17 +339,19 @@ func albumToResponse(albums []spotify.SimpleAlbum, playlist *model.Playlist) []m
 		} else if excMap[a.ID] {
 			included = model.Excluded
 		} else if incMap[a.Artists[0].ID] {
-			included = model.IncludedByProxy
+			if (a.AlbumType == "album") {included = model.IncludedByProxy}
 		} else if excMap[a.Artists[0].ID] {
 			included = model.ExcludedByProxy
 		}
 
+		inclusion := a.AlbumType == "album"
 		return model.ItemResponse{
 			SpotifyID: a.ID,
 			Name:      a.Name,
 			Icon:      a.Images,
 			ItemType:  model.Album,
 			Included:  included,
+			InclusionByProxy: &inclusion,
 			SortData:  a.ReleaseDateTime().Year(),
 		}
 	})
@@ -374,12 +376,14 @@ func singleAlbumTrackToResponse(tracks []spotify.SimpleTrack, playlist *model.Pl
 			included = model.ExcludedByProxy
 		}
 
+		inclusion := true
 		return model.ItemResponse{
 			SpotifyID: a.ID,
 			Name:      a.Name,
 			Icon:      a.Album.Images,
 			ItemType:  model.Track,
 			Included:  included,
+			InclusionByProxy: &inclusion,
 			SortData:  int(a.TrackNumber),
 		}
 	})
@@ -405,12 +409,14 @@ func trackToResponse(tracks []spotify.SimpleTrack, playlist *model.Playlist) []m
 			included = model.ExcludedByProxy
 		}
 
+		inclusion := true
 		return model.ItemResponse{
 			SpotifyID: a.ID,
 			Name:      a.Name,
 			Icon:      a.Album.Images,
 			ItemType:  model.Track,
 			Included:  included,
+			InclusionByProxy: &inclusion,
 			SortData:  int(a.TrackNumber),
 		}
 	})
@@ -509,14 +515,3 @@ func fullToSimpleTrack(tracks []spotify.FullTrack) []spotify.SimpleTrack {
 	})
 }
 
-func getFullPlaylist(id spotify.ID) (model.Playlist, error) { //TODO
-	var p model.Playlist
-	db := src.GetDbConn().Db
-
-	err := db.Preload("Inclusions").
-		Preload("Exclusions").
-		Preload("IncludedPlaylists").
-		First(&p, "spotify_id = ?", id).Error
-
-	return p, err
-}

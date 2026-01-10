@@ -68,12 +68,13 @@ type ItemPlaylistRequest struct {
 }
 
 type ItemResponse struct {
-	SpotifyID spotify.ID `json:"spotifyID"`
-	Name      string `json:"name"`
+	SpotifyID spotify.ID `json:"spotifyID" binding:"required"`
+	Name      string `json:"name" binding:"required"`
 	Icon      []spotify.Image `json:"icon"`
 	ItemType 	ItemType `json:"itemType"`
-	Included 	InclusionType `json:"included"`
-	SortData 	int `json:"sortdata"`
+	Included 	InclusionType `json:"included" binding:"required"`
+	InclusionByProxy *bool `json:"inclusionByProxy"`
+	SortData 	int `json:"sortdata" binding:"required"`
 }
 
 type InclusionResponse struct {

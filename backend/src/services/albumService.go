@@ -2,6 +2,7 @@ package services
 
 import (
 	"log"
+	"slices"
 
 	"github.com/aarhunt/spootify/src"
 	"github.com/zmb3/spotify/v2"
@@ -11,12 +12,17 @@ func getAlbumsByIds(ids []spotify.ID) []*spotify.FullAlbum {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	albums, err := client.GetAlbums(ctx, ids)
+	chunks := slices.Chunk(ids, 20)
+	albums := []*spotify.FullAlbum{}
 
-	if err != nil {
-		log.Print(err)
+	for chunk := range chunks {
+		res, err := client.GetAlbums(ctx, chunk)
+		if err != nil {
+			log.Fatal(err)
+		}
+		albums = append(albums, res...)	
 	}
-
+	
 	return albums
 }
 
