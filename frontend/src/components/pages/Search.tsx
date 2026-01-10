@@ -82,7 +82,7 @@ return (
               {item.name}
             </span>
           </div>
-          <div className="mt-0.5">
+          <div className="mt-0.5 text-left">
             {getInclusionBadge() || <span className="text-[11px] text-gray-500">Not included</span>}
           </div>
         </div>
