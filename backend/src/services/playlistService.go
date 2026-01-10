@@ -219,6 +219,37 @@ func GetAllExclusions(id spotify.ID) []model.ItemResponse {
     return itemResponses
 }
 
+func GetPlaylistParents(p *model.Playlist) ([]model.Playlist) {
+	var includedParents = []model.Playlist{}
+
+    _ = src.GetDbConn().Db.
+        Table("playlists").
+        Joins("JOIN playlist_nested_playlists ON playlist_nested_playlists.playlist_spotify_id = playlists.spotify_id").
+        Where("playlist_nested_playlists.included_playlist_spotify_id = ?", p.SpotifyID).
+        Find(&includedParents).Error
+
+	return includedParents
+}
+
+func getParentsRecursive(p model.Playlist, visited map[spotify.ID]bool) map[spotify.ID]bool {
+    if visited[p.SpotifyID] {
+        return nil
+    }
+
+    visited[p.SpotifyID] = true
+
+	parentPlaylists := GetPlaylistParents(&p)
+
+	for _, nested := range parentPlaylists {
+		nestedPlaylistsMap := getParentsRecursive(nested, visited) 
+		for key := range nestedPlaylistsMap {
+			visited[key] = true 
+		}
+	}
+
+	return visited
+}
+
 func GetIncludedPlaylistsFromPlaylist(p *model.Playlist) ([]model.Playlist) {
 	var includedPlaylists = []model.Playlist{}
 
@@ -347,19 +378,32 @@ func PublishPlaylist(req model.PlaylistPublishRequest) error {
         return err
     }
 
-    trackIDs := getTracksFromPlaylist(*playlist)
-
-	chunks := slices.Chunk(trackIDs, 100)
-
-	err = client.ReplacePlaylistTracks(ctx, req.SpotifyID)
-    if err != nil {
-        return err
-    }
-
-	for chunk := range chunks {
-		_, err := client.AddTracksToPlaylist(ctx, req.SpotifyID, chunk...)
+	affected := getParentsRecursive(*playlist, make(map[spotify.ID]bool))
+	affectedPlaylists := []*model.Playlist{playlist}
+	for id := range affected {
+		parent, err := getPlaylist(id)
 		if err != nil {
 			return err
+		}
+		affectedPlaylists = append(affectedPlaylists, parent)
+	}
+
+	for _, p := range affectedPlaylists {
+
+		trackIDs := getTracksFromPlaylist(*p)
+
+		chunks := slices.Chunk(trackIDs, 100)
+
+		err = client.ReplacePlaylistTracks(ctx, p.SpotifyID)
+		if err != nil {
+			return err
+		}
+
+		for chunk := range chunks {
+			_, err := client.AddTracksToPlaylist(ctx, p.SpotifyID, chunk...)
+			if err != nil {
+				return err
+			}
 		}
 	}
     return nil
