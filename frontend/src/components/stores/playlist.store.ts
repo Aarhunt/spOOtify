@@ -110,7 +110,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
     setCurrentPlaylist: (id, name) => set({ currentPlaylistId: id, currentPlaylistName: name}),
 
-    fetchSelectionData: async () => {
+        fetchSelectionData: async () => {
         set({ selectionLoading: true });
         const response = await getPlaylist();
         if (response.data) {
@@ -174,7 +174,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
             set({ publishAllLoading: false, error: true });
         }
     },
-    
+
     deletePlaylist: async () => {
         const id = get().currentPlaylistId;
         set({ deleteLoading: true });
@@ -186,7 +186,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
             if (response.data) {
                 set((state) => ({
                     playlistSelectionData: state.playlistSelectionData.filter((res) => res.spotifyID != id),
-                    deleteLoading: false
+                        deleteLoading: false
                 }))
             }
         } catch (err) {
@@ -208,7 +208,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
             if (response.data) {
                 set((state) => ({
                     playlistSelectionData: state.playlistSelectionData.map((res) => { return {...res, name: res.spotifyID == id ? name : res.name }} ),
-                    renameLoading: false
+                        renameLoading: false
                 }));
             }
         } catch (err) {
@@ -219,7 +219,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
     clearSearchData: () => { set({ playlistSearchData: [], artistSearchData: [], albumSearchData: [], trackSearchData: [] })},
 
-    search: async (query: string) => {
+        search: async (query: string) => {
         set({ searchLoading: true});
         get().clearSearchData();
 
@@ -256,9 +256,9 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     },
 
     setCurrentSearchArtist: (val: string) => set({ currentSearchSelectedArtist: val }),
-    setCurrentSearchAlbum: (val: string) => set({ currentSearchSelectedAlbum: val }),
+        setCurrentSearchAlbum: (val: string) => set({ currentSearchSelectedAlbum: val }),
 
-    getSearchAlbumsFromArtist: async (artistId: string) => {
+        getSearchAlbumsFromArtist: async (artistId: string) => {
         set({ albumSearchLoading: true, albumSearchData: [], trackSearchData: [] })
 
         const response = await postSpotifyArtistAlbums({
@@ -333,6 +333,61 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     includeItem: async (itemId: string, include: boolean, type: ModelItemType) => {
         set({ includeLoading: true });
 
+        const targetValue = include ? 1 : 2;
+        const proxyValue = include ? 3 : 4;
+        const state = get();
+
+        const searchDataKey = type === 1 ? 'artistSearchData' : type === 2 ? 'albumSearchData' : 'trackSearchData'
+        const summaryDataKey = type === 2 ? 'albumSummaryExpandData' : type === 3 ? 'trackSummaryExpandData' : ''
+        const searchList = [...state[searchDataKey]];
+        const summaryList = summaryDataKey != '' ? [...state[summaryDataKey]] : []
+
+        // Update the frontend element that is now included
+        var newItem;
+        {
+            const foundIndex = searchList.findIndex(i => i.spotifyID === itemId);
+            if (foundIndex !== -1) searchList[foundIndex] = { ...searchList[foundIndex], included: targetValue };
+            newItem = searchList[foundIndex]
+        }
+
+        // If there is a frontend element in an expanded column in summary, update that
+        {
+            const foundIndex = summaryList.findIndex(i => i.spotifyID === itemId);
+            if (foundIndex !== -1) summaryList[foundIndex] = { ...summaryList[foundIndex], included: targetValue}
+        }
+
+        const newState: Partial<PlaylistState> = {
+            [searchDataKey]: searchList,
+            [summaryDataKey]: summaryList,
+        };
+
+        const albumExclusions = ["live", "acoustic", "instrumental"]
+        const trackExclusions = ["- live", "- acoustic", "- instrumental"]
+
+        // Update proxy elements if they exist
+        if (type === 1) {
+            if (itemId == get().currentSearchSelectedArtist) {
+                newState.albumSearchData = state.albumSearchData.map(a => a.inclusionByProxy ? a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } : {...a} );
+                newState.albumSearchData = newState.albumSearchData.map(a => a.inclusionByProxy ? a.included != 1 && matchSubstrings(a.name!, albumExclusions) ? {...a, included: 2} : {...a} : {...a});
+                // Proxy element of summary view
+                newState.albumSummaryExpandData = state.albumSummaryExpandData.map(a => a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } );
+            }
+            // Proxy element of search view
+            // Edit summary view 
+            newState.artistSummaryData = include ? [...state.artistSummaryData, newItem] : state.artistSummaryData.filter(a => itemId != a.spotifyID);
+        } else if (type === 2) {
+            if (itemId == get().currentSearchSelectedAlbum) {
+                newState.trackSearchData = state.trackSearchData.map(t => t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue } );
+                newState.trackSearchData = newState.trackSearchData.map(t => t.included != 1 && matchSubstrings(t.name!, trackExclusions) ? {...t, included: 2} : {...t});
+                newState.trackSummaryExpandData = state.trackSummaryExpandData.map(t => t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue });
+            }
+            newState.albumSummaryData = include ? [...state.albumSummaryData, newItem] : state.albumSummaryData.filter(a => itemId != a.spotifyID);
+        } else if (type === 3) {
+            newState.trackSummaryData = include ? [...state.trackSummaryData, newItem] : state.trackSummaryData.filter(a => itemId != a.spotifyID);
+        }
+
+        set(newState);
+
         try {
             const response = await postPlaylistItem({
                 body: {
@@ -344,64 +399,10 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
             });
 
             if (response.data) {
-                const targetValue = include ? 1 : 2;
-                const proxyValue = include ? 3 : 4;
-                const state = get();
-
-                const searchDataKey = type === 1 ? 'artistSearchData' : type === 2 ? 'albumSearchData' : 'trackSearchData'
-                const summaryDataKey = type === 2 ? 'albumSummaryExpandData' : type === 3 ? 'trackSummaryExpandData' : ''
-                const searchList = [...state[searchDataKey]];
-                const summaryList = summaryDataKey != '' ? [...state[summaryDataKey]] : []
-
-                // Update the frontend element that is now included
-                var newItem;
-                {
-                    const foundIndex = searchList.findIndex(i => i.spotifyID === itemId);
-                    if (foundIndex !== -1) searchList[foundIndex] = { ...searchList[foundIndex], included: targetValue };
-                    newItem = searchList[foundIndex]
-                }
-
-                // If there is a frontend element in an expanded column in summary, update that
-                {
-                    const foundIndex = summaryList.findIndex(i => i.spotifyID === itemId);
-                    if (foundIndex !== -1) summaryList[foundIndex] = { ...summaryList[foundIndex], included: targetValue}
-                }
-
-                const newState: Partial<PlaylistState> = {
-                    [searchDataKey]: searchList,
-                    [summaryDataKey]: summaryList,
-                    includeLoading: false,
-                    error: false
-                };
-
-                const albumExclusions = ["live", "acoustic", "instrumental"]
-                const trackExclusions = ["- live", "- acoustic", "- instrumental"]
-
-                // Update proxy elements if they exist
-                if (type === 1) {
-                    if (itemId == get().currentSearchSelectedArtist) {
-                        newState.albumSearchData = state.albumSearchData.map(a => a.inclusionByProxy ? a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } : {...a} );
-                        newState.albumSearchData = newState.albumSearchData.map(a => a.inclusionByProxy ? a.included != 1 && matchSubstrings(a.name!, albumExclusions) ? {...a, included: 2} : {...a} : {...a});
-                        // Proxy element of summary view
-                        newState.albumSummaryExpandData = state.albumSummaryExpandData.map(a => a.included == 1 || a.included == 2 ? {...a} : { ...a, included: proxyValue } );
-                    }
-                    // Proxy element of search view
-                    // Edit summary view 
-                    newState.artistSummaryData = include ? [...state.artistSummaryData, newItem] : state.artistSummaryData.filter(a => itemId != a.spotifyID);
-                } else if (type === 2) {
-                    if (itemId == get().currentSearchSelectedAlbum) {
-                        newState.trackSearchData = state.trackSearchData.map(t => t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue } );
-                        newState.trackSearchData = newState.trackSearchData.map(t => t.included != 1 && matchSubstrings(t.name!, trackExclusions) ? {...t, included: 2} : {...t});
-                        newState.trackSummaryExpandData = state.trackSummaryExpandData.map(t => t.included == 1 || t.included == 2 ? {...t} : { ...t, included: proxyValue });
-                    }
-                    newState.albumSummaryData = include ? [...state.albumSummaryData, newItem] : state.albumSummaryData.filter(a => itemId != a.spotifyID);
-                } else if (type === 3) {
-                    newState.trackSummaryData = include ? [...state.trackSummaryData, newItem] : state.trackSummaryData.filter(a => itemId != a.spotifyID);
-                }
-
-                set(newState);
+                set({ includeLoading: false, error: false });
             }
-        } catch (err) {
+        }
+        catch (err) {
             set({ includeLoading: false, error: true });
         }
     },
@@ -409,6 +410,55 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     undoIncludeItem: async (itemId: string, include: boolean, type: ModelItemType) => {
         set({ includeLoading: true });
 
+        const targetValue = 0;
+        const state = get();
+
+        const dataKey = type === 1 ? 'artistSearchData' : type === 2 ? 'albumSearchData' : 'trackSearchData';
+        const summaryDataKey = type === 2 ? 'albumSummaryExpandData' : type === 3 ? 'trackSummaryExpandData' : ''
+        const currentList = [...state[dataKey]];
+        const summaryList = summaryDataKey != '' ? [...state[summaryDataKey]] : []
+
+        // If there is a frontend element in search, update that
+        {
+            const foundIndex = currentList.findIndex(i => i.spotifyID === itemId);
+            if (foundIndex !== -1) currentList[foundIndex] = { ...currentList[foundIndex], included: targetValue };
+        }
+
+        // If there is a frontend element in an expanded column in summary, update that
+        {
+            const foundIndex = summaryList.findIndex(i => i.spotifyID === itemId);
+            if (foundIndex !== -1) summaryList[foundIndex] = { ...summaryList[foundIndex], included: targetValue}
+        }
+
+        const newState: Partial<PlaylistState> = {
+            [dataKey]: currentList,
+            [summaryDataKey]: summaryList,
+        };
+
+        const albumExclusions = ["live", "acoustic", "instrumental"]
+        const trackExclusions = ["- live", "- acoustic", "- instrumental", "- single"]
+
+        if (type === 1) {
+            if (itemId == get().currentSearchSelectedArtist) {
+                newState.albumSearchData = state.albumSearchData.map(a => a.included == 3 || a.included == 4 ? { ...a, included: targetValue } : {...a});
+                newState.albumSearchData = newState.albumSearchData.map(a => a.included == 2 && matchSubstrings(a.name!, albumExclusions) ? {...a, included: targetValue} : {...a})
+                newState.albumSummaryExpandData = state.albumSummaryExpandData.map(a => a.included == 1 || a.included == 2 ? {...a} : { ...a, included: targetValue });
+            }
+            newState.artistSummaryData = state.artistSummaryData.filter(a => itemId != a.spotifyID);
+            if (itemId == get().currentSummarySelectedArtist) {newState.albumSummaryExpandData = [], newState.trackSummaryExpandData = []}
+        } else if (type === 2) {
+            if (itemId == get().currentSearchSelectedAlbum) {
+                newState.trackSearchData = state.trackSearchData.map(t => t.included == 3 || t.included == 4 ? { ...t, included: targetValue } : {...t});
+                newState.trackSearchData = newState.trackSearchData.map(t => t.included == 2 && matchSubstrings(t.name!, trackExclusions) ? {...t, included: targetValue} : {...t})
+                newState.trackSummaryExpandData = state.trackSummaryExpandData.map(t => t.included == 1 || t.included == 2 ? {...t} : { ...t, included: targetValue });
+                newState.trackSummaryExpandData = []
+            }
+            newState.albumSummaryData = state.albumSummaryData.filter(a => itemId != a.spotifyID);
+        } else if (type === 3) {
+            newState.trackSummaryData = state.trackSummaryData.filter(a => itemId != a.spotifyID);
+        }
+
+        set(newState);
         try {
             const response = await postPlaylistItemUndo({
                 body: {
@@ -420,57 +470,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
             });
 
             if (response.data) {
-                const targetValue = 0;
-                const state = get();
-
-                const dataKey = type === 1 ? 'artistSearchData' : type === 2 ? 'albumSearchData' : 'trackSearchData';
-                const summaryDataKey = type === 2 ? 'albumSummaryExpandData' : type === 3 ? 'trackSummaryExpandData' : ''
-                const currentList = [...state[dataKey]];
-                const summaryList = summaryDataKey != '' ? [...state[summaryDataKey]] : []
-
-                // If there is a frontend element in search, update that
-                {
-                    const foundIndex = currentList.findIndex(i => i.spotifyID === itemId);
-                    if (foundIndex !== -1) currentList[foundIndex] = { ...currentList[foundIndex], included: targetValue };
-                }
-
-                // If there is a frontend element in an expanded column in summary, update that
-                {
-                    const foundIndex = summaryList.findIndex(i => i.spotifyID === itemId);
-                    if (foundIndex !== -1) summaryList[foundIndex] = { ...summaryList[foundIndex], included: targetValue}
-                }
-
-                const newState: Partial<PlaylistState> = {
-                    [dataKey]: currentList,
-                    [summaryDataKey]: summaryList,
-                    includeLoading: false,
-                    error: false
-                };
-
-                const albumExclusions = ["live", "acoustic", "instrumental"]
-                const trackExclusions = ["- live", "- acoustic", "- instrumental", "- single"]
-
-                if (type === 1) {
-                    if (itemId == get().currentSearchSelectedArtist) {
-                        newState.albumSearchData = state.albumSearchData.map(a => a.included == 3 || a.included == 4 ? { ...a, included: targetValue } : {...a});
-                        newState.albumSearchData = newState.albumSearchData.map(a => a.included == 2 && matchSubstrings(a.name!, albumExclusions) ? {...a, included: targetValue} : {...a})
-                        newState.albumSummaryExpandData = state.albumSummaryExpandData.map(a => a.included == 1 || a.included == 2 ? {...a} : { ...a, included: targetValue });
-                    }
-                    newState.artistSummaryData = state.artistSummaryData.filter(a => itemId != a.spotifyID);
-                    if (itemId == get().currentSummarySelectedArtist) {newState.albumSummaryExpandData = [], newState.trackSummaryExpandData = []}
-                } else if (type === 2) {
-                    if (itemId == get().currentSearchSelectedAlbum) {
-                        newState.trackSearchData = state.trackSearchData.map(t => t.included == 3 || t.included == 4 ? { ...t, included: targetValue } : {...t});
-                        newState.trackSearchData = newState.trackSearchData.map(t => t.included == 2 && matchSubstrings(t.name!, trackExclusions) ? {...t, included: targetValue} : {...t})
-                        newState.trackSummaryExpandData = state.trackSummaryExpandData.map(t => t.included == 1 || t.included == 2 ? {...t} : { ...t, included: targetValue });
-                        newState.trackSummaryExpandData = []
-                    }
-                    newState.albumSummaryData = state.albumSummaryData.filter(a => itemId != a.spotifyID);
-                } else if (type === 3) {
-                    newState.trackSummaryData = state.trackSummaryData.filter(a => itemId != a.spotifyID);
-                }
-
-                set(newState);
+                set({ includeLoading: false, error: false});
             }
         } catch (err) {
             set({ includeLoading: false, error: true });
@@ -479,6 +479,8 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
     includePlaylist: async (itemId: string) => {
         set({ includeLoading: true });
+
+        console.log("HEY!")
 
         try {
             const response = await postPlaylistInclude({
@@ -568,16 +570,16 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                     switch (item.itemType) {
                         case 0: // PlaylistItem
                             playlists.push(item);
-                            break;
+                        break;
                         case 1: // Artist
                             artists.push(item);
-                            break;
+                        break;
                         case 2: // Album
                             albums.push(item);
-                            break;
+                        break;
                         case 3: // Track
                             tracks.push(item);
-                            break;
+                        break;
                         default:
                             break;
                     }
@@ -593,7 +595,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                 get().setSummaryLoading(false);
             } else {
                 set({ error: true });
-            get().setSummaryLoading(false)
+                get().setSummaryLoading(false)
             }
         } catch (err) {
             set({ error: true });
@@ -602,9 +604,9 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     },
 
     setSummaryType: (val: ModelItemType) => set({ summaryType: val, artistSummaryData: [], albumSummaryData: [], trackSummaryData: [], albumSummaryExpandData: [], trackSummaryExpandData: [] }),
-    setCurrentSummaryArtist: (val: string) => set({ currentSummarySelectedArtist: val }),
-    setCurrentSummaryAlbum: (val: string) => set({ currentSummarySelectedAlbum: val }),
-    setSummaryLoading: (loading: boolean) => set({ summaryPlaylistsLoading: loading, summaryArtistsLoading: loading, summaryAlbumsLoading: loading, summaryTracksLoading: loading})
+        setCurrentSummaryArtist: (val: string) => set({ currentSummarySelectedArtist: val }),
+        setCurrentSummaryAlbum: (val: string) => set({ currentSummarySelectedAlbum: val }),
+        setSummaryLoading: (loading: boolean) => set({ summaryPlaylistsLoading: loading, summaryArtistsLoading: loading, summaryAlbumsLoading: loading, summaryTracksLoading: loading})
 }));
 
 function matchSubstrings(s: string, match: string[]): boolean {

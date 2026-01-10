@@ -109,7 +109,7 @@ return (
           )}
           onClick={(e) => {
             e.stopPropagation();
-            item.spotifyID && item.itemType && onAction(item.spotifyID, true, item.itemType, item.included === 1);
+            item.spotifyID && onAction(item.spotifyID, true, item.itemType!, item.included === 1);
           }}
         >
           {item.included === 1 ? <Check className="h-4 w-4 stroke-[3]" /> : <Plus className="h-4 w-4" />}

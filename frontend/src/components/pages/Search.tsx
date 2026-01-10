@@ -16,7 +16,7 @@ import type { ModelItemResponse, ModelItemType } from "@/client/types.gen";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Check, Plus, X, Music, SearchIcon } from "lucide-react";
+import { Check, Plus, X, Music, SearchIcon, ListMusic } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import {
@@ -50,51 +50,61 @@ interface PlaylistResultItemProps {
 
 export function PlaylistResultItem({ item, onAction, onExpand }: PlaylistResultItemProps) {
   const imageUrl = item.icon && item.icon.length > 0 ? item.icon[0].url : "";
-  
+  const isIncluded = item.included === 1;
   const getInclusionBadge = () => {
     switch (item.included) {
       case 1: 
-        return <Badge className="bg-green-500 hover:bg-green-435">Included</Badge>;
+        return <Badge className="bg-[#1DB954]/10 text-[#1DB954] border-none text-[10px] h-5 px-1.5">Included</Badge>;
       case 0: 
         return null
       default:
-        return <Badge className="bg-blue-500 hover:bg-blue-435">Included By Proxy</Badge>;
+        return <Badge className="bg-[blue]/10 text-[blue] border-none text-[10px] h-5 px-1.5">Included</Badge>;
     }
   };
 
-  return (
-    <div className="flex items-center justify-between p-3 transition-colors hover:bg-muted/50 rounded-lg border" onClick={() => item.spotifyID && item.itemType && onExpand(item.spotifyID, item.itemType)}>
-      <div className="flex items-center gap-4">
-        <Avatar className="h-12 w-12 rounded-md">
-          <AvatarImage src={imageUrl} alt={item.name} />
-          <AvatarFallback className="rounded-md">
-            {item.name?.substring(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+return (
+    <div 
+      className="group flex items-center justify-between p-2 mx-1 transition-all hover:bg-white/5 rounded-md cursor-pointer" 
+      onClick={() => item.spotifyID && item.itemType && onExpand(item.spotifyID, item.itemType)}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="relative h-10 w-10 flex-none overflow-hidden rounded bg-[#282828] flex items-center justify-center border border-white/5 shadow-md">
+          {imageUrl ? (
+            <img src={imageUrl} alt={item.name} className="h-full w-full object-cover" />
+          ) : (
+            <ListMusic className="h-5 w-5 text-gray-500" />
+          )}
+        </div>
         
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-sm leading-none">{item.name}</span>
-            {getInclusionBadge()}
+            <span className="font-semibold text-sm text-white truncate group-hover:text-[#1DB954] transition-colors">
+              {item.name}
+            </span>
           </div>
-          <div className="flex items-start gap-2">
-              <span className="text-xs text-muted-foreground capitalize text-left">
-                {item.itemType == 2 ? item.sortdata : ""}
-              </span>
+          <div className="mt-0.5">
+            {getInclusionBadge() || <span className="text-[11px] text-gray-500">Not included</span>}
           </div>
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex items-center pl-2">
         <Button 
-          size="icon" 
-          variant={item.included === 1 ? "default" : "outline"} 
-          className="h-8 w-8"
+          size="sm" 
+          variant="ghost"
+          className={cn(
+            "h-8 w-8 rounded-full p-0 transition-all",
+            isIncluded 
+              ? "bg-[#1DB954] text-black hover:bg-[#1ed760]" : "bg-[#282828] text-gray-400 hover:text-white"
+          )}
           onClick={(e) => {
             e.stopPropagation();
-              item.spotifyID && onAction(item.spotifyID, true, item.itemType!, item.included === 1);}}
+            if (item.spotifyID) {
+               onAction(item.spotifyID, true, item.itemType!, isIncluded);
+            }
+          }}
         >
-          {item.included === 1 ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          {isIncluded ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
       </div>
     </div>
@@ -310,7 +320,7 @@ function ResultBox() {
             <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
               {searchLoading ? <p className="text-xs p-4 animate-pulse">Searching...</p> : 
                 playlistSearchData.length > 0 ? playlistSearchData.map(item => (
-                  <SearchResultItem key={item.spotifyID} item={item} onAction={handleInclusion} onExpand={handleExpand} />
+                  <PlaylistResultItem key={item.spotifyID} item={item} onAction={handleInclusion} onExpand={handleExpand} />
                 )) : renderEmpty("Playlists")
               }
             </div>
