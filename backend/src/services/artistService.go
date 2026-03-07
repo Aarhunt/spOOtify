@@ -5,62 +5,57 @@ import (
 	"slices"
 
 	"github.com/aarhunt/spootify/src"
+	"github.com/aarhunt/spootify/src/model"
+	"github.com/aarhunt/spootify/src/utils"
 	"github.com/zmb3/spotify/v2"
 )
 
-func getArtistsByIds(ids []spotify.ID) []*spotify.FullArtist {
+// Get a list of artists by their IDs.
+func getArtistsByIds(ids []string) []model.Artist {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	chunks := slices.Chunk(ids, 50)
-	artists := []*spotify.FullArtist{}
+	spotifyIDs := utils.Map(ids, model.ToSpotifyID)
+
+	chunks := slices.Chunk(spotifyIDs, 50)
+	artists := []model.Artist{}
 
 	for chunk := range chunks {
 		res, err := client.GetArtists(ctx, chunk...)
 		if err != nil {
 			log.Fatal(err)
 		}
-		artists = append(artists, res...)	
+		artists = append(artists, model.ToArtists(res)...)	
 	}
-	return artists
+	return artists 
 }
 
-func GetAlbumsFromArtistById(id spotify.ID) []spotify.SimpleAlbum{
+// Get all albums from an artist given its id.
+func GetAlbumsFromArtistById(id string, includeSingles bool) []model.Album{
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	albums, err := client.GetArtistAlbums(ctx, id, []spotify.AlbumType{spotify.AlbumTypeAlbum}, spotify.Limit(50))
+	types := []spotify.AlbumType{spotify.AlbumTypeAlbum}
+	if includeSingles {types = append(types, spotify.AlbumTypeSingle)}
+
+	albums, err := client.GetArtistAlbums(ctx, model.ToSpotifyID(id), types, spotify.Limit(50))
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return albums.Albums
+	return model.ToAlbums(albums.Albums)
 }
 
-func GetAlbumsAndSinglesFromArtistById(id spotify.ID) []spotify.SimpleAlbum{
-	spotiConn := src.GetSpotifyConn()
-	ctx, client := spotiConn.Ctx, spotiConn.Client
-
-	albums, err := client.GetArtistAlbums(ctx, id, []spotify.AlbumType{spotify.AlbumTypeAlbum, spotify.AlbumTypeSingle}, spotify.Limit(50))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return albums.Albums
-}
-
-func getTracksFromArtistById(id spotify.ID) []spotify.SimpleTrack{
-	albums := GetAlbumsFromArtistById(id)
-	var result []spotify.SimpleTrack = []spotify.SimpleTrack{}
+// Get all tracks from an artist given its id.
+func getTracksFromArtistById(id string) []model.Track{
+	albums := GetAlbumsFromArtistById(id, false)
+	var result []model.Track = []model.Track{}
 
 	// handle album results
-	if albums != nil {
-		for _, album := range albums {
-			tracks := getTracksFromAlbumById(album.ID)
-			result = append(result, tracks...)
-		}
+	for _, album := range albums {
+		tracks := GetTracksFromAlbumById(album.ID)
+		result = append(result, tracks...)
 	}
 
 	return result

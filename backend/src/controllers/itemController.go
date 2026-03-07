@@ -79,13 +79,13 @@ func GetAlbumsFromArtist(c *gin.Context) {
 		return
 	}
 
-	res, err := services.GetAlbumFromArtist(req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	playlist, _ := services.GetPlaylist(req.PlaylistID)
 
-	c.JSON(http.StatusOK, res)
+	res := services.GetAlbumsFromArtistById(req.ParentID, true)
+
+	ret := services.AlbumToResponse(res, playlist)
+
+	c.JSON(http.StatusOK, ret)
 }
 
 // GetTracksFromAlbum godoc
@@ -105,13 +105,13 @@ func GetTracksFromAlbum(c *gin.Context) {
 		return
 	}
 
-	res, err := services.GetTracksFromAlbum(req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	playlist, _ := services.GetPlaylist(req.PlaylistID)
 
-	c.JSON(http.StatusOK, res)
+	res := services.GetTracksFromAlbumById(req.ParentID)
+
+	ret := services.TrackToResponse(res, playlist)
+
+	c.JSON(http.StatusOK, ret)
 }
 
 // Search godoc
@@ -137,11 +137,11 @@ func Search(c *gin.Context) {
     switch req.ItemType {
 	case model.PlaylistItem:
 		results = services.SearchPlaylist(req)
-    case model.Artist:
+    case model.ArtistItem:
         results = services.SearchArtist(req)
-    case model.Album:
+    case model.AlbumItem:
         results = services.SearchAlbum(req)
-    case model.Track:
+    case model.TrackItem:
         results = services.SearchTrack(req)
     default:
         c.JSON(http.StatusBadRequest, gin.H{"error": "Unsupported search item type"})

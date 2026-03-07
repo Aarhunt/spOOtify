@@ -130,7 +130,8 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
             if (response.data) {
                 set((state) => ({
                     playlistSelectionData: [...state.playlistSelectionData, response.data],
-                    selectionLoading: false
+                    selectionLoading: false,
+                    currentPlaylistId: response.data.spotifyID
                 }));
             }
         } catch (err) {
@@ -189,6 +190,8 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                         deleteLoading: false
                 }))
             }
+            get().clearSearchData();
+            get().clearSummaryData();
         } catch (err) {
             console.error("Deletion failed", err);
             set({ deleteLoading: false, error: true });

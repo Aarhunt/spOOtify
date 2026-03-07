@@ -8,6 +8,21 @@ export type GinH = {
     [key: string]: unknown;
 };
 
+export type ModelImage = {
+    /**
+     * The image height, in pixels.
+     */
+    height?: number;
+    /**
+     * The source URL of the image.
+     */
+    url?: string;
+    /**
+     * The image width, in pixels.
+     */
+    width?: number;
+};
+
 export type ModelInclusionResponse = {
     included?: ModelInclusionType;
     spotifyID?: string;
@@ -34,7 +49,7 @@ export type ModelItemRequest = {
 };
 
 export type ModelItemResponse = {
-    icon?: Array<SpotifyImage>;
+    icon?: Array<ModelImage>;
     included: ModelInclusionType;
     inclusionByProxy?: boolean;
     itemType?: ModelItemType;
@@ -62,21 +77,6 @@ export type ModelSearchRequest = {
     playlistid: string;
     query?: string;
     type?: ModelItemType;
-};
-
-export type SpotifyImage = {
-    /**
-     * The image height, in pixels.
-     */
-    height?: number;
-    /**
-     * The source URL of the image.
-     */
-    url?: string;
-    /**
-     * The image width, in pixels.
-     */
-    width?: number;
 };
 
 export type GetAuthStatusData = {

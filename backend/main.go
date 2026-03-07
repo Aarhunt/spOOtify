@@ -46,6 +46,8 @@ func main() {
         apiScheme = "http"
     }
 
+	src.GetDbConn()
+
 	docs.SwaggerInfo.Title = "Spootify API"
 	docs.SwaggerInfo.Description = "Spoooootify"
 	docs.SwaggerInfo.Version = "1.0"

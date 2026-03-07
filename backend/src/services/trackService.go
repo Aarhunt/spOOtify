@@ -5,14 +5,19 @@ import (
 	"slices"
 
 	"github.com/aarhunt/spootify/src"
+	"github.com/aarhunt/spootify/src/model"
+	"github.com/aarhunt/spootify/src/utils"
 	"github.com/zmb3/spotify/v2"
 )
 
-func getTracks(ids []spotify.ID) []*spotify.FullTrack {
+// Get the tracks given by the ids
+func getTracksByIds(ids []string) []model.Track {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	chunks := slices.Chunk(ids, 50)
+	spotifyIDs := utils.Map(ids, model.ToSpotifyID) 
+
+	chunks := slices.Chunk(spotifyIDs, 50)
 	tracks := []*spotify.FullTrack{}
 
 	for chunk := range chunks {
@@ -23,5 +28,5 @@ func getTracks(ids []spotify.ID) []*spotify.FullTrack {
 		tracks = append(tracks, res...)
 	}
 
-	return tracks
+	return model.ToTracks(tracks)
 }

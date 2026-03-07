@@ -819,6 +819,23 @@ const docTemplate = `{
             "type": "object",
             "additionalProperties": {}
         },
+        "model.Image": {
+            "type": "object",
+            "properties": {
+                "height": {
+                    "description": "The image height, in pixels.",
+                    "type": "integer"
+                },
+                "url": {
+                    "description": "The source URL of the image.",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "The image width, in pixels.",
+                    "type": "integer"
+                }
+            }
+        },
         "model.InclusionResponse": {
             "type": "object",
             "properties": {
@@ -916,7 +933,7 @@ const docTemplate = `{
                 "icon": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/spotify.Image"
+                        "$ref": "#/definitions/model.Image"
                     }
                 },
                 "included": {
@@ -949,9 +966,9 @@ const docTemplate = `{
             ],
             "x-enum-varnames": [
                 "PlaylistItem",
-                "Artist",
-                "Album",
-                "Track"
+                "ArtistItem",
+                "AlbumItem",
+                "TrackItem"
             ]
         },
         "model.PlaylistCreateRequest": {
@@ -999,23 +1016,6 @@ const docTemplate = `{
                 },
                 "type": {
                     "$ref": "#/definitions/model.ItemType"
-                }
-            }
-        },
-        "spotify.Image": {
-            "type": "object",
-            "properties": {
-                "height": {
-                    "description": "The image height, in pixels.",
-                    "type": "integer"
-                },
-                "url": {
-                    "description": "The source URL of the image.",
-                    "type": "string"
-                },
-                "width": {
-                    "description": "The image width, in pixels.",
-                    "type": "integer"
                 }
             }
         }

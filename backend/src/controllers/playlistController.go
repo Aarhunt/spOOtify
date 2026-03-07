@@ -6,7 +6,6 @@ import (
 	"github.com/aarhunt/spootify/src/model"
 	"github.com/aarhunt/spootify/src/services"
 	"github.com/gin-gonic/gin"
-	"github.com/zmb3/spotify/v2"
 )
 
 // GetPlaylists godoc
@@ -39,7 +38,7 @@ func GetPlaylists(c *gin.Context) {
 func GetPlaylistsById(c *gin.Context) {
     id := c.Param("id")
 
-	playlists := services.SearchPlaylist(model.SearchRequest{Query: "", PlaylistID: spotify.ID(id), ItemType: model.PlaylistItem})
+	playlists := services.SearchPlaylist(model.SearchRequest{Query: "", PlaylistID: id, ItemType: model.PlaylistItem})
 
 	c.IndentedJSON(http.StatusOK, playlists)
 }
@@ -55,7 +54,7 @@ func GetPlaylistsById(c *gin.Context) {
 func DeletePlaylist(c *gin.Context) {
     id := c.Param("id")
 
-    result := services.DeletePlaylist(spotify.ID(id))
+    result := services.DeletePlaylist(id)
     
     if result.Error != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
@@ -92,7 +91,7 @@ func RenamePlaylist(c *gin.Context) {
         return
     }
 
-    rowsAffected, err := services.RenamePlaylist(spotify.ID(playlistID), req.Name)
+    rowsAffected, err := services.RenamePlaylist(playlistID, req.Name)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update database", "details": err.Error()})
         return
@@ -245,7 +244,7 @@ func GetPlaylistInclusions(c *gin.Context) {
         return
     }
 
-    inclusions := services.GetAllInclusions(spotify.ID(id))
+    inclusions := services.GetAllInclusions(id)
 
     c.JSON(http.StatusOK, inclusions)
 }
@@ -269,7 +268,7 @@ func GetPlaylistExclusions(c *gin.Context) {
         return
     }
 
-    exclusions := services.GetAllExclusions(spotify.ID(id))
+    exclusions := services.GetAllExclusions(id)
 
     c.JSON(http.StatusOK, exclusions)
 }

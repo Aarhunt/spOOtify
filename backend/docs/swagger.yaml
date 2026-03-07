@@ -2,6 +2,18 @@ definitions:
   gin.H:
     additionalProperties: {}
     type: object
+  model.Image:
+    properties:
+      height:
+        description: The image height, in pixels.
+        type: integer
+      url:
+        description: The source URL of the image.
+        type: string
+      width:
+        description: The image width, in pixels.
+        type: integer
+    type: object
   model.InclusionResponse:
     properties:
       included:
@@ -66,7 +78,7 @@ definitions:
     properties:
       icon:
         items:
-          $ref: '#/definitions/spotify.Image'
+          $ref: '#/definitions/model.Image'
         type: array
       included:
         $ref: '#/definitions/model.InclusionType'
@@ -95,9 +107,9 @@ definitions:
     type: integer
     x-enum-varnames:
     - PlaylistItem
-    - Artist
-    - Album
-    - Track
+    - ArtistItem
+    - AlbumItem
+    - TrackItem
   model.PlaylistCreateRequest:
     properties:
       name:
@@ -128,18 +140,6 @@ definitions:
         $ref: '#/definitions/model.ItemType'
     required:
     - playlistid
-    type: object
-  spotify.Image:
-    properties:
-      height:
-        description: The image height, in pixels.
-        type: integer
-      url:
-        description: The source URL of the image.
-        type: string
-      width:
-        description: The image width, in pixels.
-        type: integer
     type: object
 externalDocs:
   description: OpenAPI

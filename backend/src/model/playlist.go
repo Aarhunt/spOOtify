@@ -1,11 +1,7 @@
 package model
 
-import (
-	"github.com/zmb3/spotify/v2"
-)
-
 type Playlist struct {
-	SpotifyID   spotify.ID `gorm:"primaryKey;type:varchar(255);not null" json:"id" example:"37i9dQZF1DXcBWIGoYBM3M"`
+	SpotifyID   string `gorm:"primaryKey;type:varchar(255);not null" json:"id" example:"37i9dQZF1DXcBWIGoYBM3M"`
 	Name              string `json:"name"`
 	Inclusions        []IdItem   `gorm:"many2many:playlist_inclusions;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	IncludedPlaylists []*Playlist `gorm:"many2many:playlist_nested_playlists;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
@@ -17,12 +13,12 @@ type PlaylistCreateRequest struct {
 }
 
 type PlaylistPublishRequest struct {
-	SpotifyID         spotify.ID `json:"spotifyID"`
+	SpotifyID         string `json:"spotifyID"`
 }
 
 type PlaylistResponse struct {
 	Name              string `json:"name"`
-	SpotifyID         spotify.ID `json:"spotifyID"`
+	SpotifyID         string `json:"spotifyID"`
 }
 
 func (p Playlist) ToResponse() *PlaylistResponse {

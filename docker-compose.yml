@@ -1,43 +1,43 @@
 version: "3.9"
-
 services:
   backend:
     build: ./backend
     container_name: backend
     ports:
-      - "8088:8080"
-    depends_on: 
-      - roach
+      - 8088:8080
+    depends_on:
+      - db
     environment:
-      - PGUSER=${PGUSER:-totoro}
+      - PGUSER=${PGUSER:-spootify}
       - PGPASSWORD=${PGPASSWORD:?database password not set}
       - PGHOST=${PGHOST:-db}
-      - PGPORT=${PGPORT:-26257}
-      - PGDATABASE=${PGDATABASE:-mydb}
+      - PGPORT=${PGPORT:-5432}
+      - PGDATABASE=${PGDATABASE:-spootifydb}
       - SPOTIFY_ID=${SPOTIFY_ID:-123123}
       - SPOTIFY_SECRET=${SPOTIFY_SECRET:-123123}
+      - ALLOWED_ORIGINS=https://${DOMAIN}
+      - NODE_ENV=${NODE_ENV:-production}
+      - SPOTIFY_REDIRECT_URL=https://${DOMAIN}/api/v1/callback
     deploy:
       restart_policy:
         condition: on-failure
-
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        # This pulls from the .env file automatically
+        - VITE_API_URL=https://${DOMAIN}${API_PATH}
     container_name: frontend
     ports:
-      - "8089:3000"
+      - 8089:3000
     depends_on:
       - backend
-
-  roach:
-    image: cockroachdb/cockroach:latest-v25.4
-    container_name: roach
-    hostname: db
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${PGUSER:-spootify}
+      POSTGRES_PASSWORD: ${PGPASSWORD:?database password not set}
+      POSTGRES_DB: ${PGDATABASE:-spootifydb}
     ports:
-      - 26257:26257
-      - 8080:8080
-    volumes:
-      - roach:/cockroach/cockroach-data
-    command: start-single-node --insecure
-
-volumes:
-  roach:
+      - 5432:5432
+networks: {}

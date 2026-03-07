@@ -5,38 +5,43 @@ import (
 	"slices"
 
 	"github.com/aarhunt/spootify/src"
+	"github.com/aarhunt/spootify/src/model"
+	"github.com/aarhunt/spootify/src/utils"
 	"github.com/zmb3/spotify/v2"
 )
 
-func getAlbumsByIds(ids []spotify.ID) []*spotify.FullAlbum {
+// Gets a list of albums by their IDs.
+func getAlbumsByIds(ids []string) []model.Album {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	chunks := slices.Chunk(ids, 20)
-	albums := []*spotify.FullAlbum{}
+	spotifyIDs := utils.Map(ids, model.ToSpotifyID) 
+
+	chunks := slices.Chunk(spotifyIDs, 20)
+	albums := []model.Album{}
 
 	for chunk := range chunks {
 		res, err := client.GetAlbums(ctx, chunk)
 		if err != nil {
 			log.Fatal(err)
 		}
-		albums = append(albums, res...)	
+		albums = append(albums, model.ToAlbums(res)...)
 	}
 	
 	return albums
 }
 
-
-func getTracksFromAlbumById(id spotify.ID) []spotify.SimpleTrack{
+// Get all tracks from an album given its id.
+func GetTracksFromAlbumById(id string) []model.Track {
 	spotiConn := src.GetSpotifyConn()
 	ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	results, err := client.GetAlbumTracks(ctx, id, spotify.Limit(50))
+	results, err := client.GetAlbumTracks(ctx, model.ToSpotifyID(id), spotify.Limit(50))
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return results.Tracks
+	return model.ToTracks(results.Tracks)
 }
 
