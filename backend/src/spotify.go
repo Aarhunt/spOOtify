@@ -1,15 +1,17 @@
 package src
 
 import (
-    "context"
-    "log"
-    "net/http"
-    "os"
-    "sync"
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"log"
+	"net/http"
+	"os"
+	"sync"
 
-    "github.com/gin-gonic/gin"
-    "github.com/zmb3/spotify/v2"
-    spotifyauth "github.com/zmb3/spotify/v2/auth"
+	"github.com/gin-gonic/gin"
+	"github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
 var (
@@ -64,17 +66,35 @@ func GetSpotifyConn() *SpotifyConn {
 // @Router       /auth/url [get]
 func GetAuthURLController(c *gin.Context) {
     initSpotifyAuth()
+	newState := generateRandomState(16)
+	c.SetCookie("spotify_auth_state", newState, 3600, "/", "", false, true)
     url := auth.AuthURL(state)
-    c.JSON(http.StatusOK, gin.H{"url": url})
+		c.JSON(http.StatusOK, gin.H{"url": url})
+}
+
+func generateRandomState(length int) string {
+    b := make([]byte, length)
+    if _, err := rand.Read(b); err != nil {
+        return "fallback_random_state" // Extremely unlikely to fail
+    }
+    return hex.EncodeToString(b)
 }
 
 func CompleteAuthGin(c *gin.Context) {
     initSpotifyAuth() 
 
-    if c.Query("state") != state {
+	storedState, err := c.Cookie("spotify_auth_state")
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "State cookie missing"})
+        return
+    }
+
+    if c.Query("state") != storedState {
         c.JSON(http.StatusBadRequest, gin.H{"error": "State mismatch"})
         return
     }
+
+    c.SetCookie("spotify_auth_state", "", -1, "/", "", false, true)
 
     token, err := auth.Token(c.Request.Context(), state, c.Request)
     if err != nil {
