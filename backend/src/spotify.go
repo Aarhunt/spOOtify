@@ -68,7 +68,7 @@ func GetAuthURLController(c *gin.Context) {
     initSpotifyAuth()
 	newState := generateRandomState(16)
 	c.SetCookie("spotify_auth_state", newState, 3600, "/", "", false, true)
-    url := auth.AuthURL(state)
+    url := auth.AuthURL(newState)
 		c.JSON(http.StatusOK, gin.H{"url": url})
 }
 
