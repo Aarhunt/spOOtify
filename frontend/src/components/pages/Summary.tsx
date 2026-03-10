@@ -257,13 +257,13 @@ function ResultBox() {
 }
 
 function ResultBoxSummary() {
-  const { playlistSummaryData, artistSummaryData, albumSummaryData, trackSummaryData, summaryPlaylistsLoading, summaryArtistsLoading, summaryAlbumsLoading, summaryTracksLoading, includeItem, undoIncludeItem, undoIncludePlaylist, includePlaylist} = usePlaylistStore();
+  const { playlistSummaryData, artistSummaryData, albumSummaryData, trackSummaryData, summaryPlaylistsLoading, summaryArtistsLoading, summaryAlbumsLoading, summaryTracksLoading, currentPlaylistId, includeItem, undoIncludeItem, undoIncludePlaylist, includePlaylist} = usePlaylistStore();
 
   const handleInclusion = (id: string, include: boolean, type: ModelItemType, undo: boolean) => { 
     type == 0 ? 
         undo ? 
-            undoIncludePlaylist(id) : 
-            includePlaylist(id) 
+            undoIncludePlaylist(currentPlaylistId, id) : 
+            includePlaylist(currentPlaylistId, id) 
     :
         undo ? 
             undoIncludeItem(id, include, type) : 
@@ -365,12 +365,12 @@ function ResultBoxSummary() {
 }
 
 function ResultBoxExpand() {
-  const { playlistSummaryData, artistSummaryData, albumSummaryData, trackSummaryData, artistSummaryExpandData, albumSummaryExpandData, summaryPlaylistsLoading, summaryArtistsLoading, summaryAlbumsLoading, summaryTracksLoading, trackSummaryExpandData, summaryType, includeItem, undoIncludeItem, getSummaryAlbumsFromArtist, getSummaryTracksFromAlbum, setCurrentSummaryArtist, setCurrentSummaryAlbum, undoIncludePlaylist, includePlaylist } = usePlaylistStore();
+  const { playlistSummaryData, artistSummaryData, albumSummaryData, trackSummaryData, artistSummaryExpandData, albumSummaryExpandData, summaryPlaylistsLoading, summaryArtistsLoading, summaryAlbumsLoading, summaryTracksLoading, trackSummaryExpandData, summaryType, currentPlaylistId, includeItem, undoIncludeItem, getSummaryAlbumsFromArtist, getSummaryTracksFromAlbum, setCurrentSummaryArtist, setCurrentSummaryAlbum, undoIncludePlaylist, includePlaylist } = usePlaylistStore();
   const handleInclusion = (id: string, include: boolean, type: ModelItemType, undo: boolean) => { 
     type == 0 ? 
         undo ? 
-            undoIncludePlaylist(id) : 
-            includePlaylist(id) 
+            undoIncludePlaylist(currentPlaylistId, id) : 
+            includePlaylist(currentPlaylistId, id) 
     :
         undo ? 
             undoIncludeItem(id, include, type) : 

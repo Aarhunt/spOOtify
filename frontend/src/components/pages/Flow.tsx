@@ -18,7 +18,6 @@ import { usePlaylistStore } from '../stores/playlist.store';
 import  CustomNode  from '../types/CustomNode'
 import CustomConnectionLine from '../types/CustomConnectionLine';
 import FloatingEdge from '../types/FloatingEdge';
-import { createFlowEdge } from '../utils/flow-mapper';
 
 export default function Flow() {
     const { 

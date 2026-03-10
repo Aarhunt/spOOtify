@@ -1,4 +1,4 @@
-import { BaseEdge, EdgeLabelRenderer, getBezierPath, getStraightPath, useInternalNode, type EdgeProps } from '@xyflow/react';
+import { BaseEdge, EdgeLabelRenderer, getStraightPath, useInternalNode, type EdgeProps } from '@xyflow/react';
 
 import { getEdgeParams } from '../utils/utils';
 import { usePlaylistStore } from '../stores/playlist.store';

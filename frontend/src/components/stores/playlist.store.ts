@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { getPlaylist, postPlaylist, postPlaylistPublish, putPlaylistByIdRename, deletePlaylistById, postPlaylistPublishall, postSpotifyArtistAlbums, postSearch, getPlaylistByIdInclusions, postPlaylistInclude, postPlaylistIncludeUndo, postPlaylistItem, postPlaylistItemUndo, postSpotifyAlbumTracks, getPlaylistInclusions} from '@/client';
 import type { ModelPlaylistResponse, ModelItemResponse, ModelItemType } from "@/client/types.gen"
 
-import { type Node, type Edge, MarkerType, type Connection, addEdge } from '@xyflow/react';
+import { type Node, type Edge } from '@xyflow/react';
 import { createFlowEdge, getLayoutedElements, mapInclusionsToEdges, mapPlaylistsToNodes } from '../utils/flow-mapper';
 
 
