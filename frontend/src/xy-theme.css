@@ -1,0 +1,149 @@
+/* XYFlow Spotify-Dark Theme - Flat Version */
+
+.react-flow {
+  /* Core Colors */
+  --xy-background-color: #121212; 
+  
+  /* Selection and Hover */
+  --xy-theme-selected: #1DB954;   /* Spotify Green */
+  --xy-theme-hover: #282828;     
+  --xy-theme-edge-hover: #1ed760; 
+  --xy-theme-color-focus: #333333;
+
+  /* Node Styling */
+  --xy-node-background-color-default: #181818;
+  --xy-node-border-default: 1px solid #282828; /* Sharp border instead of shadow */
+  --xy-node-color-default: #ffffff;
+  --xy-node-border-radius-default: 8px;
+
+  /* REMOVED ALL BOX SHADOWS */
+  --xy-node-boxshadow-default: none;
+
+  /* Handles */
+  --xy-handle-background-color-default: #1DB954;
+  --xy-handle-border-color-default: #121212;
+
+  /* Edge Styling */
+  --xy-edge-label-color-default: #b3b3b3;
+  --xy-edge-stroke-default: #3E3E3E; /* Darker, subtler edges */
+}
+
+/* Ensure no shadows in dark mode either */
+.react-flow.dark {
+  --xy-node-boxshadow-default: none;
+  --xy-theme-color-focus: #1DB954;
+}
+
+/* Custom Button Styling */
+.xy-theme__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  padding: 0 1rem;
+  border-radius: 100px;
+  border: 1px solid var(--color-primary);
+  background-color: var(--color-background);
+  color: var(--color-primary);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  box-shadow: var(--xy-node-boxshadow-default);
+  cursor: pointer;
+}
+ 
+.xy-theme__button.active {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+ 
+.xy-theme__button.active:hover,
+.xy-theme__button.active:active {
+  background-color: var(--color-primary);
+  opacity: 0.9;
+}
+ 
+.xy-theme__button:hover {
+  background-color: var(--xy-controls-button-background-color-hover-default);
+}
+ 
+.xy-theme__button:active {
+  background-color: var(--color-hover-bg);
+}
+ 
+.xy-theme__button:disabled {
+  color: var(--color-disabled);
+  opacity: 0.8;
+  cursor: not-allowed;
+  border: 1px solid var(--color-disabled);
+}
+ 
+.xy-theme__button > span {
+  margin-right: 0.2rem;
+}
+ 
+/* Add gap between adjacent buttons */
+.xy-theme__button + .xy-theme__button {
+  margin-left: 0.3rem;
+}
+
+/* Customizing Default Node Behavior */
+.react-flow__node {
+  box-shadow: none !important; /* Force removal */
+  border-radius: var(--xy-node-border-radius-default);
+  background-color: var(--xy-node-background-color-default);
+  color: #fff;
+  border: var(--xy-node-border-default);
+  transition: border-color 0.2s;
+}
+
+/* Hover & Selection states */
+.react-flow__node.selectable:hover {
+  border-color: #535353; /* Highlight border on hover */
+}
+
+.react-flow__node.selectable.selected,
+.react-flow__node.selectable:focus {
+  border-color: var(--xy-theme-selected);
+  box-shadow: none !important;
+  outline: none;
+}
+
+/* UI Elements (Buttons/Controls) - Flat Style */
+:root {
+  --color-primary: #1DB954;
+  --color-background: #181818;
+  --color-hover-bg: #282828;
+  --color-disabled: #535353;
+}
+
+.xy-theme__button {
+  border: 1px solid #3E3E3E;
+  background-color: #181818;
+  color: #fff;
+  border-radius: 500px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 11px;
+  box-shadow: none !important;
+}
+
+.xy-theme__button:hover {
+  background-color: #282828;
+  border-color: #b3b3b3;
+  transform: none; /* Removed scale for a flatter feel */
+}
+
+.xy-theme__input, .xy-theme__select {
+  background-color: #121212;
+  border: 1px solid #282828;
+  color: #fff;
+  border-radius: 4px;
+  box-shadow: none !important;
+}
+
+.xy-theme__input:focus {
+  border-color: #1DB954;
+}

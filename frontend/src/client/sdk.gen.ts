@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetAuthStatusData, GetAuthStatusResponses, GetAuthUrlData, GetAuthUrlResponses, GetPlaylistByIdExclusionsData, GetPlaylistByIdExclusionsErrors, GetPlaylistByIdExclusionsResponses, GetPlaylistByIdInclusionsData, GetPlaylistByIdInclusionsErrors, GetPlaylistByIdInclusionsResponses, GetPlaylistByIdPlaylistsData, GetPlaylistByIdPlaylistsErrors, GetPlaylistByIdPlaylistsResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistIncludeData, PostPlaylistIncludeErrors, PostPlaylistIncludeResponses, PostPlaylistIncludeUndoData, PostPlaylistIncludeUndoErrors, PostPlaylistIncludeUndoResponses, PostPlaylistItemData, PostPlaylistItemErrors, PostPlaylistItemResponses, PostPlaylistItemUndoData, PostPlaylistItemUndoErrors, PostPlaylistItemUndoResponses, PostPlaylistPublishallData, PostPlaylistPublishallErrors, PostPlaylistPublishallResponses, PostPlaylistPublishData, PostPlaylistPublishErrors, PostPlaylistPublishResponses, PostPlaylistResponses, PostSearchData, PostSearchErrors, PostSearchResponses, PostSpotifyAlbumTracksData, PostSpotifyAlbumTracksErrors, PostSpotifyAlbumTracksResponses, PostSpotifyArtistAlbumsData, PostSpotifyArtistAlbumsErrors, PostSpotifyArtistAlbumsResponses, PutPlaylistByIdRenameData, PutPlaylistByIdRenameErrors, PutPlaylistByIdRenameResponses } from './types.gen';
+import type { DeletePlaylistByIdData, DeletePlaylistByIdErrors, DeletePlaylistByIdResponses, DeletePlaylistData, DeletePlaylistErrors, DeletePlaylistResponses, GetAuthStatusData, GetAuthStatusResponses, GetAuthUrlData, GetAuthUrlResponses, GetPlaylistByIdExclusionsData, GetPlaylistByIdExclusionsErrors, GetPlaylistByIdExclusionsResponses, GetPlaylistByIdInclusionsData, GetPlaylistByIdInclusionsErrors, GetPlaylistByIdInclusionsResponses, GetPlaylistByIdPlaylistsData, GetPlaylistByIdPlaylistsErrors, GetPlaylistByIdPlaylistsResponses, GetPlaylistData, GetPlaylistErrors, GetPlaylistInclusionsData, GetPlaylistInclusionsErrors, GetPlaylistInclusionsResponses, GetPlaylistResponses, PostPlaylistData, PostPlaylistErrors, PostPlaylistIncludeData, PostPlaylistIncludeErrors, PostPlaylistIncludeResponses, PostPlaylistIncludeUndoData, PostPlaylistIncludeUndoErrors, PostPlaylistIncludeUndoResponses, PostPlaylistItemData, PostPlaylistItemErrors, PostPlaylistItemResponses, PostPlaylistItemUndoData, PostPlaylistItemUndoErrors, PostPlaylistItemUndoResponses, PostPlaylistPublishallData, PostPlaylistPublishallErrors, PostPlaylistPublishallResponses, PostPlaylistPublishData, PostPlaylistPublishErrors, PostPlaylistPublishResponses, PostPlaylistResponses, PostSearchData, PostSearchErrors, PostSearchResponses, PostSpotifyAlbumTracksData, PostSpotifyAlbumTracksErrors, PostSpotifyAlbumTracksResponses, PostSpotifyArtistAlbumsData, PostSpotifyArtistAlbumsErrors, PostSpotifyArtistAlbumsResponses, PutPlaylistByIdRenameData, PutPlaylistByIdRenameErrors, PutPlaylistByIdRenameResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -87,6 +87,13 @@ export const postPlaylistIncludeUndo = <ThrowOnError extends boolean = false>(op
         ...options.headers
     }
 });
+
+/**
+ * Get all playlist relationships
+ *
+ * Fetches all rows from the playlist_nested_playlist table to build diagram edges
+ */
+export const getPlaylistInclusions = <ThrowOnError extends boolean = false>(options?: Options<GetPlaylistInclusionsData, ThrowOnError>) => (options?.client ?? client).get<GetPlaylistInclusionsResponses, GetPlaylistInclusionsErrors, ThrowOnError>({ url: '/playlist/inclusions', ...options });
 
 /**
  * Include or Exclude an Item

@@ -275,12 +275,12 @@ function TrackResultItem({ item, onAction }: TrackResultItemProps) {
 }
 
 function ResultBox() {
-  const { playlistSearchData, artistSearchData, searchLoading, albumSearchData, trackSearchData, albumSearchLoading, trackSearchLoading, searchType, includeItem, undoIncludeItem, getSearchAlbumsFromArtist, getSearchTracksFromAlbum, setCurrentSearchArtist, setCurrentSearchAlbum, includePlaylist, undoIncludePlaylist } = usePlaylistStore();
+  const { playlistSearchData, artistSearchData, searchLoading, albumSearchData, trackSearchData, albumSearchLoading, trackSearchLoading, searchType, currentPlaylistId, includeItem, undoIncludeItem, getSearchAlbumsFromArtist, getSearchTracksFromAlbum, setCurrentSearchArtist, setCurrentSearchAlbum, includePlaylist, undoIncludePlaylist } = usePlaylistStore();
   const handleInclusion = (id: string, include: boolean, type: ModelItemType, undo: boolean) => { 
     type == 0 ? 
         undo ? 
-            undoIncludePlaylist(id) : 
-            includePlaylist(id) 
+            undoIncludePlaylist(currentPlaylistId, id) : 
+            includePlaylist(currentPlaylistId, id) 
     :
         undo ? 
             undoIncludeItem(id, include, type) : 

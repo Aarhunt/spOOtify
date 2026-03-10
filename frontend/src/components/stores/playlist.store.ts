@@ -1,10 +1,15 @@
 import { create } from 'zustand'
-import { getPlaylist, postPlaylist, postPlaylistPublish, putPlaylistByIdRename, deletePlaylistById, postPlaylistPublishall, postSpotifyArtistAlbums, postSearch, getPlaylistByIdInclusions, postPlaylistInclude, postPlaylistIncludeUndo, postPlaylistItem, postPlaylistItemUndo, postSpotifyAlbumTracks} from '@/client';
+import { getPlaylist, postPlaylist, postPlaylistPublish, putPlaylistByIdRename, deletePlaylistById, postPlaylistPublishall, postSpotifyArtistAlbums, postSearch, getPlaylistByIdInclusions, postPlaylistInclude, postPlaylistIncludeUndo, postPlaylistItem, postPlaylistItemUndo, postSpotifyAlbumTracks, getPlaylistInclusions} from '@/client';
 import type { ModelPlaylistResponse, ModelItemResponse, ModelItemType } from "@/client/types.gen"
+
+import { type Node, type Edge, MarkerType, type Connection, addEdge } from '@xyflow/react';
+import { createFlowEdge, getLayoutedElements, mapInclusionsToEdges, mapPlaylistsToNodes } from '../utils/flow-mapper';
 
 
 interface PlaylistState {
     playlistSelectionData: ModelPlaylistResponse[];
+    playlistNodeData: Node[];
+    playlistEdgeData: Edge[];
     currentPlaylistName: string;
     currentPlaylistId: string;
     selectionLoading: boolean;
@@ -57,19 +62,23 @@ interface PlaylistState {
     setCurrentSearchArtist: (val: string) => void;
     setCurrentSearchAlbum: (val: string) => void;
     includeItem: (itemId: string, include: boolean, type: ModelItemType) => Promise<void>;
-    includePlaylist: (itemId: string) => Promise<void>;
+    includePlaylist: (playlistId: string, itemId: string) => Promise<void>;
     undoIncludeItem: (itemId: string, include: boolean, type: ModelItemType) => Promise<void>;
-    undoIncludePlaylist: (itemId: string) => Promise<void>;
+    undoIncludePlaylist: (playlistId: string, itemId: string) => Promise<void>;
     summary: () => Promise<void>;
     clearSummaryData: () => Promise<void>;
     setSummaryType: (val: ModelItemType) => void;
     setCurrentSummaryArtist: (val: string) => void;
     setCurrentSummaryAlbum: (val: string) => void;
     setSummaryLoading: (loading: boolean) => void;
+    setPlaylistNodes: (updater: Node[] | ((nds: Node[]) => Node[])) => void;
+    setPlaylistEdges: (updater: Edge[] | ((eds: Edge[]) => Edge[])) => void;
 }
 
 export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     playlistSelectionData: [],
+    playlistNodeData: [],
+    playlistEdgeData: [],
     currentPlaylistName: "",
     currentPlaylistId: "",
     selectionLoading: false,
@@ -110,11 +119,28 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
     setCurrentPlaylist: (id, name) => set({ currentPlaylistId: id, currentPlaylistName: name}),
 
-        fetchSelectionData: async () => {
+    fetchSelectionData: async () => {
         set({ selectionLoading: true });
-        const response = await getPlaylist();
-        if (response.data) {
-            set({ playlistSelectionData: response.data, selectionLoading: false });
+        const [playlistsRes, edgesRes] = await Promise.all([
+                getPlaylist(),
+                getPlaylistInclusions() // Your new endpoint
+            ]);
+
+        if (playlistsRes.data) {
+            const playlists = playlistsRes.data;
+            const inclusions = edgesRes.data ? edgesRes.data : [];
+            
+            const initialNodes = mapPlaylistsToNodes(playlists);
+            const initialEdges = mapInclusionsToEdges(inclusions);
+
+            const { nodes, edges } = getLayoutedElements(initialNodes, initialEdges);
+
+            set({ 
+                playlistSelectionData: playlists, 
+                playlistNodeData: nodes,
+                playlistEdgeData: edges,
+                selectionLoading: false 
+            });
         } else {
             set({ selectionLoading: false, error: true });
         }
@@ -480,15 +506,13 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
         }
     },
 
-    includePlaylist: async (itemId: string) => {
+    includePlaylist: async (playlistId: string, itemId: string) => {
         set({ includeLoading: true });
-
-        console.log("HEY!")
 
         try {
             const response = await postPlaylistInclude({
                 body: {
-                    pspotid: get().currentPlaylistId,
+                    pspotid: playlistId,
                     cspotid: itemId,
                 }
             });
@@ -507,19 +531,23 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                 const playlistSummaryData = [...state.playlistSummaryData, newItem]
 
                 set({ includeLoading: false, playlistSearchData: playlistSearchData, playlistSummaryData: playlistSummaryData });
+                //
+                // Replace that large object literal with the factory
+                const newEdge = createFlowEdge({ source: itemId, target: playlistId });
+                get().setPlaylistEdges((eds: Edge[]) => [...eds, newEdge]);
             }
         } catch (err) {
             set({ includeLoading: false, error: true });
         }
     },
 
-    undoIncludePlaylist: async (itemId: string) => {
+    undoIncludePlaylist: async (playlistId: string, itemId: string) => {
         set({ includeLoading: true });
 
         try {
             const response = await postPlaylistIncludeUndo({
                 body: {
-                    pspotid: get().currentPlaylistId,
+                    pspotid: playlistId,
                     cspotid: itemId,
                 }
             });
@@ -535,6 +563,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
                 const playlistSummaryData = state.playlistSummaryData.filter(a => itemId != a.spotifyID);
                 set({ includeLoading: false, playlistSearchData: playlistSearchData, playlistSummaryData: playlistSummaryData});
+                get().setPlaylistEdges((edges) => edges.filter((edge) => edge.source !== itemId || edge.target !== playlistId));
             }
         } catch (err) {
             set({ includeLoading: false, error: true });
@@ -606,11 +635,25 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
         }
     },
 
+
+    setPlaylistEdges: (updater: any) => {
+        const currentEdges = get().playlistEdgeData;
+        const nextEdges = typeof updater === 'function' ? updater(currentEdges) : updater;
+        set({ playlistEdgeData: nextEdges });
+    },
+
+    setPlaylistNodes: (updater: any) => {
+        const currentNodes = get().playlistNodeData;
+        const nextNodes = typeof updater === 'function' ? updater(currentNodes) : updater;
+        set({ playlistNodeData: nextNodes });
+    },
+
     setSummaryType: (val: ModelItemType) => set({ summaryType: val, artistSummaryData: [], albumSummaryData: [], trackSummaryData: [], albumSummaryExpandData: [], trackSummaryExpandData: [] }),
         setCurrentSummaryArtist: (val: string) => set({ currentSummarySelectedArtist: val }),
         setCurrentSummaryAlbum: (val: string) => set({ currentSummarySelectedAlbum: val }),
         setSummaryLoading: (loading: boolean) => set({ summaryPlaylistsLoading: loading, summaryArtistsLoading: loading, summaryAlbumsLoading: loading, summaryTracksLoading: loading})
 }));
+
 
 function matchSubstrings(s: string, match: string[]): boolean {
     const lowerStr = s.toLowerCase()

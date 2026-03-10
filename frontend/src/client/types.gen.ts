@@ -64,6 +64,11 @@ export type ModelPlaylistCreateRequest = {
     name: string;
 };
 
+export type ModelPlaylistInclusionResponse = {
+    source?: string;
+    target?: string;
+};
+
 export type ModelPlaylistPublishRequest = {
     spotifyID?: string;
 };
@@ -258,6 +263,33 @@ export type PostPlaylistIncludeUndoResponses = {
 };
 
 export type PostPlaylistIncludeUndoResponse = PostPlaylistIncludeUndoResponses[keyof PostPlaylistIncludeUndoResponses];
+
+export type GetPlaylistInclusionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/playlist/inclusions';
+};
+
+export type GetPlaylistInclusionsErrors = {
+    /**
+     * Error message
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type GetPlaylistInclusionsError = GetPlaylistInclusionsErrors[keyof GetPlaylistInclusionsErrors];
+
+export type GetPlaylistInclusionsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ModelPlaylistInclusionResponse>;
+};
+
+export type GetPlaylistInclusionsResponse = GetPlaylistInclusionsResponses[keyof GetPlaylistInclusionsResponses];
 
 export type PostPlaylistItemData = {
     /**
