@@ -244,7 +244,7 @@ func GetPlaylistInclusions(c *gin.Context) {
         return
     }
 
-    inclusions := services.GetAllInclusions(id)
+    inclusions := services.GetAllIncludedItems(id)
 
     c.JSON(http.StatusOK, inclusions)
 }
@@ -268,7 +268,7 @@ func GetPlaylistExclusions(c *gin.Context) {
         return
     }
 
-    exclusions := services.GetAllExclusions(id)
+    exclusions := services.GetAllExcludedItems(id)
 
     c.JSON(http.StatusOK, exclusions)
 }
@@ -330,4 +330,20 @@ func UndoIncludePlaylist(c *gin.Context) { //TODO
 	c.JSON(http.StatusOK, res)
 }
 
+// GetAllPlaylistInclusions godoc
+// @Summary      Get all playlist relationships
+// @Description  Fetches all rows from the playlist_nested_playlist table to build diagram edges
+// @Tags         playlist
+// @Produce      json
+// @Success      200  {array}   model.PlaylistInclusionResponse
+// @Failure      500  {object}  map[string]string "Error message"
+// @Router       /playlist/inclusions [get]
+func GetAllPlaylistInclusions(c *gin.Context) {
+	edges, err := services.GetAllPlaylistInclusions()
 
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inclusions"})
+	}
+
+	c.JSON(http.StatusOK, edges)
+}

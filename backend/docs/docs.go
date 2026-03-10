@@ -251,6 +251,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/playlist/inclusions": {
+            "get": {
+                "description": "Fetches all rows from the playlist_nested_playlist table to build diagram edges",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "playlist"
+                ],
+                "summary": "Get all playlist relationships",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.PlaylistInclusionResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/playlist/item": {
             "post": {
                 "description": "Adds an IdItem to either the inclusions or exclusions of a playlist",
@@ -980,6 +1012,17 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "My Playlist"
+                }
+            }
+        },
+        "model.PlaylistInclusionResponse": {
+            "type": "object",
+            "properties": {
+                "source": {
+                    "type": "string"
+                },
+                "target": {
+                    "type": "string"
                 }
             }
         },

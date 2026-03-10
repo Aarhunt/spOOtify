@@ -92,6 +92,7 @@ func main() {
 			play.GET("/:id/exclusions", controllers.GetPlaylistExclusions)
 			play.GET("/:id/playlists", controllers.GetPlaylistsById)
 			play.PUT("/:id/rename", controllers.RenamePlaylist)
+			play.GET("/inclusions", controllers.GetAllPlaylistInclusions)
 		}
 
 		{

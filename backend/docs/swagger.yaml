@@ -118,6 +118,13 @@ definitions:
     required:
     - name
     type: object
+  model.PlaylistInclusionResponse:
+    properties:
+      source:
+        type: string
+      target:
+        type: string
+    type: object
   model.PlaylistPublishRequest:
     properties:
       spotifyID:
@@ -471,6 +478,28 @@ paths:
               type: string
             type: object
       summary: Undo a nested Playlist
+      tags:
+      - playlist
+  /playlist/inclusions:
+    get:
+      description: Fetches all rows from the playlist_nested_playlist table to build
+        diagram edges
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.PlaylistInclusionResponse'
+            type: array
+        "500":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all playlist relationships
       tags:
       - playlist
   /playlist/item:

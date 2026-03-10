@@ -28,3 +28,7 @@ func (p Playlist) ToResponse() *PlaylistResponse {
 	}
 }
 
+type PlaylistInclusionResponse struct {
+    ParentID string `gorm:"column:playlist_spotify_id" json:"target"`
+    ChildID  string `gorm:"column:included_playlist_spotify_id" json:"source"`
+}

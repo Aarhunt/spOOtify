@@ -164,7 +164,7 @@ func GetInclusionMap(playlistID string, ids []string) map[string]bool {
 	return m
 }
 
-func GetAllInclusions(id string) []model.ItemResponse {
+func GetAllIncludedItems(id string) []model.ItemResponse {
     var items []model.IdItem
 	var playlists = SearchPlaylist(model.SearchRequest{Query: "", PlaylistID: id, ItemType: model.PlaylistItem})
 
@@ -199,7 +199,7 @@ func GetExclusionMap(playlistID string, ids []string) map[string]bool {
 	return m
 }
 
-func GetAllExclusions(id string) []model.ItemResponse {
+func GetAllExcludedItems(id string) []model.ItemResponse {
     var items []model.IdItem
 
     err := src.GetDbConn().Db.
@@ -325,7 +325,7 @@ func getTracksRecursive(p model.Playlist, visited map[string]bool) (map[string]i
 		}
 	}
 
-	inclusions, exclusions := GetAllInclusions(p.SpotifyID), GetAllExclusions(p.SpotifyID)
+	inclusions, exclusions := GetAllIncludedItems(p.SpotifyID), GetAllExcludedItems(p.SpotifyID)
 
     for _, v := range exclusions {
         switch v.ItemType {
@@ -406,4 +406,14 @@ func PublishPlaylist(req model.PlaylistPublishRequest) error {
 		}
 	}
     return nil
+}
+
+func GetAllPlaylistInclusions() ([]model.PlaylistInclusionResponse, error) { 
+var edges []model.PlaylistInclusionResponse
+    
+    err := src.GetDbConn().Db.Table("playlist_nested_playlists").
+        Select("playlist_spotify_id, included_playlist_spotify_id").
+        Scan(&edges).Error
+        
+    return edges, err
 }
