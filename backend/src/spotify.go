@@ -66,10 +66,29 @@ func GetSpotifyConn() *SpotifyConn {
 // @Router       /auth/url [get]
 func GetAuthURLController(c *gin.Context) {
     initSpotifyAuth()
-	newState := generateRandomState(16)
-	c.SetCookie("spotify_auth_state", newState, 3600, "/", "", false, true)
+    newState := generateRandomState(16)
+
+    // Check if we are on a secure connection
+    // (Localhost is usually NOT secure, so this must be false)
+    isSecure := c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https"
+
+    // Set SameSite to Lax (standard for OAuth)
+    c.SetSameSite(http.SameSiteLaxMode)
+
+    // SetCookie: name, value, maxAge, path, domain, secure, httpOnly
+    // IMPORTANT: Passing an empty string "" for domain is best for localhost.
+    c.SetCookie(
+        "spotify_auth_state", 
+        newState, 
+        3600, 
+        "/", 
+        "",       // Domain MUST be empty for localhost to work reliably
+        isSecure, // Must be FALSE on http://localhost
+        true,     // HttpOnly: Yes, for security
+    )
+
     url := auth.AuthURL(newState)
-		c.JSON(http.StatusOK, gin.H{"url": url})
+    c.JSON(http.StatusOK, gin.H{"url": url})
 }
 
 func generateRandomState(length int) string {
@@ -83,8 +102,12 @@ func generateRandomState(length int) string {
 func CompleteAuthGin(c *gin.Context) {
     initSpotifyAuth() 
 
+    // DEBUG: Print all cookies to the console to see if it's there
+    log.Println("All Cookies:", c.Request.Header.Get("Cookie"))
+
 	storedState, err := c.Cookie("spotify_auth_state")
     if err != nil {
+        log.Println("Cookie Error:", err) // This will tell you if it's "named cookie not present"
         c.JSON(http.StatusBadRequest, gin.H{"error": "State cookie missing"})
         return
     }
