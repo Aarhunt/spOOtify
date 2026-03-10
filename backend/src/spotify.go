@@ -18,7 +18,6 @@ var (
     lockSpotifyConn     = &sync.Mutex{}
     spotifyConnInstance *SpotifyConn
     auth                *spotifyauth.Authenticator
-    state               = "abc123_random_string" 
 )
 
 type SpotifyConn struct {
@@ -102,12 +101,8 @@ func generateRandomState(length int) string {
 func CompleteAuthGin(c *gin.Context) {
     initSpotifyAuth() 
 
-    // DEBUG: Print all cookies to the console to see if it's there
-    log.Println("All Cookies:", c.Request.Header.Get("Cookie"))
-
 	storedState, err := c.Cookie("spotify_auth_state")
     if err != nil {
-        log.Println("Cookie Error:", err) // This will tell you if it's "named cookie not present"
         c.JSON(http.StatusBadRequest, gin.H{"error": "State cookie missing"})
         return
     }
@@ -119,7 +114,7 @@ func CompleteAuthGin(c *gin.Context) {
 
     c.SetCookie("spotify_auth_state", "", -1, "/", "", false, true)
 
-    token, err := auth.Token(c.Request.Context(), state, c.Request)
+    token, err := auth.Token(c.Request.Context(), storedState, c.Request)
     if err != nil {
         c.JSON(http.StatusForbidden, gin.H{"error": "Couldn't get token", "details": err.Error()})
         log.Println("Auth Error:", err)
