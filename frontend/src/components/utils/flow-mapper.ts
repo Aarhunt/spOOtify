@@ -9,7 +9,7 @@ const nodeWidth = 185;
 const nodeHeight = 84;
 
 export const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
-  dagreGraph.setGraph({ rankdir: 'LR', nodesep: 40, ranksep: 100 });
+  dagreGraph.setGraph({ rankdir: 'BT', nodesep: 40, ranksep: 100 });
 
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
