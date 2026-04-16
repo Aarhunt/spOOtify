@@ -534,7 +534,9 @@ func PublishPlaylistEfficientRecursive(id string, path map[string]bool) []string
 			deletions = append(deletions, excId)
 		}
 	}
-	slices.DeleteFunc(totalTracks, func(id string) bool {return slices.Contains(deletions, id)})
+
+	fmt.Println("%d tracks in playlist %s", len(totalTracks), id)
+	totalTracks = slices.DeleteFunc(totalTracks, func(id string) bool {return slices.Contains(deletions, id)})
 	
 	if _, ok := path[id]; ok {
 		publishPlaylist(totalTracks, id)
