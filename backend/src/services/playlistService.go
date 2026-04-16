@@ -232,13 +232,13 @@ func GetAllExcludedItems(id string) []model.ItemResponse {
 // getPlaylistParents
 // Get the parents of a playlist
 // Returns the playlists as model.Playlist objects
-func getPlaylistParents(p *model.Playlist) ([]model.Playlist) {
+func getPlaylistParents(id string) ([]model.Playlist) {
 	var includedParents = []model.Playlist{}
 
     _ = src.GetDbConn().Db.
         Table("playlists").
         Joins("JOIN playlist_nested_playlists ON playlist_nested_playlists.playlist_spotify_id = playlists.spotify_id").
-        Where("playlist_nested_playlists.included_playlist_spotify_id = ?", p.SpotifyID).
+        Where("playlist_nested_playlists.included_playlist_spotify_id = ?", id).
         Find(&includedParents).Error
 
 	return includedParents
@@ -246,23 +246,23 @@ func getPlaylistParents(p *model.Playlist) ([]model.Playlist) {
 
 // getPlaylistParentsRecursive
 // Returns a map of visited playlists, with a map that is true when the node is a root. .
-func getPlaylistParentsRecursive(p model.Playlist, root map[string]bool) map[string]bool {
-    if !root[p.SpotifyID] {
-        return nil
+func getPlaylistParentsRecursive(id string, root map[string]bool) map[string]bool {
+	if val, _ := root[id]; !val {
+        return root
     }
 
-    root[p.SpotifyID] = false
+    root[id] = false
 
-	parentPlaylists := getPlaylistParents(&p)
+	parentPlaylists := getPlaylistParents(id)
 
 	for _, nested := range parentPlaylists {
-		nestedPlaylistsMap := getPlaylistParentsRecursive(nested, root) 
+		nestedPlaylistsMap := getPlaylistParentsRecursive(nested.SpotifyID, root) 
 		for key := range nestedPlaylistsMap {
 			root[key] = false 
 		}
 	}
 
-	if (len(parentPlaylists) == 0) {root[p.SpotifyID] = false}
+	if (len(parentPlaylists) == 0) {root[id] = true}
 
 	return root
 }
