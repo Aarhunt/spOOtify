@@ -255,9 +255,9 @@ func getPlaylistParentsRecursive(id string, root map[string]bool) map[string]boo
 
 	parentPlaylists := getPlaylistParents(id)
 
-	for _, nested := range parentPlaylists {
-		nestedPlaylistsMap := getPlaylistParentsRecursive(nested.SpotifyID, root) 
-		for key, val := range nestedPlaylistsMap {
+	for _, parent := range parentPlaylists {
+		parentPlaylistsMap := getPlaylistParentsRecursive(parent.SpotifyID, root) 
+		for key, val := range parentPlaylistsMap {
 			root[key] = val 
 		}
 	}
@@ -523,6 +523,16 @@ func PublishPlaylistEfficientRecursive(id string, path map[string]bool) []string
 			totalTracks = append(totalTracks, id)
 		}
 	}
+
+	deletions := []string{}
+	for excId, exc := range currentExclusions {
+		if inc, ok := currentInclusions[id]; ok {
+			if !model.IsIncluded(inc, exc) {
+				deletions = append(deletions, excId)
+			}
+		}
+	}
+	slices.DeleteFunc(totalTracks, func(id string) bool {return slices.Contains(deletions, id)})
 	
 	if _, ok := path[id]; ok {
 		publishPlaylist(totalTracks, id)
