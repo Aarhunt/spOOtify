@@ -247,7 +247,7 @@ func getPlaylistParents(id string) ([]model.Playlist) {
 // getPlaylistParentsRecursive
 // Returns a map of visited playlists, with a map that is true when the node is a root. .
 func getPlaylistParentsRecursive(id string, root map[string]bool) map[string]bool {
-	if val, _ := root[id]; !val {
+	if _, ok := root[id]; ok {
         return root
     }
 
