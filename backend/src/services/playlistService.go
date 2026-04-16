@@ -445,7 +445,7 @@ func PublishPlaylistOld(req model.PlaylistPublishRequest) error {
         return err
     }
 
-	affected := getPlaylistParentsRecursive(*playlist, make(map[string]bool))
+	affected := getPlaylistParentsRecursive(playlist.SpotifyID, make(map[string]bool))
 	affectedPlaylists := []*model.Playlist{playlist}
 	for id := range affected {
 		parent, err := GetPlaylist(id)
@@ -492,23 +492,13 @@ func publishPlaylist(trackStringIDs []string, id string) error {
 }
 
 func PublishPlaylistEfficient(req model.PlaylistPublishRequest) error {
-    playlist, err := GetPlaylist(req.SpotifyID)
-    if err != nil {
-        return err
-    }
 
-	path := getPlaylistParentsRecursive(*playlist, make(map[string]bool))
+	path := getPlaylistParentsRecursive(req.SpotifyID, make(map[string]bool))
 
 	fmt.Println(path)
 
 	for id, val := range path {
-		if val {
-			if err != nil {
-				return err
-			}
-			PublishPlaylistEfficientRecursive(id, path)
-
-		}
+		if val { PublishPlaylistEfficientRecursive(id, path) }
 	}
 
 	return nil
