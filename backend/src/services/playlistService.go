@@ -530,6 +530,8 @@ func PublishPlaylistEfficientRecursive(id string, path map[string]bool) []string
 			if !model.IsIncluded(inc, exc) {
 				deletions = append(deletions, excId)
 			}
+		} else {
+			deletions = append(deletions, excId)
 		}
 	}
 	slices.DeleteFunc(totalTracks, func(id string) bool {return slices.Contains(deletions, id)})
