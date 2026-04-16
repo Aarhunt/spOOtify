@@ -257,8 +257,8 @@ func getPlaylistParentsRecursive(id string, root map[string]bool) map[string]boo
 
 	for _, nested := range parentPlaylists {
 		nestedPlaylistsMap := getPlaylistParentsRecursive(nested.SpotifyID, root) 
-		for key := range nestedPlaylistsMap {
-			root[key] = false 
+		for key, val := range nestedPlaylistsMap {
+			root[key] = val 
 		}
 	}
 
