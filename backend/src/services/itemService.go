@@ -424,29 +424,29 @@ func getInclusionsExclusions(playlist *model.Playlist, itemIDs []string) ([]stri
 	incSet := make(map[string]bool)
 	excSet := make(map[string]bool)
 
-	processPlaylist := func(p *model.Playlist) {
-		for _, id := range GetIncludedIDsFromPlaylist(p, itemIDs) {
+	processPlaylist := func(id string) {
+		for id := range GetInclusionMap(id, itemIDs) {
 			incSet[id] = true
 		}
-		for _, id := range GetExcludedIDsFromPlaylist(p, itemIDs) {
+		for id := range GetExclusionMap(id, itemIDs) {
 			excSet[id] = true
 		}
 	}
-	processPlaylist(playlist)
-	currentPlaylists := GetIncludedPlaylistsFromPlaylist(playlist)
+	processPlaylist(playlist.SpotifyID)
+	currentPlaylists := GetPlaylistChildren(playlist.SpotifyID)
 
 	visited := make(map[string]bool)
 	visited[playlist.SpotifyID] = true
 
 	for len(currentPlaylists) > 0 {
-		var nextLevel = []model.Playlist{}
+		var nextLevel = []string{}
 		for _, p := range currentPlaylists {
-			if visited[p.SpotifyID] {
+			if visited[p] {
 				continue
 			}
-			visited[p.SpotifyID] = true
-			processPlaylist(&p)
-			nextLevel = append(nextLevel, GetIncludedPlaylistsFromPlaylist(&p)...)
+			visited[p] = true
+			processPlaylist(p)
+			nextLevel = append(nextLevel, GetPlaylistChildren(p)...)
 		}
 		currentPlaylists = nextLevel
 	}

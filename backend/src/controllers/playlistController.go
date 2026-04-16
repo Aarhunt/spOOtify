@@ -126,7 +126,7 @@ func PostPlaylist(c *gin.Context) {
 		return
 	}
 
-	result, err := services.PostPlaylist(req)
+	result, err := services.CreatePlaylist(req)
 
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": result})
@@ -178,7 +178,7 @@ func PublishPlaylist(c *gin.Context) {
         return
     }
 
-    err := services.PublishPlaylist(req)
+    err := services.PublishPlaylistEfficient(req)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{
             "error":   "Failed to sync with Spotify",
@@ -210,7 +210,7 @@ func PublishAllPlaylists(c *gin.Context) {
     }
 
 	for _, p := range playlists {
-		err := services.PublishPlaylist(model.PlaylistPublishRequest{SpotifyID: p.SpotifyID})
+		err := services.PublishPlaylistOld(model.PlaylistPublishRequest{SpotifyID: p.SpotifyID})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error":   "Failed to sync with Spotify",
@@ -339,7 +339,7 @@ func UndoIncludePlaylist(c *gin.Context) { //TODO
 // @Failure      500  {object}  map[string]string "Error message"
 // @Router       /playlist/inclusions [get]
 func GetAllPlaylistInclusions(c *gin.Context) {
-	edges, err := services.GetAllPlaylistInclusions()
+	edges, err := services.GetPlaylistTreeEdges()
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inclusions"})
