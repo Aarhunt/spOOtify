@@ -264,7 +264,7 @@ func GetAllExcludedIDItems(id string) []model.IdItem {
     err := src.GetDbConn().Db.
         Table("id_items").
         Joins("JOIN playlist_exclusions ON playlist_exclusions.id_item_spotify_id = id_items.spotify_id").
-        Where("playlist_inclusions.playlist_spotify_id = ?", id).
+        Where("playlist_exclusions.playlist_spotify_id = ?", id).
         Find(&items).Error
 
     if err != nil {
