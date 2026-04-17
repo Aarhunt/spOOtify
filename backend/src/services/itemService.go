@@ -322,8 +322,8 @@ func AlbumToResponse(albums []model.Album, playlist *model.Playlist) []model.Ite
 	albumIDs := utils.Map(albums, func(a model.Album) string { return a.ID })
 	artistIDs := utils.Map(albums, func(a model.Album) string { return a.ArtistID })
 
-	incMap := GetInclusionMap(playlist.SpotifyID, append(albumIDs, artistIDs...))
-	excMap := GetExclusionMap(playlist.SpotifyID, append(albumIDs, artistIDs...))
+	incMap := AreItemsIncluded(playlist.SpotifyID, append(albumIDs, artistIDs...))
+	excMap := AreItemsExcluded(playlist.SpotifyID, append(albumIDs, artistIDs...))
 
 	fmt.Println(incMap)
 
@@ -358,8 +358,8 @@ func AlbumToResponse(albums []model.Album, playlist *model.Playlist) []model.Ite
 func singleAlbumTrackToResponse(tracks []model.Track, playlist *model.Playlist, album string) []model.ItemResponse {
 	trackIDs := utils.Map(tracks, func(a model.Track) string { return a.ID })
 
-	incMap := GetInclusionMap(playlist.SpotifyID, append(trackIDs, album))
-	excMap := GetExclusionMap(playlist.SpotifyID, append(trackIDs, album))
+	incMap := AreItemsIncluded(playlist.SpotifyID, append(trackIDs, album))
+	excMap := AreItemsExcluded(playlist.SpotifyID, append(trackIDs, album))
 
 	return utils.Map(tracks, func(a model.Track) model.ItemResponse {
 
@@ -391,8 +391,8 @@ func TrackToResponse(tracks []model.Track, playlist *model.Playlist) []model.Ite
 	trackIDs := utils.Map(tracks, func(a model.Track) string { return a.ID })
 	albumIDs := utils.Map(tracks, func(a model.Track) string { return a.Album.ID })
 
-	incMap := GetInclusionMap(playlist.SpotifyID, append(trackIDs, albumIDs...))
-	excMap := GetExclusionMap(playlist.SpotifyID, append(trackIDs, albumIDs...))
+	incMap := AreItemsIncluded(playlist.SpotifyID, append(trackIDs, albumIDs...))
+	excMap := AreItemsExcluded(playlist.SpotifyID, append(trackIDs, albumIDs...))
 
 	return utils.Map(tracks, func(a model.Track) model.ItemResponse {
 
@@ -425,10 +425,10 @@ func getInclusionsExclusions(playlist *model.Playlist, itemIDs []string) ([]stri
 	excSet := make(map[string]bool)
 
 	processPlaylist := func(id string) {
-		for id := range GetInclusionMap(id, itemIDs) {
+		for id := range AreItemsIncluded(id, itemIDs) {
 			incSet[id] = true
 		}
-		for id := range GetExclusionMap(id, itemIDs) {
+		for id := range AreItemsExcluded(id, itemIDs) {
 			excSet[id] = true
 		}
 	}

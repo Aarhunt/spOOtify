@@ -32,6 +32,9 @@ func IncludeExcludeItem(c *gin.Context) {
 		return
 	}
 
+
+	services.ChangePlaylist(req.PlaylistID, true)
+
 	c.JSON(http.StatusOK, res)
 }
 
@@ -57,6 +60,8 @@ func UndoIncludeExcludeItem(c *gin.Context) {
         c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
+
+	services.ChangePlaylist(req.PlaylistID, true)
 
     // Returns the InclusionResponse with Included: 0 (Nothing)
     c.JSON(http.StatusOK, res)

@@ -244,7 +244,7 @@ func GetPlaylistInclusions(c *gin.Context) {
         return
     }
 
-    inclusions := services.GetAllIncludedItems(id)
+    inclusions := services.GetAllIncludedItemResponses(id)
 
     c.JSON(http.StatusOK, inclusions)
 }
@@ -268,7 +268,7 @@ func GetPlaylistExclusions(c *gin.Context) {
         return
     }
 
-    exclusions := services.GetAllExcludedItems(id)
+    exclusions := services.GetAllExcludedItemResopnses(id)
 
     c.JSON(http.StatusOK, exclusions)
 }
@@ -301,6 +301,8 @@ func IncludePlaylist(c *gin.Context) {
 		return
 	}
 
+	services.ChangePlaylist(req.ParentSpotifyID, true)
+
 	c.JSON(http.StatusOK, res)
 }
 
@@ -326,6 +328,8 @@ func UndoIncludePlaylist(c *gin.Context) { //TODO
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	services.ChangePlaylist(req.ParentSpotifyID, true)
 
 	c.JSON(http.StatusOK, res)
 }
