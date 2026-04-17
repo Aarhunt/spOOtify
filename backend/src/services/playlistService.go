@@ -608,9 +608,21 @@ func retrieveTracksFromPlaylist(id string) []string {
     spotiConn := src.GetSpotifyConn()
     ctx, client := spotiConn.Ctx, spotiConn.Client
 
-	tracks, _:= client.GetPlaylistItems(ctx, model.ToSpotifyID(id), spotify.Limit(50))
+	tracks := []spotify.PlaylistItem{}
 
-	return utils.Map(tracks.Items, func(t spotify.PlaylistItem) string {return string(t.Track.Track.ID)})
+	res, _:= client.GetPlaylistItems(ctx, model.ToSpotifyID(id), spotify.Limit(50))
+	tracks = append(tracks, res.Items...)
+
+	todo := int(res.Total)
+	cur := len(res.Items)
+	for cur < todo {
+		res, _ := client.GetPlaylistItems(ctx, model.ToSpotifyID(id), spotify.Limit(50), spotify.Offset(cur))
+		tracks = append(tracks, res.Items...)
+
+		cur += len(res.Items)
+	}
+
+	return utils.Map(tracks, func(t spotify.PlaylistItem) string {return string(t.Track.Track.ID)})
 }
 
 // Get all playlist child-parent connections.
