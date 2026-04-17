@@ -564,7 +564,9 @@ func PublishPlaylistEfficientRecursive(id string, path map[string]bool) []string
 		totalTracks = append(totalTracks, PublishPlaylistEfficientRecursive(c, path)...)
 	}
 
-	if p.Changed {
+	_, ok := path[id]
+
+	if p.Changed || ok {
 
 		currentInclusions, currentExclusions := getTracksFromSinglePlaylist(id)
 
@@ -595,7 +597,7 @@ func PublishPlaylistEfficientRecursive(id string, path map[string]bool) []string
 		totalTracks = append(totalTracks, retrieveTracksFromPlaylist(id)...)
 	}
 
-	if _, ok := path[id]; ok {
+	if ok {
 		publishPlaylist(totalTracks, id)
 	}
 
