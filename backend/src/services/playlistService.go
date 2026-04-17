@@ -123,11 +123,11 @@ func CreatePlaylist(req model.PlaylistCreateRequest) (*model.PlaylistResponse, e
 	return localPlaylist.ToResponse(), err
 }
 
-func ChangePlaylist(id string, changed bool) *gorm.DB {
-	db := src.GetDbConn().Db
+func ChangePlaylist(id string, changed bool) int {
+	dbConn := src.GetDbConn()
+	ctx, db := dbConn.Ctx, dbConn.Db
 
-	err := db.Save(&model.Playlist{SpotifyID: id, Changed: changed})
-
+	err, _ := gorm.G[model.Playlist](db).Where("spotify_id = ?", id).Update(ctx, "changed", changed)
 	return err
 }
 
