@@ -21,3 +21,9 @@
 
 ## In total, this feels like a container design pattern. Every playlist, album, artist, etc is a container that contains certain containers, but also excludes certain containers. 
 That is what I should make. 
+
+# TODO
+- Automatically suggest include artist
+- Edit exclusion patterns
+- Improve graph view
+- Automatically suggest genres

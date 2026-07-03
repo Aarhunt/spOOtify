@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/aarhunt/spootify/src/model"
 	"github.com/aarhunt/spootify/src/services"
@@ -20,7 +21,8 @@ func GetPlaylists(c *gin.Context) {
 	playlists, err := services.GetPlaylists()
 
     if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
     }
 
 	c.IndentedJSON(http.StatusOK, playlists)
@@ -129,7 +131,7 @@ func PostPlaylist(c *gin.Context) {
 	result, err := services.CreatePlaylist(req)
 
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": result})
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
         return
     }
 
@@ -178,14 +180,11 @@ func PublishPlaylist(c *gin.Context) {
         return
     }
 
-    err := services.PublishPlaylistEfficient(req)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{
-            "error":   "Failed to sync with Spotify",
-            "details": err.Error(),
-        })
-        return
-    }
+	path := services.GetPlaylistParentsRecursive(req.SpotifyID, make(map[string]bool))
+
+	for id, val := range path {
+		if val { services.PublishPlaylistEfficient(id, path) }
+	}
 
     c.JSON(http.StatusOK, gin.H{
         "message":    "Playlist successfully synchronized",
@@ -203,26 +202,15 @@ func PublishPlaylist(c *gin.Context) {
 // @Failure      400      {object}  map[string]string "error: Bad Request"
 // @Router       /playlist/publishall [post]
 func PublishAllPlaylists(c *gin.Context) {
-	playlists, err := services.GetPlaylists()
+	roots := services.GetRoots()
 
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-    }
-
-	for _, p := range playlists {
-		err := services.PublishPlaylistOld(model.PlaylistPublishRequest{SpotifyID: p.SpotifyID})
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "Failed to sync with Spotify",
-				"details": err.Error(),
-			})
-			return
+	for r, val := range roots {
+		if val {
+			services.PublishPlaylistEfficient(r, roots)
 		}
 	}
 
-    c.JSON(http.StatusOK, gin.H{
-        "message":    "Playlists successfully synchronized",
-    })
+	c.JSON(http.StatusOK, gin.H{"message": "All playlists published"})
 }
 
 // GetPlaylistInclusions godoc
@@ -268,7 +256,7 @@ func GetPlaylistExclusions(c *gin.Context) {
         return
     }
 
-    exclusions := services.GetAllExcludedItemResopnses(id)
+    exclusions := services.GetAllExcludedItemResponses(id)
 
     c.JSON(http.StatusOK, exclusions)
 }
@@ -347,6 +335,7 @@ func GetAllPlaylistInclusions(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch inclusions"})
+		return
 	}
 
 	c.JSON(http.StatusOK, edges)

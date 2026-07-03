@@ -23,6 +23,12 @@ function App() {
     });
 
     useEffect(() => {
+        if (import.meta.env.VITE_MOCK_AUTH === 'true') {
+            setIsAuthenticated(true);
+            setIsLoading(false);
+            return;
+        }
+
         const checkAuth = async () => {
             try {
                 const response = await getAuthStatus();

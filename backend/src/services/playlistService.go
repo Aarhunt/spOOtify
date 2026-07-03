@@ -235,10 +235,10 @@ func AreItemsExcluded(playlistID string, ids []string) map[string]bool {
 }
 
 
-// GetAllExcludedItemResopnses
+// GetAllExcludedItemResponses
 // Get all excluded items of a given playlist.
 // Return all excluded items as ItemResponse.
-func GetAllExcludedItemResopnses(id string) []model.ItemResponse {
+func GetAllExcludedItemResponses(id string) []model.ItemResponse {
     var items []model.IdItem
 
     err := src.GetDbConn().Db.
@@ -278,7 +278,7 @@ func GetAllExcludedIDItems(id string) []model.IdItem {
 // getPlaylistParents
 // Get the parents of a playlist
 // Returns the playlists as model.Playlist objects
-func getPlaylistParents(id string) ([]model.Playlist) {
+func GetPlaylistParents(id string) ([]model.Playlist) {
 	var includedParents = []model.Playlist{}
 
     _ = src.GetDbConn().Db.
@@ -292,17 +292,17 @@ func getPlaylistParents(id string) ([]model.Playlist) {
 
 // getPlaylistParentsRecursive
 // Returns a map of visited playlists, with a map that is true when the node is a root. .
-func getPlaylistParentsRecursive(id string, root map[string]bool) map[string]bool {
+func GetPlaylistParentsRecursive(id string, root map[string]bool) map[string]bool {
 	if _, ok := root[id]; ok {
         return root
     }
 
     root[id] = false
 
-	parentPlaylists := getPlaylistParents(id)
+	parentPlaylists := GetPlaylistParents(id)
 
 	for _, parent := range parentPlaylists {
-		parentPlaylistsMap := getPlaylistParentsRecursive(parent.SpotifyID, root) 
+		parentPlaylistsMap := GetPlaylistParentsRecursive(parent.SpotifyID, root) 
 		for key, val := range parentPlaylistsMap {
 			root[key] = val 
 		}
@@ -311,6 +311,22 @@ func getPlaylistParentsRecursive(id string, root map[string]bool) map[string]boo
 	if (len(parentPlaylists) == 0) {root[id] = true}
 
 	return root
+}
+
+func GetRoots() map[string]bool {
+	playlists, _ := GetPlaylists();
+
+	roots := make(map[string]bool)
+
+	for _, p := range playlists {
+		roots[p.SpotifyID] = false
+		parents := GetPlaylistParents(p.SpotifyID)
+		if len(parents) == 0 {
+			roots[p.SpotifyID] = true
+		}
+	}
+
+	return roots
 }
 
 func GetPlaylistChildren(id string) ([]string) {
@@ -410,7 +426,7 @@ func getTracksFromPlaylist(p model.Playlist) []string {
     }
 
 
-	fmt.Println("%d tracks in playlist %s", len(finalTracks), p.Name)
+	fmt.Printf("%d tracks in playlist %s\n", len(finalTracks), p.Name)
 
 	return finalTracks
 }
@@ -442,7 +458,7 @@ func getTracksRecursive(id string, visited map[string]bool) (map[string]int, map
 		}
 	}
 
-	inclusions, exclusions := GetAllIncludedItemResponses(id), GetAllExcludedItemResopnses(id)
+	inclusions, exclusions := GetAllIncludedItemResponses(id), GetAllExcludedItemResponses(id)
 
     for _, v := range exclusions {
         switch v.ItemType {
@@ -485,36 +501,6 @@ func getTracksRecursive(id string, visited map[string]bool) (map[string]int, map
     return includedMap, excludedMap
 }
 
-func PublishPlaylistOld(req model.PlaylistPublishRequest) error {
-    playlist, err := GetPlaylist(req.SpotifyID)
-    if err != nil {
-        return err
-    }
-
-	affected := getPlaylistParentsRecursive(playlist.SpotifyID, make(map[string]bool))
-	affectedPlaylists := []*model.Playlist{playlist}
-	for id := range affected {
-		parent, err := GetPlaylist(id)
-		if err != nil {
-			return err
-		}
-		affectedPlaylists = append(affectedPlaylists, parent)
-	}
-
-	fmt.Println("%d playlists affected", len(affectedPlaylists))
-
-	for _, p := range affectedPlaylists {
-
-		trackIDs := getTracksFromPlaylist(*p)
-
-		err := publishPlaylist(trackIDs,  p.SpotifyID)
-		if err != nil {
-			return err
-		}
-	}
-    return nil
-}
-
 func publishPlaylist(trackStringIDs []string, id string) error {
     spotiConn := src.GetSpotifyConn()
     ctx, client := spotiConn.Ctx, spotiConn.Client
@@ -541,33 +527,19 @@ func publishPlaylist(trackStringIDs []string, id string) error {
 	return nil
 }
 
-func PublishPlaylistEfficient(req model.PlaylistPublishRequest) error {
-
-	path := getPlaylistParentsRecursive(req.SpotifyID, make(map[string]bool))
-
-	fmt.Println(path)
-
-	for id, val := range path {
-		if val { PublishPlaylistEfficientRecursive(id, path) }
-	}
-
-	return nil
-}
-
-func PublishPlaylistEfficientRecursive(id string, path map[string]bool) []string {
+func PublishPlaylistEfficient(id string, path map[string]bool) []string {
 	p, _ := GetPlaylist(id)
 	children := GetPlaylistChildren(id)
 
 	totalTracks := []string{}
 
 	for _, c := range children {
-		totalTracks = append(totalTracks, PublishPlaylistEfficientRecursive(c, path)...)
+		totalTracks = append(totalTracks, PublishPlaylistEfficient(c, path)...)
 	}
 
 	_, ok := path[id]
 
 	if p.Changed || ok {
-
 		currentInclusions, currentExclusions := getTracksFromSinglePlaylist(id)
 
 		for id,inc := range currentInclusions {
@@ -580,7 +552,7 @@ func PublishPlaylistEfficientRecursive(id string, path map[string]bool) []string
 
 		deletions := []string{}
 		for excId, exc := range currentExclusions {
-			if inc, ok := currentInclusions[id]; ok {
+			if inc, ok := currentInclusions[excId]; ok {
 				if !model.IsIncluded(inc, exc) {
 					deletions = append(deletions, excId)
 				}
@@ -588,7 +560,6 @@ func PublishPlaylistEfficientRecursive(id string, path map[string]bool) []string
 				deletions = append(deletions, excId)
 			}
 		}
-
 
 		fmt.Printf("%d tracks in playlist %s", len(totalTracks), id)
 		totalTracks = slices.DeleteFunc(totalTracks, func(id string) bool {return slices.Contains(deletions, id)})

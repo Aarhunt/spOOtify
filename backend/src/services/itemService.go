@@ -218,19 +218,31 @@ func IncludePlaylist(req model.ItemPlaylistRequest) (*model.PlaylistResponse, er
 	ctx, db := dbConn.Ctx, dbConn.Db
 
 	parentPlaylist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", req.ParentSpotifyID).First(ctx)
+	if err != nil {
+		return nil, err
+	}
 	childPlaylist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", req.ChildSpotifyID).First(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	err = db.Model(&parentPlaylist).Association("IncludedPlaylists").Append(&childPlaylist)
 	return parentPlaylist.ToResponse(), err
 }
 
-// Include a playlist into a playlist
+// Undo including a playlist into a playlist
 func UndoIncludePlaylist(req model.ItemPlaylistRequest) (*model.PlaylistResponse, error) {
 	dbConn := src.GetDbConn()
 	ctx, db := dbConn.Ctx, dbConn.Db
 
 	parentPlaylist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", req.ParentSpotifyID).First(ctx)
+	if err != nil {
+		return nil, err
+	}
 	childPlaylist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", req.ChildSpotifyID).First(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	err = db.Model(&parentPlaylist).Association("IncludedPlaylists").Delete(&childPlaylist)
 	return parentPlaylist.ToResponse(), err
@@ -324,8 +336,6 @@ func AlbumToResponse(albums []model.Album, playlist *model.Playlist) []model.Ite
 
 	incMap := AreItemsIncluded(playlist.SpotifyID, append(albumIDs, artistIDs...))
 	excMap := AreItemsExcluded(playlist.SpotifyID, append(albumIDs, artistIDs...))
-
-	fmt.Println(incMap)
 
 	return utils.Map(albums, func(a model.Album) model.ItemResponse {
 
@@ -465,12 +475,10 @@ func SearchArtist(req model.SearchRequest) []model.ItemResponse {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
-	playlist, err := GetPlaylist(req.PlaylistID)
+	playlist, _ := GetPlaylist(req.PlaylistID)
 	results, err := client.Search(ctx, req.Query, spotify.SearchTypeArtist, spotify.Limit(5))
-
-	// handle album results
 	if err != nil {
-		log.Fatal("help")
+		log.Fatal(err)
 	}
 	return ArtistToResponse(model.ToArtists(results.Artists.Artists), playlist)
 }
@@ -479,12 +487,10 @@ func SearchAlbum(req model.SearchRequest) []model.ItemResponse {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
-	playlist, err := GetPlaylist(req.PlaylistID)
+	playlist, _ := GetPlaylist(req.PlaylistID)
 	results, err := client.Search(ctx, req.Query, spotify.SearchTypeAlbum, spotify.Limit(5))
-
-	// handle album results
 	if err != nil {
-		log.Fatal("help")
+		log.Fatal(err)
 	}
 	return AlbumToResponse(model.ToAlbums(results.Albums.Albums), playlist)
 }
@@ -493,12 +499,10 @@ func SearchTrack(req model.SearchRequest) []model.ItemResponse {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
-	playlist, err := GetPlaylist(req.PlaylistID)
+	playlist, _ := GetPlaylist(req.PlaylistID)
 	results, err := client.Search(ctx, req.Query, spotify.SearchTypeTrack, spotify.Limit(5))
-
-	// handle album results
 	if err != nil {
-		log.Fatal("help")
+		log.Fatal(err)
 	}
 	return TrackToResponse(model.ToTracks(results.Tracks.Tracks), playlist)
 }
