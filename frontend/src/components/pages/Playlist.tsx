@@ -32,8 +32,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import { usePlaylistStore } from "@/components/stores/playlist.store"
+import { postSearch, getSpotifyArtistByIdGenres} from "@/client"
+import type { ModelItemResponse } from "@/client/types.gen"
+import { SearchResultItem } from "@/components/pages/Search"
 
 import { Spinner } from "@/components/ui/spinner"
+import { GenrePill } from "../utils/GenrePill"
 
 
 const sidebarActionClass = "w-full justify-start gap-3 px-3 py-6 text-gray-400 hover:text-white hover:bg-white/10 border-none transition-all";
@@ -249,68 +253,219 @@ export function RenameDialog() {
 
 export function CreateDialog() {
     const createPlaylist = usePlaylistStore((state) => state.createPlaylist);
-    
-    const [playlistName, setPlaylistName] = React.useState("My Playlist");
-    const inputId = React.useId(); 
 
-    const handleCreate = async () => {
-        if (!playlistName.trim()) return;
-        await createPlaylist(playlistName);
+    const [open, setOpen] = React.useState(false);
+    const [step, setStep] = React.useState<1 | 2 | 3>(1);
+    const [playlistName, setPlaylistName] = React.useState("My Playlist");
+    const [newPlaylistId, setNewPlaylistId] = React.useState("");
+    const [suggestions, setSuggestions] = React.useState<ModelItemResponse[]>([]);
+    const [suggestionsLoading, setSuggestionsLoading] = React.useState(false);
+    const [genreSuggestions, setGenreSuggestions] = React.useState<string[]>([]);
+    const [genreSuggestionsLoading, setGenreSuggestionsLoading] = React.useState(false);
+    const [includedArtist, setIncludedArtist] = React.useState("");
+    const [creating, setCreating] = React.useState(false);
+    const inputId = React.useId();
+
+    const { includePlaylist, playlistSelectionData, includeItem, undoIncludeItem } = usePlaylistStore();
+
+    const resetDialog = () => {
+        setStep(1);
         setPlaylistName("My Playlist");
+        setSuggestions([]);
+        setNewPlaylistId("");
     };
 
+    const handleOpenChange = (isOpen: boolean) => {
+        setOpen(isOpen);
+        if (!isOpen) resetDialog();
+    };
+
+    const handleNext = async () => {
+        if (!playlistName.trim()) return;
+        setCreating(true);
+        const newId = await createPlaylist("[S] " + playlistName);
+        setCreating(false);
+        if (!newId) return;
+
+        setNewPlaylistId(newId);
+        setStep(2);
+        setSuggestionsLoading(true);
+        try {
+            const res = await postSearch({ body: { playlistid: newId, query: playlistName, type: 1 } });
+            setSuggestions(res.data ?? []);
+        } finally {
+            setSuggestionsLoading(false);
+        }
+    };
+
+    const handleNextNext = async () => {
+        setStep(3);
+        setGenreSuggestionsLoading(true);
+        try {
+            const res = await getSpotifyArtistByIdGenres({ path: {id: includedArtist}})
+            setGenreSuggestions(res.data ?? []);
+        } finally {
+            setGenreSuggestionsLoading(false);
+        }
+    };
+
+    const handleIncludeToggle = async (itemId: string, include: boolean, undo: boolean) => {
+        const newIncluded = undo ? 0 : (include ? 1 : 2);
+        setSuggestions(prev => prev.map(s => s.spotifyID === itemId ? { ...s, included: newIncluded } : s));
+        try {
+            if (undo) {
+                await undoIncludeItem(itemId, include, 1)
+            } else {
+                await includeItem(itemId, include, 1)
+            }
+        } catch {
+            setSuggestions(prev => prev.map(s => s.spotifyID === itemId ? { ...s, included: undo ? newIncluded : 0 } : s));
+        }
+    };
+
+    const handleIncludePlaylist = async (name: string) => {
+        var genrePlaylist = playlistSelectionData.find(i => i.name?.toLowerCase() == name.toLowerCase())?.spotifyID
+
+        if (!genrePlaylist) {
+            const genrePlaylist = await createPlaylist(name)
+            if (!genrePlaylist) return;
+        }
+
+
+        await includePlaylist(genrePlaylist!!, newPlaylistId)
+    }
 
     return (
-        <Dialog>
-<DialogTrigger asChild>
-                <Button variant="ghost" className={sidebarActionClass}><Plus size={18} className="text-[#1DB954]" /> Create Playlist</Button>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogTrigger asChild>
+                <Button variant="ghost" className={sidebarActionClass}>
+                    <Plus size={18} className="text-[#1DB954]" /> Create Playlist
+                </Button>
             </DialogTrigger>
-<DialogContent className="max-w-[700px] sm:max-w-md bg-[#181818] border-[#282828] text-white shadow-2xl">
-  <DialogHeader>
-    <DialogTitle className="text-xl font-bold flex items-center gap-2">
-      <Plus className="text-[#1DB954] h-5 w-5" /> Create New Playlist
-    </DialogTitle>
-    <DialogDescription className="text-gray-400 text-sm pt-2">
-      Give your new collection a name. You can add tracks to it immediately after.
-    </DialogDescription>
-  </DialogHeader>
-
-  <div className="flex flex-col gap-4 py-4">
-    <div className="grid gap-2">
-      <Label htmlFor={inputId} className="text-xs font-bold uppercase tracking-wider text-gray-500">
-        Playlist Name
-      </Label>
-      <Input
-        id={inputId}
-        value={playlistName}
-        onChange={(e) => setPlaylistName(e.target.value)}
-        placeholder="e.g. Late Night Vibes"
-        className="bg-[#242424] border-[#3e3e3e] text-white placeholder:text-gray-600 focus:ring-1 focus:ring-[#1DB954] focus:border-[#1DB954] transition-all h-11"
-      />
-    </div>
-  </div>
-
-  <DialogFooter className="sm:justify-end gap-2">
-    <DialogClose asChild>
-      <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5">
-        Cancel
-      </Button>
-    </DialogClose>
-    
-    <DialogClose asChild>
-      <Button 
-        type="button" 
-        onClick={handleCreate}
-        disabled={!playlistName.trim()}
-        className="bg-white hover:bg-gray-200 text-black font-bold px-8 rounded-full transition-all disabled:bg-gray-700 disabled:text-gray-400"
-      >
-        Create Playlist
-      </Button>
-    </DialogClose>
-  </DialogFooter>
-</DialogContent>
+            <DialogContent className="sm:max-w-md bg-[#181818] border-[#282828] text-white shadow-2xl">
+                {step === 1 ? (
+                    <>
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                <Plus className="text-[#1DB954] h-5 w-5" /> Create New Playlist
+                            </DialogTitle>
+                            <DialogDescription className="text-gray-400 text-sm pt-2">
+                                Give your new collection a name. You can add tracks to it immediately after.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor={inputId} className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                                    Playlist Name
+                                </Label>
+                                <Input
+                                    id={inputId}
+                                    value={playlistName}
+                                    onChange={(e) => setPlaylistName(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleNext()}
+                                    placeholder="e.g. Late Night Vibes"
+                                    className="bg-[#242424] border-[#3e3e3e] text-white placeholder:text-gray-600 focus:ring-1 focus:ring-[#1DB954] focus:border-[#1DB954] transition-all h-11"
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter className="sm:justify-end gap-2">
+                            <DialogClose asChild>
+                                <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5">
+                                    Cancel
+                                </Button>
+                            </DialogClose>
+                            <Button
+                                type="button"
+                                onClick={handleNext}
+                                disabled={!playlistName.trim() || creating}
+                                className="bg-white hover:bg-gray-200 text-black font-bold px-8 rounded-full transition-all disabled:bg-gray-700 disabled:text-gray-400"
+                            >
+                                {creating ? <Spinner className="text-black" /> : "Next →"}
+                            </Button>
+                        </DialogFooter>
+                    </>
+                ) : step === 2 ? (
+                    <>
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold">Suggested Artists</DialogTitle>
+                            <DialogDescription className="text-gray-400 text-sm pt-2">
+                                Based on <span className="text-white font-medium">"{playlistName}"</span> — include artists to get you started.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-2">
+                            {suggestionsLoading ? (
+                                <div className="flex justify-center py-10">
+                                    <Spinner />
+                                </div>
+                            ) : suggestions.length > 0 ? (
+                                <div className="flex flex-col gap-1 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                                    {suggestions.map(item => (
+                                        <SearchResultItem
+                                            key={item.spotifyID}
+                                            item={item}
+                                            onAction={(id, include, _type, undo) => {handleIncludeToggle(id, include, undo); setIncludedArtist(id)}}
+                                            onExpand={() => {}}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-400 text-center py-10">No suggestions found.</p>
+                            )}
+                        </div>
+                        <DialogFooter className="sm:justify-end">
+                            <DialogClose asChild>
+                                <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5">
+                                    Cancel
+                                </Button>
+                            </DialogClose>
+                            <Button
+                                type="button"
+                                onClick={handleNextNext}
+                                disabled={!playlistName.trim() || creating}
+                                className="bg-white hover:bg-gray-200 text-black font-bold px-8 rounded-full transition-all disabled:bg-gray-700 disabled:text-gray-400"
+                            >
+                                {creating ? <Spinner className="text-black" /> : "Next →"}
+                            </Button>
+                        </DialogFooter>
+                    </>
+                ) : (
+                    <>
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold">Suggested Playlists</DialogTitle>
+                        </DialogHeader>
+                        <div className="py-2">
+                            {genreSuggestionsLoading ? (
+                                <div className="flex justify-center py-10">
+                                    <Spinner />
+                                </div>
+                            ) : genreSuggestions.length > 0 ? (
+                                <div className="flex flex-col gap-1 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                                    {genreSuggestions.map(item => (
+                                        <GenrePill
+                                            key={item}
+                                            name={item}
+                                            onSelect={(item) => {handleIncludePlaylist(item)}}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-400 text-center py-10">No suggestions found.</p>
+                            )}
+                        </div>
+                        <DialogFooter className="sm:justify-end">
+                            <Button
+                                type="button"
+                                onClick={() => setOpen(false)}
+                                className="bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold px-8 rounded-full transition-all"
+                            >
+                                Done
+                            </Button>
+                        </DialogFooter>
+                    </>
+                )}
+            </DialogContent>
         </Dialog>
-    )
+    );
 }
 
 export function PlaylistSearch() {

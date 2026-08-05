@@ -47,6 +47,19 @@ func GetAlbumsFromArtistById(id string, includeSingles bool) []model.Album{
 	return model.ToAlbums(albums.Albums)
 }
 
+func GetGenresFromArtist(id string) ([]string, error) {
+    spotiConn := src.GetSpotifyConn()
+    ctx, client := spotiConn.Ctx, spotiConn.Client
+
+    artist, err := client.GetArtist(ctx, model.ToSpotifyID(id))
+    if err != nil {
+        return nil, err
+    }
+
+    return model.ToArtist(artist).Genres, nil
+}
+
+
 // Get all tracks from an artist given its id.
 func getTracksFromArtistById(id string) []model.Track{
 	albums := GetAlbumsFromArtistById(id, false)

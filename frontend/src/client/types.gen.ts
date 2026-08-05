@@ -694,3 +694,47 @@ export type PostSpotifyArtistAlbumsResponses = {
 };
 
 export type PostSpotifyArtistAlbumsResponse = PostSpotifyArtistAlbumsResponses[keyof PostSpotifyArtistAlbumsResponses];
+
+export type GetSpotifyArtistByIdGenresData = {
+    body?: never;
+    path: {
+        /**
+         * Spotify Artist ID
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/spotify/artist/{id}/genres';
+};
+
+export type GetSpotifyArtistByIdGenresErrors = {
+    /**
+     * Bad Request
+     */
+    400: {
+        [key: string]: string;
+    };
+    /**
+     * Unauthorized
+     */
+    401: {
+        [key: string]: string;
+    };
+    /**
+     * Internal Server Error
+     */
+    500: {
+        [key: string]: string;
+    };
+};
+
+export type GetSpotifyArtistByIdGenresError = GetSpotifyArtistByIdGenresErrors[keyof GetSpotifyArtistByIdGenresErrors];
+
+export type GetSpotifyArtistByIdGenresResponses = {
+    /**
+     * OK
+     */
+    200: Array<string>;
+};
+
+export type GetSpotifyArtistByIdGenresResponse = GetSpotifyArtistByIdGenresResponses[keyof GetSpotifyArtistByIdGenresResponses];

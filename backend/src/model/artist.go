@@ -10,23 +10,26 @@ type Artist struct {
 	ID   string     `json:"id"`
 	// Images of the artist in various sizes, widest first.
 	Images []Image `json:"images"`
+	Genres []string `json:"genres"`
 }
 
 func ToArtist[A *spotify.FullArtist | spotify.FullArtist](a A) Artist {
 	var name, id string
 	var images []Image
+	var genres []string
 
 	switch artist := any(a).(type) {
 	case *spotify.FullArtist:
-		id, name, images = artist.ID.String(), artist.Name, ToImages(artist.Images)
+		id, name, images, genres = artist.ID.String(), artist.Name, ToImages(artist.Images), artist.Genres
 	case spotify.FullArtist:
-		id, name, images = artist.ID.String(), artist.Name, ToImages(artist.Images)
+		id, name, images, genres = artist.ID.String(), artist.Name, ToImages(artist.Images), artist.Genres
 	}
 
 	return Artist{
 		Name:   name,
 		ID:     id,
 		Images: images,
+		Genres: genres,
 	}
 }
 

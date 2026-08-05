@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/aarhunt/spootify/src/model"
 	"github.com/aarhunt/spootify/src/services"
@@ -339,4 +338,39 @@ func GetAllPlaylistInclusions(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, edges)
+}
+
+// GetArtistGenresController godoc
+// @Summary      Get Genres by Artist ID
+// @Description  Fetches the genres associated with a specific Spotify artist
+// @Tags         artists
+// @Produce      json
+// @Param        id   path      string  true  "Spotify Artist ID"
+// @Success      200  {array}   string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /spotify/artist/{id}/genres [get]
+func GetArtistGenres(c *gin.Context) {
+    artistID := c.Param("id")
+    if artistID == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Artist ID is required"})
+        return
+    }
+
+    genres, err := services.GetGenresFromArtist(artistID)
+    if err != nil {
+        if err.Error() == "spotify client not initialized" {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated with Spotify"})
+            return
+        }
+        
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error":   "Failed to fetch artist genres",
+            "details": err.Error(),
+        })
+        return
+    }
+
+    c.JSON(http.StatusOK, genres)
 }
