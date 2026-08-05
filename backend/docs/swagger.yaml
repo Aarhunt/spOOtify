@@ -680,6 +680,45 @@ paths:
       summary: Get Tracks by Album
       tags:
       - spotify
+  /spotify/artist/{id}/genres:
+    get:
+      description: Fetches the genres associated with a specific Spotify artist
+      parameters:
+      - description: Spotify Artist ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Genres by Artist ID
+      tags:
+      - artists
   /spotify/artist/albums:
     post:
       consumes:

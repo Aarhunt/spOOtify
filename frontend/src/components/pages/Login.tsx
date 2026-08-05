@@ -8,7 +8,7 @@ export default function Login() {
     const handleLogin = async () => {
         setLoading(true);
         try {
-            const response = await getAuthUrl();
+            const response = await getAuthUrl({ credentials: 'include' });
 
             console.log(response.data)
             

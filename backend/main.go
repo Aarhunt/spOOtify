@@ -39,7 +39,7 @@ func main() {
 
 	apiHost := os.Getenv("API_HOST")
     if apiHost == "" {
-        apiHost = "localhost:8080"
+		apiHost = "127.0.0.1:8080"
     }
     apiScheme := os.Getenv("API_SCHEME")
     if apiScheme == "" {
@@ -99,6 +99,7 @@ func main() {
 			spot := v1.Group("/spotify")
 			spot.POST("/artist/albums", controllers.GetAlbumsFromArtist)
 			spot.POST("/album/tracks", controllers.GetTracksFromAlbum)
+			spot.GET("/artist/:id/genres", controllers.GetArtistGenres)
 		}
 	}
 
@@ -115,7 +116,8 @@ func getOrigins() []string {
     origins := os.Getenv("ALLOWED_ORIGINS")
     if origins == "" {
         // Safe default for local development
-        return []string{"http://localhost:3000", "http://localhost:5173"}
+		return []string{"http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:8080"}
     }
+    fmt.Printf("parsed origins: %q\n", origins) // temporary debug
     return strings.Split(origins, ",")
 }
