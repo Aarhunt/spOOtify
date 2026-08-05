@@ -64,6 +64,7 @@ export default function Playlist() {
                     <CreateDialog />
                     <RenameDialog />
                     <DeleteDialog />
+                    <PrefixDialog />
                 </div>
             </div>
 
@@ -520,4 +521,71 @@ export function PlaylistSearch() {
     )
 }
 
+export function PrefixDialog() {
+    const { setPlaylistPrefix, getPlaylistPrefix, currentPlaylistId: currentId } = usePlaylistStore()
 
+    const [currentPrefix, setCurrentPrefix] = React.useState(getPlaylistPrefix);
+    const inputId = React.useId(); 
+
+    const handleUpdate = async () => {
+        setPlaylistPrefix(currentPrefix);
+    };
+
+
+    return (
+        <Dialog>
+        <DialogTrigger asChild>
+                <Button variant="ghost" className={cn(sidebarActionClass)}>
+                    <Trash size={18} /> Change Prefix
+                </Button>
+            </DialogTrigger>
+                <DialogContent className="max-w-[700px] sm:max-w-md bg-[#181818] border-[#282828] text-white shadow-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-bold">Change Prefix</DialogTitle>
+                    <DialogDescription className="text-gray-400 text-sm pt-2">
+                       Change the prefix that is prepended to each playlist. This will not retroactively update all playlists.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="flex flex-col gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor={inputId} className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                        New Prefix
+                      </Label>
+                      <Input
+                        id={inputId}
+                        value={currentPrefix}
+                        onChange={(e) => setCurrentPrefix(e.target.value)}
+                        placeholder={currentPrefix}
+                        className="bg-[#242424] border-[#3e3e3e] text-white placeholder:text-gray-600 focus:ring-1 focus:ring-destructive focus:border-destructive transition-all h-11"
+                      />
+                    </div>
+                  </div>
+
+                  <DialogFooter className="sm:justify-end gap-2">
+                    <DialogClose asChild>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        className="text-gray-400 hover:text-white hover:bg-white/5"
+                      >
+                        Cancel
+                      </Button>
+                    </DialogClose>
+                    
+                    <DialogClose asChild>
+                      <Button 
+                        type="button" 
+                        onClick={handleUpdate}
+                        className={cn(
+                          "font-bold px-8 transition-all",
+                        )}
+                      >
+                        Confirm Prefix
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+        </Dialog>
+    )
+}

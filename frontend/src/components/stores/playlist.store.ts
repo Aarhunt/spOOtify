@@ -7,6 +7,7 @@ import { createFlowEdge, getLayoutedElements, mapInclusionsToEdges, mapPlaylists
 
 
 interface PlaylistState {
+    playlistPrefix: string;
     playlistSelectionData: ModelPlaylistResponse[];
     playlistNodeData: Node[];
     playlistEdgeData: Edge[];
@@ -47,7 +48,7 @@ interface PlaylistState {
     summaryType: number;
     fetchSelectionData: () => Promise<void>;
     setCurrentPlaylist: (id: string, name: string) => void;
-    createPlaylist: (name: string) => Promise<void>;
+    createPlaylist: (name: string) => Promise<string | undefined>;
     publishPlaylist: () => Promise<void>;
     publishPlaylists: () => Promise<void>;
     deletePlaylist: () => Promise<void>;
@@ -73,9 +74,12 @@ interface PlaylistState {
     setSummaryLoading: (loading: boolean) => void;
     setPlaylistNodes: (updater: Node[] | ((nds: Node[]) => Node[])) => void;
     setPlaylistEdges: (updater: Edge[] | ((eds: Edge[]) => Edge[])) => void;
+    setPlaylistPrefix: (prefix: string) => void;
+    getPlaylistPrefix: () => string;
 }
 
 export const usePlaylistStore = create<PlaylistState>((set, get) => ({
+    playlistPrefix: "[S]",
     playlistSelectionData: [],
     playlistNodeData: [],
     playlistEdgeData: [],
@@ -148,9 +152,10 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
     createPlaylist: async (name: string) => {
         set({ selectionLoading: true });
+        name = "[S]" + " " + name
         try {
             const response = await postPlaylist({
-                body: { name } 
+                body: { name }
             });
 
             if (response.data) {
@@ -159,11 +164,13 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                     selectionLoading: false,
                     currentPlaylistId: response.data.spotifyID
                 }));
+                return response.data.spotifyID;
             }
         } catch (err) {
             console.error("Creation failed", err);
             set({ selectionLoading: false, error: true });
         }
+        return undefined;
     },
 
     publishPlaylist: async () => {
@@ -506,14 +513,14 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
         }
     },
 
-    includePlaylist: async (playlistId: string, itemId: string) => {
+    includePlaylist: async (parentPlaylistID: string, childPlaylistId: string) => {
         set({ includeLoading: true });
 
         try {
             const response = await postPlaylistInclude({
                 body: {
-                    pspotid: playlistId,
-                    cspotid: itemId,
+                    pspotid: parentPlaylistID,
+                    cspotid: childPlaylistId,
                 }
             });
 
@@ -523,7 +530,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                 const playlistSearchData = state.playlistSearchData
 
                 // If there is a frontend element in search, update that
-                const foundIndex = playlistSearchData.findIndex(i => i.spotifyID === itemId);
+                const foundIndex = playlistSearchData.findIndex(i => i.spotifyID === childPlaylistId);
                 if (foundIndex !== -1) playlistSearchData[foundIndex] = {...playlistSearchData[foundIndex], included: targetValue}
                 const newItem = playlistSearchData[foundIndex]
 
@@ -533,7 +540,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
                 set({ includeLoading: false, playlistSearchData: playlistSearchData, playlistSummaryData: playlistSummaryData });
                 //
                 // Replace that large object literal with the factory
-                const newEdge = createFlowEdge({ source: itemId, target: playlistId });
+                const newEdge = createFlowEdge({ source: childPlaylistId, target: parentPlaylistID });
                 get().setPlaylistEdges((eds: Edge[]) => [...eds, newEdge]);
             }
         } catch (err) {
@@ -651,7 +658,14 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     setSummaryType: (val: ModelItemType) => set({ summaryType: val, artistSummaryData: [], albumSummaryData: [], trackSummaryData: [], albumSummaryExpandData: [], trackSummaryExpandData: [] }),
         setCurrentSummaryArtist: (val: string) => set({ currentSummarySelectedArtist: val }),
         setCurrentSummaryAlbum: (val: string) => set({ currentSummarySelectedAlbum: val }),
-        setSummaryLoading: (loading: boolean) => set({ summaryPlaylistsLoading: loading, summaryArtistsLoading: loading, summaryAlbumsLoading: loading, summaryTracksLoading: loading})
+        setSummaryLoading: (loading: boolean) => set({ summaryPlaylistsLoading: loading, summaryArtistsLoading: loading, summaryAlbumsLoading: loading, summaryTracksLoading: loading}),
+
+    setPlaylistPrefix: (prefix: string) => set({ playlistPrefix: prefix}),
+
+    getPlaylistPrefix() {
+        return get().playlistPrefix
+    },
+
 }));
 
 
