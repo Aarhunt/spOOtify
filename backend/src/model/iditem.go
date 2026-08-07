@@ -54,7 +54,7 @@ type ItemRequest struct {
 
 type SearchRequest struct {
 	Query      string   `json:"query"`
-	PlaylistID string   `json:"playlistid" binding:"required"`
+	PlaylistID string   `json:"playlistid"`
 	ItemType   ItemType `json:"type"`
 }
 

@@ -305,7 +305,8 @@ func ToItemResponse(items []model.IdItem, included model.InclusionType) []model.
 	return results
 }
 
-func ArtistToResponse(artists []model.Artist, playlist *model.Playlist) []model.ItemResponse {
+func ArtistToPlaylistResponse(artists []model.Artist, playlistID string) []model.ItemResponse {
+	playlist, _ := GetPlaylist(playlistID)
 	artistIDs := utils.Map(artists, func(a model.Artist) string {
 		return a.ID
 	})
@@ -329,7 +330,20 @@ func ArtistToResponse(artists []model.Artist, playlist *model.Playlist) []model.
 	})
 }
 
-func AlbumToResponse(albums []model.Album, playlist *model.Playlist) []model.ItemResponse {
+func ArtistToResponse(artists []model.Artist) []model.ItemResponse {
+	return utils.Map(artists, func(a model.Artist) model.ItemResponse {
+		return model.ItemResponse {
+			SpotifyID: a.ID,
+			Name:      a.Name,
+			Icon:      a.Images,
+			ItemType:  model.ArtistItem,
+			Included:  model.Nothing,
+		}
+	})
+}
+
+func AlbumToPlaylistResponse(albums []model.Album, playlistID string) []model.ItemResponse {
+	playlist, _ := GetPlaylist(playlistID)
 	albumIDs := utils.Map(albums, func(a model.Album) string { return a.ID })
 	artistIDs := utils.Map(albums, func(a model.Album) string { return a.ArtistID })
 
@@ -364,7 +378,23 @@ func AlbumToResponse(albums []model.Album, playlist *model.Playlist) []model.Ite
 	})
 }
 
-func singleAlbumTrackToResponse(tracks []model.Track, playlist *model.Playlist, album string) []model.ItemResponse {
+func AlbumToResponse(albums []model.Album) []model.ItemResponse {
+	return utils.Map(albums, func(a model.Album) model.ItemResponse {
+
+		inclusion := a.AlbumType == "album"
+		return model.ItemResponse{
+			SpotifyID:        a.ID,
+			Name:             a.Name,
+			Icon:             a.Images,
+			ItemType:         model.AlbumItem,
+			Included:         model.Nothing,
+			InclusionByProxy: &inclusion,
+			SortData:         a.ReleaseYear,
+		}
+	})
+}
+
+func singleAlbumTrackToPlaylistResponse(tracks []model.Track, playlist *model.Playlist, album string) []model.ItemResponse {
 	trackIDs := utils.Map(tracks, func(a model.Track) string { return a.ID })
 
 	incMap := AreItemsIncluded(playlist.SpotifyID, append(trackIDs, album))
@@ -396,7 +426,8 @@ func singleAlbumTrackToResponse(tracks []model.Track, playlist *model.Playlist, 
 	})
 }
 
-func TrackToResponse(tracks []model.Track, playlist *model.Playlist) []model.ItemResponse {
+func TrackToPlaylistResponse(tracks []model.Track, playlistID string) []model.ItemResponse {
+	playlist, _ := GetPlaylist(playlistID)
 	trackIDs := utils.Map(tracks, func(a model.Track) string { return a.ID })
 	albumIDs := utils.Map(tracks, func(a model.Track) string { return a.Album.ID })
 
@@ -423,6 +454,21 @@ func TrackToResponse(tracks []model.Track, playlist *model.Playlist) []model.Ite
 			Icon:             a.Album.Images,
 			ItemType:         model.TrackItem,
 			Included:         included,
+			InclusionByProxy: &inclusion,
+			SortData:         int(a.TrackNumber),
+		}
+	})
+}
+
+func TrackToResponse(tracks []model.Track) []model.ItemResponse {
+	return utils.Map(tracks, func(a model.Track) model.ItemResponse {
+		inclusion := true
+		return model.ItemResponse{
+			SpotifyID:        a.ID,
+			Name:             a.Name,
+			Icon:             a.Album.Images,
+			ItemType:         model.TrackItem,
+			Included:         model.Nothing,
 			InclusionByProxy: &inclusion,
 			SortData:         int(a.TrackNumber),
 		}
@@ -474,35 +520,46 @@ func SearchArtist(req model.SearchRequest) []model.ItemResponse {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
-	playlist, _ := GetPlaylist(req.PlaylistID)
 	results, err := client.Search(ctx, req.Query, spotify.SearchTypeArtist, spotify.Limit(5))
 	if err != nil {
 		log.Fatal(err)
 	}
-	return ArtistToResponse(model.ToArtists(results.Artists.Artists), playlist)
+
+	if (req.PlaylistID == "") {
+		return ArtistToResponse(model.ToArtists(results.Artists.Artists))
+	} else {
+		return ArtistToPlaylistResponse(model.ToArtists(results.Artists.Artists), req.PlaylistID)
+	}
 }
 
 func SearchAlbum(req model.SearchRequest) []model.ItemResponse {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
-	playlist, _ := GetPlaylist(req.PlaylistID)
 	results, err := client.Search(ctx, req.Query, spotify.SearchTypeAlbum, spotify.Limit(5))
 	if err != nil {
 		log.Fatal(err)
 	}
-	return AlbumToResponse(model.ToAlbums(results.Albums.Albums), playlist)
+	if (req.PlaylistID == "") {
+		return AlbumToResponse(model.ToAlbums(results.Albums.Albums))
+	} else {
+		return AlbumToPlaylistResponse(model.ToAlbums(results.Albums.Albums), req.PlaylistID)
+	}
 }
 
 func SearchTrack(req model.SearchRequest) []model.ItemResponse {
 	conn := src.GetSpotifyConn()
 	ctx, client := conn.Ctx, conn.Client
 
-	playlist, _ := GetPlaylist(req.PlaylistID)
 	results, err := client.Search(ctx, req.Query, spotify.SearchTypeTrack, spotify.Limit(5))
 	if err != nil {
 		log.Fatal(err)
 	}
-	return TrackToResponse(model.ToTracks(results.Tracks.Tracks), playlist)
+
+	if (req.PlaylistID == "") {
+		return TrackToResponse(model.ToTracks(results.Tracks.Tracks))
+	} else {
+		return TrackToPlaylistResponse(model.ToTracks(results.Tracks.Tracks), req.PlaylistID)
+	}
 }
 

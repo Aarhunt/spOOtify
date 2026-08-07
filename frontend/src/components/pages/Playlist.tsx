@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import { usePlaylistStore } from "@/components/stores/playlist.store"
-import { postSearch, getSpotifyArtistByIdGenres} from "@/client"
+import { postSearch, getSpotifyArtistByIdGenres, postPlaylistItem, postPlaylistItemUndo, postPlaylistInclude} from "@/client"
 import type { ModelItemResponse } from "@/client/types.gen"
 import { SearchResultItem } from "@/components/pages/Search"
 
@@ -267,13 +267,14 @@ export function CreateDialog() {
     const [creating, setCreating] = React.useState(false);
     const inputId = React.useId();
 
-    const { includePlaylist, playlistSelectionData, includeItem, undoIncludeItem } = usePlaylistStore();
+    const { playlistSelectionData, summary, setCurrentPlaylist, publishPlaylist } = usePlaylistStore();
 
     const resetDialog = () => {
         setStep(1);
         setPlaylistName("My Playlist");
         setSuggestions([]);
         setNewPlaylistId("");
+        setGenreSuggestions([]);
     };
 
     const handleOpenChange = (isOpen: boolean) => {
@@ -284,7 +285,7 @@ export function CreateDialog() {
     const handleNext = async () => {
         if (!playlistName.trim()) return;
         setCreating(true);
-        const newId = await createPlaylist("[S] " + playlistName);
+        const newId = await createPlaylist(playlistName);
         setCreating(false);
         if (!newId) return;
 
@@ -310,14 +311,36 @@ export function CreateDialog() {
         }
     };
 
+    const handleFinishDialog = async () => {
+        setCurrentPlaylist(newPlaylistId, playlistName)
+        await publishPlaylist()
+        await summary()
+        resetDialog()
+        setOpen(false)
+    }
+
     const handleIncludeToggle = async (itemId: string, include: boolean, undo: boolean) => {
         const newIncluded = undo ? 0 : (include ? 1 : 2);
         setSuggestions(prev => prev.map(s => s.spotifyID === itemId ? { ...s, included: newIncluded } : s));
         try {
             if (undo) {
-                await undoIncludeItem(itemId, include, 1)
+                await postPlaylistItemUndo({
+                    body: {
+                        include: include,
+                        playlistid: newPlaylistId,
+                        spotid: itemId,
+                        type: 1,
+                    }
+                });
             } else {
-                await includeItem(itemId, include, 1)
+                await postPlaylistItem({
+                    body: {
+                        include: include,
+                        playlistid: newPlaylistId,
+                        spotid: itemId,
+                        type: 1,
+                    }
+                });
             }
         } catch {
             setSuggestions(prev => prev.map(s => s.spotifyID === itemId ? { ...s, included: undo ? newIncluded : 0 } : s));
@@ -328,12 +351,16 @@ export function CreateDialog() {
         var genrePlaylist = playlistSelectionData.find(i => i.name?.toLowerCase() == name.toLowerCase())?.spotifyID
 
         if (!genrePlaylist) {
-            const genrePlaylist = await createPlaylist(name)
+            genrePlaylist = await createPlaylist(name)
             if (!genrePlaylist) return;
         }
 
-
-        await includePlaylist(genrePlaylist!!, newPlaylistId)
+        await postPlaylistInclude({
+            body: {
+                pspotid: genrePlaylist!!,
+                cspotid: newPlaylistId,
+            }
+        })
     }
 
     return (
@@ -343,7 +370,7 @@ export function CreateDialog() {
                     <Plus size={18} className="text-[#1DB954]" /> Create Playlist
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md bg-[#181818] border-[#282828] text-white shadow-2xl">
+            <DialogContent className="w-[50vw] sm:max-w-lg bg-[#181818] border-[#282828] text-white shadow-2xl">
                 {step === 1 ? (
                     <>
                         <DialogHeader>
@@ -456,7 +483,7 @@ export function CreateDialog() {
                         <DialogFooter className="sm:justify-end">
                             <Button
                                 type="button"
-                                onClick={() => setOpen(false)}
+                                onClick={() => handleFinishDialog()}
                                 className="bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold px-8 rounded-full transition-all"
                             >
                                 Done
@@ -522,7 +549,7 @@ export function PlaylistSearch() {
 }
 
 export function PrefixDialog() {
-    const { setPlaylistPrefix, getPlaylistPrefix, currentPlaylistId: currentId } = usePlaylistStore()
+    const { setPlaylistPrefix, getPlaylistPrefix } = usePlaylistStore()
 
     const [currentPrefix, setCurrentPrefix] = React.useState(getPlaylistPrefix);
     const inputId = React.useId(); 
@@ -589,3 +616,6 @@ export function PrefixDialog() {
         </Dialog>
     )
 }
+
+// TODO
+// Publish automatically

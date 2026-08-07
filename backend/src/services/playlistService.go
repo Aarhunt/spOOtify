@@ -26,12 +26,8 @@ func GetPlaylists() ([]model.PlaylistResponse, error) {
 	return utils.Map(playlists, func (p model.Playlist) model.PlaylistResponse { return  *p.ToResponse() }), err.Error
 }
 
-// SearchPlaylist
-// Search for a playlist by query. Does not return the current playlist.
-// Returns ItemResponses for all found playlists.
-func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
+func PlaylistToPlaylistResponse(playlists []model.PlaylistResponse, req model.SearchRequest) []model.ItemResponse {
 	playlist, _ := GetPlaylist(req.PlaylistID)
-	playlists, _ := GetPlaylists()
 	children := getPlaylistSubtree(req.PlaylistID, make(map[string]bool));
 
 	playlists = slices.DeleteFunc(playlists, func(p model.PlaylistResponse) bool {
@@ -57,12 +53,41 @@ func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
 	return utils.Map(playlists, newVar)
 }
 
+// SearchPlaylist
+// Search for a playlist by query. Does not return the current playlist.
+// Returns ItemResponses for all found playlists.
+func SearchPlaylist(req model.SearchRequest) []model.ItemResponse {
+	playlists, _ := GetPlaylists()
+
+	if req.PlaylistID == "" {
+		return PlaylistToResponse(playlists)
+	} else {
+		return PlaylistToPlaylistResponse(playlists, req)
+	}
+}
+
+func PlaylistToResponse(playlists []model.PlaylistResponse) []model.ItemResponse {
+	return utils.Map(playlists, func(p model.PlaylistResponse) model.ItemResponse {
+		return model.ItemResponse{
+			SpotifyID: p.SpotifyID,
+			Name:      p.Name,
+			Icon:      []model.Image{},
+			ItemType:  model.PlaylistItem,
+			Included:  model.Nothing,
+		}
+	})
+}
+
 // GetPlaylist
 // Gets a single playlist by id
 func GetPlaylist(id string) (*model.Playlist, error) {
 	dbConn := src.GetDbConn()
 	ctx, db := dbConn.Ctx, dbConn.Db
 	playlist, err := gorm.G[model.Playlist](db).Where("spotify_id = ?", id).First(ctx)
+
+	if (err != nil) {
+		return nil, err
+	}
 
 	return &playlist, err
 }

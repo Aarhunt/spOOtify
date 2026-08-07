@@ -84,11 +84,9 @@ func GetAlbumsFromArtist(c *gin.Context) {
 		return
 	}
 
-	playlist, _ := services.GetPlaylist(req.PlaylistID)
-
 	res := services.GetAlbumsFromArtistById(req.ParentID, true)
 
-	ret := services.AlbumToResponse(res, playlist)
+	ret := services.AlbumToPlaylistResponse(res, req.PlaylistID)
 
 	c.JSON(http.StatusOK, ret)
 }
@@ -110,11 +108,9 @@ func GetTracksFromAlbum(c *gin.Context) {
 		return
 	}
 
-	playlist, _ := services.GetPlaylist(req.PlaylistID)
-
 	res := services.GetTracksFromAlbumById(req.ParentID)
 
-	ret := services.TrackToResponse(res, playlist)
+	ret := services.TrackToPlaylistResponse(res, req.PlaylistID)
 
 	c.JSON(http.StatusOK, ret)
 }

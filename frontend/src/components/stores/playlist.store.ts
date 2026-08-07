@@ -152,18 +152,20 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
     createPlaylist: async (name: string) => {
         set({ selectionLoading: true });
-        name = "[S]" + " " + name
+        const prefixName = get().playlistPrefix + " " + name
         try {
             const response = await postPlaylist({
-                body: { name }
+                body: { name: prefixName }
             });
 
             if (response.data) {
+                response.data.name = name
                 set((state) => ({
                     playlistSelectionData: [...state.playlistSelectionData, response.data],
                     selectionLoading: false,
                     currentPlaylistId: response.data.spotifyID
                 }));
+                console.log(response.data.spotifyID)
                 return response.data.spotifyID;
             }
         } catch (err) {
@@ -225,6 +227,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
             }
             get().clearSearchData();
             get().clearSummaryData();
+            get().setCurrentPlaylist("", "");
         } catch (err) {
             console.error("Deletion failed", err);
             set({ deleteLoading: false, error: true });
@@ -255,7 +258,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
 
     clearSearchData: () => { set({ playlistSearchData: [], artistSearchData: [], albumSearchData: [], trackSearchData: [] })},
 
-        search: async (query: string) => {
+    search: async (query: string) => {
         set({ searchLoading: true});
         get().clearSearchData();
 
@@ -578,7 +581,7 @@ export const usePlaylistStore = create<PlaylistState>((set, get) => ({
     },
 
     clearSummaryData: async () => {
-        set({ albumSummaryExpandData: [], trackSummaryExpandData: [], artistSummaryData: [], albumSummaryData: [], trackSummaryData: []})
+        set({ albumSummaryExpandData: [], trackSummaryExpandData: [], playlistSummaryData: [], artistSummaryData: [], albumSummaryData: [], trackSummaryData: []})
     },
 
     summary: async () => {

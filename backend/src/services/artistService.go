@@ -4,6 +4,9 @@ import (
 	"log"
 	"slices"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/aarhunt/spootify/src"
 	"github.com/aarhunt/spootify/src/model"
 	"github.com/aarhunt/spootify/src/utils"
@@ -56,7 +59,14 @@ func GetGenresFromArtist(id string) ([]string, error) {
         return nil, err
     }
 
-    return model.ToArtist(artist).Genres, nil
+	genres := model.ToArtist(artist).Genres
+	titleGenres := []string{}
+	caser := cases.Title(language.English)
+	for _, v := range genres {
+		titleGenres = append(titleGenres, caser.String(v))
+	}
+
+    return titleGenres, nil
 }
 
 
