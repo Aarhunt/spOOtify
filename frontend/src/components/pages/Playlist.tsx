@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import { usePlaylistStore } from "@/components/stores/playlist.store"
-import { postSearch, getSpotifyArtistByIdGenres, postPlaylistItem, postPlaylistItemUndo, postPlaylistInclude} from "@/client"
+import { postSearch, getSpotifyArtistByIdGenres, postPlaylistItem, postPlaylistItemUndo, postPlaylistInclude, postPlaylistIncludeUndo} from "@/client"
 import type { ModelItemResponse } from "@/client/types.gen"
 import { SearchResultItem } from "@/components/pages/Search"
 
@@ -264,6 +264,7 @@ export function CreateDialog() {
     const [genreSuggestions, setGenreSuggestions] = React.useState<string[]>([]);
     const [genreSuggestionsLoading, setGenreSuggestionsLoading] = React.useState(false);
     const [includedArtist, setIncludedArtist] = React.useState("");
+    const [customGenre, setCustomGenre] = React.useState("");
     const [creating, setCreating] = React.useState(false);
     const inputId = React.useId();
 
@@ -319,6 +320,10 @@ export function CreateDialog() {
         setOpen(false)
     }
 
+    const handleCustomGenre = async (name: string) => {
+        setGenreSuggestions([...genreSuggestions, name])
+    }
+
     const handleIncludeToggle = async (itemId: string, include: boolean, undo: boolean) => {
         const newIncluded = undo ? 0 : (include ? 1 : 2);
         setSuggestions(prev => prev.map(s => s.spotifyID === itemId ? { ...s, included: newIncluded } : s));
@@ -347,7 +352,7 @@ export function CreateDialog() {
         }
     };
 
-    const handleIncludePlaylist = async (name: string) => {
+    const handleIncludePlaylist = async (name: string, isSelected: boolean) => {
         var genrePlaylist = playlistSelectionData.find(i => i.name?.toLowerCase() == name.toLowerCase())?.spotifyID
 
         if (!genrePlaylist) {
@@ -355,12 +360,22 @@ export function CreateDialog() {
             if (!genrePlaylist) return;
         }
 
-        await postPlaylistInclude({
-            body: {
-                pspotid: genrePlaylist!!,
-                cspotid: newPlaylistId,
-            }
-        })
+        if (isSelected) {
+            await postPlaylistInclude({
+                body: {
+                    pspotid: genrePlaylist,
+                    cspotid: newPlaylistId,
+                }
+            })
+        }
+        else {
+            await postPlaylistIncludeUndo({
+                body: {
+                    pspotid: genrePlaylist,
+                    cspotid: newPlaylistId,
+                }
+            })
+        }
     }
 
     return (
@@ -440,6 +455,7 @@ export function CreateDialog() {
                                 <p className="text-sm text-gray-400 text-center py-10">No suggestions found.</p>
                             )}
                         </div>
+
                         <DialogFooter className="sm:justify-end">
                             <DialogClose asChild>
                                 <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5">
@@ -472,7 +488,7 @@ export function CreateDialog() {
                                         <GenrePill
                                             key={item}
                                             name={item}
-                                            onSelect={(item) => {handleIncludePlaylist(item)}}
+                                            onSelect={(item, isSelected) => {handleIncludePlaylist(item, isSelected)}}
                                         />
                                     ))}
                                 </div>
@@ -480,6 +496,16 @@ export function CreateDialog() {
                                 <p className="text-sm text-gray-400 text-center py-10">No suggestions found.</p>
                             )}
                         </div>
+                        <div>
+                                <Input
+                                    id={inputId}
+                                    value={customGenre}
+                                    onChange={(e) => setCustomGenre(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleCustomGenre(customGenre)}
+                                    placeholder="e.g. Melodic Uptempo Doomdeath"
+                                    className="bg-[#242424] border-[#3e3e3e] text-white placeholder:text-gray-600 focus:ring-1 focus:ring-[#1DB954] focus:border-[#1DB954] transition-all h-11"
+                                />
+                                </div>
                         <DialogFooter className="sm:justify-end">
                             <Button
                                 type="button"
@@ -616,6 +642,3 @@ export function PrefixDialog() {
         </Dialog>
     )
 }
-
-// TODO
-// Publish automatically
